@@ -1,38 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+// Client Supabase côté serveur
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 interface User {
   id: string;
   phone: string;
   credits: number;
   pseudo: string | null;
-  createdAt: string;
-  updatedAt: string;
-  dashboardAccess?: boolean;
-  dashboardAccessExpiresAt?: string; // Date d'expiration accès admin
-}
-
-const usersFilePath = path.join(process.cwd(), 'data', 'users.json');
-
-function loadUsers(): User[] {
-  try {
-    if (fs.existsSync(usersFilePath)) {
-      const data = fs.readFileSync(usersFilePath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (e) {
-    console.error('Erreur chargement utilisateurs:', e);
-  }
-  return [];
-}
-
-function saveUsers(users: User[]) {
-  try {
-    fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
-  } catch (e) {
-    console.error('Erreur sauvegarde utilisateurs:', e);
-  }
+  created_at: string;
+  updated_at: string;
+  dashboard_access?: boolean;
+  dashboard_access_expires_at?: string; // Date d'expiration accès admin
 }
 
 // PATCH /api/admin/users - Modifier l'accès au tableau de bord
@@ -47,29 +30,33 @@ export async function PATCH(req: NextRequest) {
       }, { status: 400 });
     }
 
-    const users = loadUsers();
-    const userIndex = users.findIndex(u => u.id === userId);
-    
-    if (userIndex === -1) {
-      return NextResponse.json({ 
-        error: 'Utilisateur non trouvé' 
-      }, { status: 404 });
-    }
+    // Préparer les données de mise à jour
+    const updateData: any = {
+      dashboard_access: dashboardAccess,
+      updated_at: new Date().toISOString()
+    };
 
-    // Mettre à jour l'accès au tableau de bord
-    users[userIndex].dashboardAccess = dashboardAccess;
-    users[userIndex].updatedAt = new Date().toISOString();
     if (dashboardAccess) {
       // Accès donné : 30 jours à partir de maintenant
       const now = new Date();
       const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 jours
-      users[userIndex].dashboardAccessExpiresAt = expiresAt.toISOString();
+      updateData.dashboard_access_expires_at = expiresAt.toISOString();
     } else {
       // Accès retiré : supprimer la date d'expiration
-      delete users[userIndex].dashboardAccessExpiresAt;
+      updateData.dashboard_access_expires_at = null;
     }
-    
-    saveUsers(users);
+
+    const { error } = await supabase
+      .from('users')
+      .update(updateData)
+      .eq('id', userId);
+
+    if (error) {
+      console.error('Erreur mise à jour utilisateur:', error);
+      return NextResponse.json({ 
+        error: 'Erreur lors de la modification de l\'accès' 
+      }, { status: 500 });
+    }
 
     return NextResponse.json({ 
       success: true, 

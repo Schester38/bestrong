@@ -1,59 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+// Client Supabase côté serveur
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 interface Activity {
   id: string;
-  userId: string;
-  userPhone: string;
-  userPseudo?: string;
+  user_id: string;
+  user_phone: string;
+  user_pseudo?: string;
   type: 'login' | 'register' | 'logout' | 'task_created' | 'task_completed' | 'credits_earned' | 'credits_spent';
   description: string;
   details?: Record<string, unknown>;
   timestamp: string;
   credits?: number;
-}
-
-// Chemin vers le fichier de stockage des activités
-const activitiesFilePath = path.join(process.cwd(), 'data', 'activities.json');
-
-// Fonction pour charger les activités depuis le fichier
-function loadActivities(): Activity[] {
-  try {
-    if (fs.existsSync(activitiesFilePath)) {
-      const data = fs.readFileSync(activitiesFilePath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.error('Erreur lors du chargement des activités:', error);
-  }
-  return [];
-}
-
-// Fonction pour sauvegarder les activités dans le fichier
-function saveActivities(activities: Activity[]): void {
-  try {
-    // Créer le dossier data s'il n'existe pas
-    const dataDir = path.dirname(activitiesFilePath);
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-    fs.writeFileSync(activitiesFilePath, JSON.stringify(activities, null, 2));
-  } catch (error) {
-    console.error('Erreur lors de la sauvegarde des activités:', error);
-  }
-}
-
-// Fonction pour ajouter une activité
-function addActivity(activity: Omit<Activity, 'id' | 'timestamp'>): void {
-  const activities = loadActivities();
-  const newActivity: Activity = {
-    ...activity,
-    id: Date.now().toString(),
-    timestamp: new Date().toISOString()
-  };
-  activities.unshift(newActivity); // Ajouter au début
-  saveActivities(activities);
 }
 
 // API pour récupérer les activités
@@ -64,34 +27,38 @@ export async function GET(request: NextRequest) {
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
     
-    let activities = loadActivities();
+    let query = supabase
+      .from('activities')
+      .select('*')
+      .order('timestamp', { ascending: false });
     
     // Filtrer par utilisateur si spécifié
     if (userId) {
-      activities = activities.filter(activity => activity.userId === userId);
+      query = query.eq('user_id', userId);
     }
     
     // Filtrer par date si spécifié
-    if (startDate || endDate) {
-      activities = activities.filter(activity => {
-        const activityDate = new Date(activity.timestamp);
-        const start = startDate ? new Date(startDate) : null;
-        const end = endDate ? new Date(endDate) : null;
-        
-        if (start && end) {
-          return activityDate >= start && activityDate <= end;
-        } else if (start) {
-          return activityDate >= start;
-        } else if (end) {
-          return activityDate <= end;
-        }
-        return true;
-      });
+    if (startDate) {
+      query = query.gte('timestamp', startDate);
+    }
+    
+    if (endDate) {
+      query = query.lte('timestamp', endDate);
+    }
+    
+    const { data: activities, error } = await query;
+
+    if (error) {
+      console.error('Erreur récupération activités:', error);
+      return NextResponse.json(
+        { error: 'Erreur lors de la récupération des activités' },
+        { status: 500 }
+      );
     }
     
     return NextResponse.json({
-      activities: activities,
-      total: activities.length
+      activities: activities || [],
+      total: activities?.length || 0
     });
 
   } catch (error) {
@@ -116,8 +83,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Ajouter l'activité
-    addActivity(activityData);
+    const newActivity = {
+      id: Date.now().toString(),
+      user_id: activityData.userId,
+      user_phone: activityData.userPhone,
+      user_pseudo: activityData.userPseudo,
+      type: activityData.type,
+      description: activityData.description,
+      details: activityData.details,
+      credits: activityData.credits,
+      timestamp: new Date().toISOString()
+    };
+
+    const { error } = await supabase
+      .from('activities')
+      .insert(newActivity);
+
+    if (error) {
+      console.error('Erreur création activité:', error);
+      return NextResponse.json(
+        { error: 'Erreur lors de l\'ajout de l\'activité' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       message: 'Activité ajoutée avec succès'

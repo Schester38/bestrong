@@ -1,28 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
-const messagesFilePath = path.join(process.cwd(), 'data', 'messages.json');
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-function loadMessages() {
-  try {
-    if (fs.existsSync(messagesFilePath)) {
-      const data = fs.readFileSync(messagesFilePath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.error('Erreur lors du chargement des messages:', error);
-  }
-  return [];
-}
-
-function saveMessages(messages) {
-  try {
-    fs.writeFileSync(messagesFilePath, JSON.stringify(messages, null, 2));
-  } catch (error) {
-    console.error('Erreur lors de la sauvegarde des messages:', error);
-  }
-}
+// Client Supabase côté serveur
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Fonction de normalisation des numéros de téléphone
 function normalizePhone(phone: string): string {
@@ -56,24 +39,18 @@ export async function POST(request: NextRequest) {
     const normalizedUser = normalizePhone(user);
     const normalizedContact = normalizePhone(contact);
     
-    // Charger tous les messages
-    const allMessages = loadMessages();
+    // Supprimer les messages entre ces deux utilisateurs
+    const { error, count } = await supabase
+      .from('messages')
+      .delete()
+      .or(`and(from.eq.${normalizedUser},to.eq.${normalizedContact}),and(from.eq.${normalizedContact},to.eq.${normalizedUser})`);
+
+    if (error) {
+      console.error('Erreur suppression messages:', error);
+      return NextResponse.json({ error: 'Erreur lors de la suppression des messages' }, { status: 500 });
+    }
     
-    // Filtrer pour supprimer les messages entre ces deux utilisateurs
-    const filteredMessages = allMessages.filter(m => {
-      const fromNormalized = normalizePhone(m.from);
-      const toNormalized = normalizePhone(m.to);
-      
-      return !(
-        (fromNormalized === normalizedUser && toNormalized === normalizedContact) ||
-        (fromNormalized === normalizedContact && toNormalized === normalizedUser)
-      );
-    });
-    
-    // Sauvegarder les messages filtrés
-    saveMessages(filteredMessages);
-    
-    return NextResponse.json({ success: true, messagesRemoved: allMessages.length - filteredMessages.length });
+    return NextResponse.json({ success: true, messagesRemoved: count || 0 });
   } catch (error) {
     console.error('Erreur lors de la suppression des messages:', error);
     return NextResponse.json({ error: 'Erreur lors de la suppression des messages' }, { status: 500 });

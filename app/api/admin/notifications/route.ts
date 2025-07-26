@@ -1,37 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+// Client Supabase côté serveur
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 interface Notification {
   id: string;
-  userId: string;
+  user_id: string;
   message: string;
   date: string;
   lu: boolean;
 }
 
-const notificationsFilePath = path.join(process.cwd(), 'data', 'notifications.json');
 const ADMIN_PHONE = "+237699486146";
-
-function loadNotifications() {
-  try {
-    if (fs.existsSync(notificationsFilePath)) {
-      const data = fs.readFileSync(notificationsFilePath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (e) {
-    console.error('Erreur chargement notifications:', e);
-  }
-  return [];
-}
-
-function saveNotifications(notifs: Notification[]) {
-  try {
-    fs.writeFileSync(notificationsFilePath, JSON.stringify(notifs, null, 2));
-  } catch (e) {
-    console.error('Erreur sauvegarde notifications:', e);
-  }
-}
 
 // GET /api/admin/notifications?userId=xxx
 export async function GET(req: NextRequest) {
@@ -44,11 +28,18 @@ export async function GET(req: NextRequest) {
     return NextResponse.json([]);
   }
   
-  const notifs = loadNotifications();
-  // Notifications pour cet utilisateur ou pour tous
-  const userNotifs = notifs.filter((n: Notification) => n.userId === userId || n.userId === 'all');
-  userNotifs.sort((a: Notification, b: Notification) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  return NextResponse.json(userNotifs);
+  const { data: notifs, error } = await supabase
+    .from('notifications')
+    .select('*')
+    .or(`user_id.eq.${userId},user_id.eq.all`)
+    .order('date', { ascending: false });
+
+  if (error) {
+    console.error('Erreur récupération notifications:', error);
+    return NextResponse.json({ error: 'Erreur lors de la récupération des notifications' }, { status: 500 });
+  }
+
+  return NextResponse.json(notifs || []);
 }
 
 // POST /api/admin/notifications
@@ -57,32 +48,29 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { userId, message } = body;
     if (!userId || !message) return NextResponse.json({ error: 'userId et message requis' }, { status: 400 });
-    // Bypass admin : accès total
-    if (userId === ADMIN_PHONE) {
-      const notifs = loadNotifications();
-      const notif = {
-        id: Date.now().toString(),
-        userId,
-        message,
-        date: new Date().toISOString(),
-        lu: false
-      };
-      notifs.push(notif);
-      saveNotifications(notifs);
-      return NextResponse.json({ success: true, notif });
-    }
-    const notifs = loadNotifications();
+    
     const notif = {
       id: Date.now().toString(),
-      userId,
+      user_id: userId,
       message,
       date: new Date().toISOString(),
       lu: false
     };
-    notifs.push(notif);
-    saveNotifications(notifs);
-    return NextResponse.json({ success: true, notif });
+
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert(notif)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erreur création notification:', error);
+      return NextResponse.json({ error: 'Erreur lors de l\'envoi' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, notif: data });
   } catch (e) {
+    console.error('Erreur POST /api/admin/notifications:', e);
     return NextResponse.json({ error: 'Erreur lors de l\'envoi', details: e }, { status: 500 });
   }
 }
@@ -93,17 +81,22 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json();
     const { notifId, userId } = body;
     if (!notifId || !userId) return NextResponse.json({ error: 'notifId et userId requis' }, { status: 400 });
-    const notifs = loadNotifications();
-    let updated = false;
-    for (const n of notifs) {
-      if (n.id === notifId && (n.userId === userId || n.userId === 'all')) {
-        n.lu = true;
-        updated = true;
-      }
+    
+    const { data, error } = await supabase
+      .from('notifications')
+      .update({ lu: true })
+      .eq('id', notifId)
+      .or(`user_id.eq.${userId},user_id.eq.all`)
+      .select();
+
+    if (error) {
+      console.error('Erreur mise à jour notification:', error);
+      return NextResponse.json({ error: 'Erreur lors de la mise à jour' }, { status: 500 });
     }
-    if (updated) saveNotifications(notifs);
-    return NextResponse.json({ success: updated });
+
+    return NextResponse.json({ success: data && data.length > 0 });
   } catch (e) {
+    console.error('Erreur PATCH /api/admin/notifications:', e);
     return NextResponse.json({ error: 'Erreur PATCH', details: e }, { status: 500 });
   }
 }

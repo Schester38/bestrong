@@ -1,38 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+// Client Supabase côté serveur
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 interface User {
   id: string;
   phone: string;
   credits: number;
   pseudo: string | null;
-  createdAt: string;
-  updatedAt: string;
-  dashboardAccess?: boolean;
-  dateDernierPaiement?: string;
-}
-
-const usersFilePath = path.join(process.cwd(), 'data', 'users.json');
-
-function loadUsers(): User[] {
-  try {
-    if (fs.existsSync(usersFilePath)) {
-      const data = fs.readFileSync(usersFilePath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (e) {
-    console.error('Erreur chargement utilisateurs:', e);
-  }
-  return [];
-}
-
-function saveUsers(users: User[]) {
-  try {
-    fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
-  } catch (e) {
-    console.error('Erreur sauvegarde utilisateurs:', e);
-  }
+  created_at: string;
+  updated_at: string;
+  dashboard_access?: boolean;
+  date_dernier_paiement?: string;
 }
 
 // POST /api/admin/users/bulk-credits - Ajouter des crédits à tous les utilisateurs
@@ -47,27 +30,46 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    const users = loadUsers();
-    
-    if (users.length === 0) {
+    // Récupérer tous les utilisateurs
+    const { data: users, error: fetchError } = await supabase
+      .from('users')
+      .select('*');
+
+    if (fetchError) {
+      console.error('Erreur récupération utilisateurs:', fetchError);
+      return NextResponse.json({ 
+        error: 'Erreur lors de la récupération des utilisateurs' 
+      }, { status: 500 });
+    }
+
+    if (!users || users.length === 0) {
       return NextResponse.json({ 
         error: 'Aucun utilisateur trouvé' 
       }, { status: 404 });
     }
 
-    // Ajouter les crédits à tous les utilisateurs
-    const updatedUsers = users.map(user => ({
-      ...user,
-      credits: user.credits + creditsToAdd,
-      updatedAt: new Date().toISOString()
-    }));
-    
-    saveUsers(updatedUsers);
+    // Mettre à jour tous les utilisateurs avec les nouveaux crédits
+    for (const user of users) {
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ 
+          credits: user.credits + creditsToAdd,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (updateError) {
+        console.error('Erreur mise à jour utilisateur:', updateError);
+        return NextResponse.json({ 
+          error: 'Erreur lors de l\'ajout des crédits' 
+        }, { status: 500 });
+      }
+    }
 
     return NextResponse.json({ 
       success: true, 
-      message: `${creditsToAdd} crédits ajoutés à ${updatedUsers.length} utilisateurs`,
-      usersUpdated: updatedUsers.length
+      message: `${creditsToAdd} crédits ajoutés à ${users.length} utilisateurs`,
+      usersUpdated: users.length
     });
 
   } catch (e) {

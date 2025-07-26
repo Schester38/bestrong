@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 import { z } from "zod";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+// Client Supabase côté serveur
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 interface User {
   id: string;
@@ -9,8 +14,8 @@ interface User {
   password: string;
   credits: number;
   pseudo: string | null;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface ExchangeTask {
@@ -18,98 +23,20 @@ interface ExchangeTask {
   type: string;
   url: string;
   credits: number;
-  actionsRestantes: number;
+  actions_restantes: number;
   createur: string;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface ExchangeTaskCompletion {
-      id: string;
-  exchangeTaskId: string;
-  userId: string;
-  completedAt: string;
+  id: string;
+  exchange_task_id: string;
+  user_id: string;
+  completed_at: string;
   verified: boolean;
-  verificationDate?: string;
-  verificationResult?: string;
-}
-
-// Chemins vers les fichiers de stockage
-const usersFilePath = path.join(process.cwd(), 'data', 'users.json');
-const tasksFilePath = path.join(process.cwd(), 'data', 'tasks.json');
-const completionsFilePath = path.join(process.cwd(), 'data', 'completions.json');
-
-// Fonctions utilitaires
-function loadUsers(): User[] {
-  try {
-    if (fs.existsSync(usersFilePath)) {
-      const data = fs.readFileSync(usersFilePath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.error('Erreur lors du chargement des utilisateurs:', error);
-  }
-  return [];
-}
-
-function saveUsers(users: User[]): void {
-  try {
-    const dataDir = path.dirname(usersFilePath);
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-    fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
-  } catch (error) {
-    console.error('Erreur lors de la sauvegarde des utilisateurs:', error);
-  }
-}
-
-function loadTasks(): ExchangeTask[] {
-  try {
-    if (fs.existsSync(tasksFilePath)) {
-      const data = fs.readFileSync(tasksFilePath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.error('Erreur lors du chargement des tâches:', error);
-  }
-  return [];
-}
-
-function saveTasks(tasks: ExchangeTask[]): void {
-  try {
-    const dataDir = path.dirname(tasksFilePath);
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-    fs.writeFileSync(tasksFilePath, JSON.stringify(tasks, null, 2));
-  } catch (error) {
-    console.error('Erreur lors de la sauvegarde des tâches:', error);
-  }
-}
-
-function loadCompletions(): ExchangeTaskCompletion[] {
-  try {
-    if (fs.existsSync(completionsFilePath)) {
-      const data = fs.readFileSync(completionsFilePath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.error('Erreur lors du chargement des complétions:', error);
-  }
-  return [];
-}
-
-function saveCompletions(completions: ExchangeTaskCompletion[]): void {
-  try {
-    const dataDir = path.dirname(completionsFilePath);
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-    fs.writeFileSync(completionsFilePath, JSON.stringify(completions, null, 2));
-  } catch (error) {
-    console.error('Erreur lors de la sauvegarde des complétions:', error);
-  }
+  verification_date?: string;
+  verification_result?: string;
 }
 
 // Fonction de vérification automatique selon le type de tâche
@@ -231,24 +158,37 @@ export async function POST(
     }).parse(body);
 
     const { id: exchangeTaskId } = await params;
-    const completions = loadCompletions();
-    const tasks = loadTasks();
-    const users = loadUsers();
 
     // Vérifier si déjà complété
-    const already = completions.find(c => c.exchangeTaskId === exchangeTaskId && c.userId === userId);
-    if (already) {
+    const { data: existingCompletion, error: checkError } = await supabase
+      .from('exchange_task_completions')
+      .select('*')
+      .eq('exchange_task_id', exchangeTaskId)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (checkError) {
+      console.error('Erreur vérification complétion:', checkError);
+      return NextResponse.json({ error: "Erreur lors de la vérification" }, { status: 500 });
+    }
+
+    if (existingCompletion) {
       return NextResponse.json({ error: "Déjà complété par cet utilisateur" }, { status: 409 });
     }
 
     // Trouver la tâche
-    const task = tasks.find(t => t.id === exchangeTaskId);
-    if (!task) {
+    const { data: task, error: taskError } = await supabase
+      .from('exchange_tasks')
+      .select('*')
+      .eq('id', exchangeTaskId)
+      .single();
+
+    if (taskError || !task) {
       return NextResponse.json({ error: "Tâche non trouvée" }, { status: 404 });
     }
 
     // Vérifier s'il reste des actions
-    if (task.actionsRestantes <= 0) {
+    if (task.actions_restantes <= 0) {
       return NextResponse.json({ error: "Aucune action restante pour cette tâche" }, { status: 400 });
     }
 
@@ -257,37 +197,84 @@ export async function POST(
     const verification = await verifyTaskAction(task, userId);
 
     // Créer la complétion avec le résultat de la vérification
-    const newCompletion: ExchangeTaskCompletion = {
+    const newCompletion = {
       id: Date.now().toString(),
-      exchangeTaskId,
-      userId,
-      completedAt: new Date().toISOString(),
+      exchange_task_id: exchangeTaskId,
+      user_id: userId,
+      completed_at: new Date().toISOString(),
       verified: verification.verified,
-      verificationResult: verification.result
+      verification_result: verification.result
     };
     
-    completions.push(newCompletion);
-    saveCompletions(completions);
+    const { error: completionError } = await supabase
+      .from('exchange_task_completions')
+      .insert(newCompletion);
 
-    // Décrémenter actionsRestantes
-    task.actionsRestantes -= 1;
-    task.updatedAt = new Date().toISOString();
-    saveTasks(tasks);
+    if (completionError) {
+      console.error('Erreur création complétion:', completionError);
+      return NextResponse.json({ error: "Erreur lors de la création de la complétion" }, { status: 500 });
+    }
+
+    // Décrémenter actions_restantes
+    const { error: updateTaskError } = await supabase
+      .from('exchange_tasks')
+      .update({ 
+        actions_restantes: task.actions_restantes - 1,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', task.id);
+
+    if (updateTaskError) {
+      console.error('Erreur mise à jour tâche:', updateTaskError);
+      return NextResponse.json({ error: "Erreur lors de la mise à jour de la tâche" }, { status: 500 });
+    }
 
     if (verification.verified) {
       // Créditer l'utilisateur si la vérification est positive
-      let user = users.find(u => u.id === userId);
+      let { data: user, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (userError) {
+        console.error('Erreur recherche utilisateur par ID:', userError);
+        return NextResponse.json({ error: "Erreur lors de la recherche de l'utilisateur" }, { status: 500 });
+      }
+
       if (!user) {
         // Si l'utilisateur n'est pas trouvé par ID, essayer par pseudo
-        user = users.find(u => u.pseudo === userId);
-        if (!user) {
+        const { data: userByPseudo, error: pseudoError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('pseudo', userId)
+          .maybeSingle();
+
+        if (pseudoError) {
+          console.error('Erreur recherche utilisateur par pseudo:', pseudoError);
+          return NextResponse.json({ error: "Erreur lors de la recherche de l'utilisateur" }, { status: 500 });
+        }
+
+        if (!userByPseudo) {
           return NextResponse.json({ error: "Utilisateur non trouvé" }, { status: 404 });
         }
+
+        user = userByPseudo;
       }
       
-      user.credits += task.credits;
-      user.updatedAt = new Date().toISOString();
-      saveUsers(users);
+      // Mettre à jour les crédits
+      const { error: updateUserError } = await supabase
+        .from('users')
+        .update({ 
+          credits: user.credits + task.credits,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (updateUserError) {
+        console.error('Erreur mise à jour crédits:', updateUserError);
+        return NextResponse.json({ error: "Erreur lors de la mise à jour des crédits" }, { status: 500 });
+      }
 
       console.log(`💰 ${userId} crédité de ${task.credits} crédits pour la tâche ${task.type}`);
 
@@ -295,7 +282,7 @@ export async function POST(
         success: true,
         verified: true,
         creditsEarned: task.credits,
-        remainingActions: task.actionsRestantes,
+        remainingActions: task.actions_restantes - 1,
         message: verification.result
       });
     } else {
@@ -306,11 +293,12 @@ export async function POST(
         success: true,
         verified: false,
         message: verification.result,
-        remainingActions: task.actionsRestantes
+        remainingActions: task.actions_restantes - 1
       });
     }
 
-  } catch {
+  } catch (error) {
+    console.error('Erreur POST /api/exchange/tasks/[id]/complete:', error);
     return NextResponse.json({ error: "Erreur lors de la validation de l'action" }, { status: 400 });
   }
 }
@@ -328,13 +316,16 @@ export async function PATCH(
     }).parse(body);
 
     const { id: exchangeTaskId } = await params;
-    const completions = loadCompletions();
-    const tasks = loadTasks();
-    const users = loadUsers();
 
     // Trouver la complétion
-    const completion = completions.find(c => c.id === completionId && c.exchangeTaskId === exchangeTaskId);
-    if (!completion) {
+    const { data: completion, error: completionError } = await supabase
+      .from('exchange_task_completions')
+      .select('*')
+      .eq('id', completionId)
+      .eq('exchange_task_id', exchangeTaskId)
+      .single();
+
+    if (completionError || !completion) {
       return NextResponse.json({ error: "Complétion non trouvée" }, { status: 404 });
     }
 
@@ -344,30 +335,76 @@ export async function PATCH(
 
     if (approved) {
       // Marquer comme vérifiée manuellement
-      completion.verified = true;
-      completion.verificationDate = new Date().toISOString();
-      completion.verificationResult = "Vérification manuelle approuvée";
-      saveCompletions(completions);
+      const { error: updateCompletionError } = await supabase
+        .from('exchange_task_completions')
+        .update({
+          verified: true,
+          verification_date: new Date().toISOString(),
+          verification_result: "Vérification manuelle approuvée"
+        })
+        .eq('id', completionId);
+
+      if (updateCompletionError) {
+        console.error('Erreur mise à jour complétion:', updateCompletionError);
+        return NextResponse.json({ error: "Erreur lors de la mise à jour de la complétion" }, { status: 500 });
+      }
 
       // Trouver la tâche
-      const task = tasks.find(t => t.id === exchangeTaskId);
-      if (!task) {
+      const { data: task, error: taskError } = await supabase
+        .from('exchange_tasks')
+        .select('*')
+        .eq('id', exchangeTaskId)
+        .single();
+
+      if (taskError || !task) {
         return NextResponse.json({ error: "Tâche non trouvée" }, { status: 404 });
       }
 
       // Créditer l'utilisateur qui a complété
-      let user = users.find(u => u.id === completion.userId);
+      let { data: user, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', completion.user_id)
+        .maybeSingle();
+
+      if (userError) {
+        console.error('Erreur recherche utilisateur par ID:', userError);
+        return NextResponse.json({ error: "Erreur lors de la recherche de l'utilisateur" }, { status: 500 });
+      }
+
       if (!user) {
         // Si l'utilisateur n'est pas trouvé par ID, essayer par pseudo
-        user = users.find(u => u.pseudo === completion.userId);
-        if (!user) {
+        const { data: userByPseudo, error: pseudoError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('pseudo', completion.user_id)
+          .maybeSingle();
+
+        if (pseudoError) {
+          console.error('Erreur recherche utilisateur par pseudo:', pseudoError);
+          return NextResponse.json({ error: "Erreur lors de la recherche de l'utilisateur" }, { status: 500 });
+        }
+
+        if (!userByPseudo) {
           return NextResponse.json({ error: "Utilisateur non trouvé" }, { status: 404 });
         }
+
+        user = userByPseudo;
       }
       
-      user.credits += task.credits;
-      user.updatedAt = new Date().toISOString();
-      saveUsers(users);
+      // Mettre à jour les crédits
+      const { error: updateUserError } = await supabase
+        .from('users')
+        .update({ 
+          credits: user.credits + task.credits,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (updateUserError) {
+        console.error('Erreur mise à jour crédits:', updateUserError);
+        return NextResponse.json({ error: "Erreur lors de la mise à jour des crédits" }, { status: 500 });
+      }
 
       return NextResponse.json({ 
         success: true,
@@ -376,15 +413,35 @@ export async function PATCH(
       });
     } else {
       // Rejeter la complétion
-      const filteredCompletions = completions.filter(c => c.id !== completionId);
-      saveCompletions(filteredCompletions);
+      const { error: deleteError } = await supabase
+        .from('exchange_task_completions')
+        .delete()
+        .eq('id', completionId);
+
+      if (deleteError) {
+        console.error('Erreur suppression complétion:', deleteError);
+        return NextResponse.json({ error: "Erreur lors de la suppression de la complétion" }, { status: 500 });
+      }
 
       // Remettre l'action restante
-      const task = tasks.find(t => t.id === exchangeTaskId);
-      if (task) {
-        task.actionsRestantes += 1;
-        task.updatedAt = new Date().toISOString();
-        saveTasks(tasks);
+      const { data: task, error: taskError } = await supabase
+        .from('exchange_tasks')
+        .select('*')
+        .eq('id', exchangeTaskId)
+        .single();
+
+      if (!taskError && task) {
+        const { error: updateTaskError } = await supabase
+          .from('exchange_tasks')
+          .update({ 
+            actions_restantes: task.actions_restantes + 1,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', task.id);
+
+        if (updateTaskError) {
+          console.error('Erreur mise à jour tâche:', updateTaskError);
+        }
       }
 
       return NextResponse.json({ 
@@ -394,7 +451,7 @@ export async function PATCH(
     }
 
   } catch (error) {
-    console.error('Erreur lors de la vérification manuelle:', error);
+    console.error('Erreur PATCH /api/exchange/tasks/[id]/complete:', error);
     return NextResponse.json({ error: "Erreur lors de la vérification", details: error }, { status: 400 });
   }
 } 

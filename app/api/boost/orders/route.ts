@@ -1,43 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { createClient } from '@supabase/supabase-js';
 import { z } from "zod";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+// Client Supabase côté serveur
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 interface BoostOrder {
   id: string;
   type: "FOLLOWERS" | "VIEWS" | "LIKES" | "COMMENTS";
   quantity: number;
   amount: number;
-  paymentMethod?: string;
+  payment_method?: string;
   status: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED" | "CANCELLED";
-  createdAt: string;
-  updatedAt: string;
-}
-
-const ordersFilePath = path.join(process.cwd(), 'data', 'boost-orders.json');
-
-function loadOrders(): BoostOrder[] {
-  try {
-    if (fs.existsSync(ordersFilePath)) {
-      const data = fs.readFileSync(ordersFilePath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.error('Erreur lors du chargement des commandes:', error);
-  }
-  return [];
-}
-
-function saveOrders(orders: BoostOrder[]): void {
-  try {
-    const dataDir = path.dirname(ordersFilePath);
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-    fs.writeFileSync(ordersFilePath, JSON.stringify(orders, null, 2));
-  } catch (error) {
-    console.error('Erreur lors de la sauvegarde des commandes:', error);
-  }
+  created_at: string;
+  updated_at: string;
 }
 
 const createOrderSchema = z.object({
@@ -54,22 +33,32 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { type, quantity, amount, paymentMethod, phone } = { ...body, ...createOrderSchema.parse(body) };
     
-    const orders = loadOrders();
-    const newOrder: BoostOrder = {
+    const newOrder = {
       id: Date.now().toString(),
       type,
       quantity,
       amount,
-      paymentMethod,
+      payment_method: paymentMethod,
       status: phone === ADMIN_PHONE ? "COMPLETED" : "PENDING",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
-    
-    orders.push(newOrder);
-    saveOrders(orders);
 
-    return NextResponse.json(newOrder, { status: 201 });
+    const { data, error } = await supabase
+      .from('boost_orders')
+      .insert(newOrder)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erreur création commande boost:', error);
+      return NextResponse.json(
+        { error: "Erreur lors de la création de la commande" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(data, { status: 201 });
   } catch (error) {
     console.error("Erreur création commande:", error);
     return NextResponse.json(
@@ -84,17 +73,26 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
 
-    const orders = loadOrders();
-    let filteredOrders = orders;
+    let query = supabase
+      .from('boost_orders')
+      .select('*')
+      .order('created_at', { ascending: false });
 
     if (status) {
-      filteredOrders = orders.filter(order => order.status === status);
+      query = query.eq('status', status);
     }
 
-    // Trier par date de création décroissante
-    filteredOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const { data: orders, error } = await query;
 
-    return NextResponse.json(filteredOrders);
+    if (error) {
+      console.error('Erreur récupération commandes boost:', error);
+      return NextResponse.json(
+        { error: "Erreur lors de la récupération des commandes" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(orders || []);
   } catch (error) {
     console.error("Erreur récupération commandes:", error);
     return NextResponse.json(

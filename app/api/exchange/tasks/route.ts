@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 import { z } from "zod";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+// Client Supabase côté serveur
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Interfaces
 interface User {
@@ -10,8 +15,8 @@ interface User {
   password: string;
   credits: number;
   pseudo: string | null;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface ExchangeTask {
@@ -19,95 +24,17 @@ interface ExchangeTask {
   type: string;
   url: string;
   credits: number;
-  actionsRestantes: number;
+  actions_restantes: number;
   createur: string;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface ExchangeTaskCompletion {
   id: string;
-  exchangeTaskId: string;
-  userId: string;
-  completedAt: string;
-}
-
-// Chemins vers les fichiers de stockage
-const usersFilePath = path.join(process.cwd(), 'data', 'users.json');
-const tasksFilePath = path.join(process.cwd(), 'data', 'tasks.json');
-const completionsFilePath = path.join(process.cwd(), 'data', 'completions.json');
-
-// Fonctions utilitaires
-function loadUsers(): User[] {
-  try {
-    if (fs.existsSync(usersFilePath)) {
-      const data = fs.readFileSync(usersFilePath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.error('Erreur lors du chargement des utilisateurs:', error);
-  }
-  return [];
-}
-
-function saveUsers(users: User[]): void {
-  try {
-    const dataDir = path.dirname(usersFilePath);
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-    fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
-  } catch (error) {
-    console.error('Erreur lors de la sauvegarde des utilisateurs:', error);
-  }
-}
-
-function loadTasks(): ExchangeTask[] {
-  try {
-    if (fs.existsSync(tasksFilePath)) {
-      const data = fs.readFileSync(tasksFilePath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.error('Erreur lors du chargement des tâches:', error);
-  }
-  return [];
-}
-
-function saveTasks(tasks: ExchangeTask[]): void {
-  try {
-    const dataDir = path.dirname(tasksFilePath);
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-    fs.writeFileSync(tasksFilePath, JSON.stringify(tasks, null, 2));
-  } catch (error) {
-    console.error('Erreur lors de la sauvegarde des tâches:', error);
-  }
-}
-
-function loadCompletions(): ExchangeTaskCompletion[] {
-  try {
-    if (fs.existsSync(completionsFilePath)) {
-      const data = fs.readFileSync(completionsFilePath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.error('Erreur lors du chargement des complétions:', error);
-  }
-  return [];
-}
-
-function saveCompletions(completions: ExchangeTaskCompletion[]): void {
-  try {
-    const dataDir = path.dirname(completionsFilePath);
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-    fs.writeFileSync(completionsFilePath, JSON.stringify(completions, null, 2));
-  } catch (error) {
-    console.error('Erreur lors de la sauvegarde des complétions:', error);
-  }
+  exchange_task_id: string;
+  user_id: string;
+  completed_at: string;
 }
 
 const createTaskSchema = z.object({
@@ -127,50 +54,69 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { type, url, credits, actionsRestantes, createur } = createTaskSchema.parse(body);
+    
     // Bypass admin : accès total
     if (createur === ADMIN_PHONE) {
       // Créer la tâche sans débiter de crédits
-      const tasks = loadTasks();
-      const newTask: ExchangeTask = {
+      const newTask = {
         id: Date.now().toString(),
         type,
         url,
         credits,
-        actionsRestantes,
+        actions_restantes: actionsRestantes,
         createur,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
-      tasks.push(newTask);
-      saveTasks(tasks);
+
+      const { error } = await supabase
+        .from('exchange_tasks')
+        .insert(newTask);
+
+      if (error) {
+        console.error('Erreur création tâche admin:', error);
+        return NextResponse.json({ error: "Erreur lors de la création de la tâche" }, { status: 500 });
+      }
+
       return NextResponse.json(newTask, { status: 201 });
     }
     
-    // Charger les utilisateurs
-    const users = loadUsers();
+    // Trouver l'utilisateur par téléphone ou pseudo
+    let { data: user, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .or(`phone.eq.${createur},pseudo.eq.${createur}`)
+      .maybeSingle();
     
-    // Trouver l'utilisateur par téléphone (createur contient le numéro de téléphone)
-    let user = users.find(u => u.phone === createur);
-    
-    if (!user) {
-      // Essayer de trouver par pseudo aussi
-      user = users.find(u => u.pseudo === createur);
+    if (userError) {
+      console.error('Erreur recherche utilisateur:', userError);
+      return NextResponse.json({ error: "Erreur lors de la recherche de l'utilisateur" }, { status: 500 });
     }
     
     if (!user) {
       // Créer un nouvel utilisateur si pas trouvé
-      const newUser: User = {
+      const newUser = {
         id: Date.now().toString(),
-        phone: createur, // Utiliser le createur comme téléphone temporaire
-        password: '', // Pas de mot de passe pour les utilisateurs créés via tâches
+        phone: createur,
+        password: '',
         credits: 100,
         pseudo: createur,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
-      users.push(newUser);
-      saveUsers(users);
-      user = newUser;
+
+      const { data: createdUser, error: createError } = await supabase
+        .from('users')
+        .insert(newUser)
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('Erreur création utilisateur:', createError);
+        return NextResponse.json({ error: "Erreur lors de la création de l'utilisateur" }, { status: 500 });
+      }
+
+      user = createdUser;
     }
     
     const totalCost = credits * actionsRestantes;
@@ -182,26 +128,41 @@ export async function POST(request: NextRequest) {
     }
     
     // Débiter les crédits
-    user.credits -= totalCost;
-    user.updatedAt = new Date().toISOString();
-    saveUsers(users);
-    console.log(`Crédits débités: ${user.credits} restants pour ${createur}`);
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ 
+        credits: user.credits - totalCost,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', user.id);
+
+    if (updateError) {
+      console.error('Erreur mise à jour crédits:', updateError);
+      return NextResponse.json({ error: "Erreur lors de la mise à jour des crédits" }, { status: 500 });
+    }
+
+    console.log(`Crédits débités: ${user.credits - totalCost} restants pour ${createur}`);
     
     // Créer la tâche
-    const tasks = loadTasks();
-    const newTask: ExchangeTask = {
+    const newTask = {
       id: Date.now().toString(),
       type,
       url,
       credits,
-      actionsRestantes,
+      actions_restantes: actionsRestantes,
       createur,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
-    
-    tasks.push(newTask);
-    saveTasks(tasks);
+
+    const { error: taskError } = await supabase
+      .from('exchange_tasks')
+      .insert(newTask);
+
+    if (taskError) {
+      console.error('Erreur création tâche:', taskError);
+      return NextResponse.json({ error: "Erreur lors de la création de la tâche" }, { status: 500 });
+    }
     
     return NextResponse.json(newTask, { status: 201 });
   } catch (error) {
@@ -213,17 +174,34 @@ export async function POST(request: NextRequest) {
 // Lister toutes les tâches d'échange
 export async function GET() {
   try {
-    const tasks = loadTasks();
-    const completions = loadCompletions();
+    const { data: tasks, error: tasksError } = await supabase
+      .from('exchange_tasks')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (tasksError) {
+      console.error('Erreur récupération tâches:', tasksError);
+      return NextResponse.json({ error: "Erreur lors de la récupération des tâches" }, { status: 500 });
+    }
+
+    const { data: completions, error: completionsError } = await supabase
+      .from('exchange_task_completions')
+      .select('*');
+
+    if (completionsError) {
+      console.error('Erreur récupération complétions:', completionsError);
+      return NextResponse.json({ error: "Erreur lors de la récupération des complétions" }, { status: 500 });
+    }
     
     // Ajouter les complétions à chaque tâche
     const tasksWithCompletions = tasks.map(task => ({
       ...task,
-      completions: completions.filter(c => c.exchangeTaskId === task.id)
+      completions: completions.filter(c => c.exchange_task_id === task.id)
     }));
     
     return NextResponse.json(tasksWithCompletions);
-  } catch {
+  } catch (error) {
+    console.error('Erreur GET /api/exchange/tasks:', error);
     return NextResponse.json({ error: "Erreur lors de la récupération des tâches" }, { status: 500 });
   }
 }
@@ -236,64 +214,122 @@ export async function PATCH(request: NextRequest) {
       exchangeTaskId: z.string().min(1),
       userId: z.string().min(1),
     }).parse(body);
+
     // Bypass admin : accès total
     if (userId === ADMIN_PHONE) {
       return NextResponse.json({ success: true });
     }
 
-    const completions = loadCompletions();
-    const tasks = loadTasks();
-    const users = loadUsers();
-
     // Vérifier si déjà complété
-    const already = completions.find(c => c.exchangeTaskId === exchangeTaskId && c.userId === userId);
-    if (already) {
+    const { data: existingCompletion, error: checkError } = await supabase
+      .from('exchange_task_completions')
+      .select('*')
+      .eq('exchange_task_id', exchangeTaskId)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (checkError) {
+      console.error('Erreur vérification complétion:', checkError);
+      return NextResponse.json({ error: "Erreur lors de la vérification" }, { status: 500 });
+    }
+
+    if (existingCompletion) {
       return NextResponse.json({ error: "Déjà complété par cet utilisateur" }, { status: 409 });
     }
 
     // Trouver la tâche
-    const task = tasks.find(t => t.id === exchangeTaskId);
-    if (!task) {
+    const { data: task, error: taskError } = await supabase
+      .from('exchange_tasks')
+      .select('*')
+      .eq('id', exchangeTaskId)
+      .single();
+
+    if (taskError || !task) {
       return NextResponse.json({ error: "Tâche non trouvée" }, { status: 404 });
     }
 
     // Créer la complétion
-    const newCompletion: ExchangeTaskCompletion = {
+    const newCompletion = {
       id: Date.now().toString(),
-      exchangeTaskId,
-      userId,
-      completedAt: new Date().toISOString()
+      exchange_task_id: exchangeTaskId,
+      user_id: userId,
+      completed_at: new Date().toISOString()
     };
     
-    completions.push(newCompletion);
-    saveCompletions(completions);
+    const { error: completionError } = await supabase
+      .from('exchange_task_completions')
+      .insert(newCompletion);
 
-    // Décrémenter actionsRestantes
-    task.actionsRestantes -= 1;
-    task.updatedAt = new Date().toISOString();
-    saveTasks(tasks);
+    if (completionError) {
+      console.error('Erreur création complétion:', completionError);
+      return NextResponse.json({ error: "Erreur lors de la création de la complétion" }, { status: 500 });
+    }
+
+    // Décrémenter actions_restantes
+    const { error: updateTaskError } = await supabase
+      .from('exchange_tasks')
+      .update({ 
+        actions_restantes: task.actions_restantes - 1,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', task.id);
+
+    if (updateTaskError) {
+      console.error('Erreur mise à jour tâche:', updateTaskError);
+      return NextResponse.json({ error: "Erreur lors de la mise à jour de la tâche" }, { status: 500 });
+    }
 
     // Créditer l'utilisateur qui complète
-    let user = users.find(u => u.pseudo === userId);
+    let { data: user, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('pseudo', userId)
+      .maybeSingle();
+
+    if (userError) {
+      console.error('Erreur recherche utilisateur:', userError);
+      return NextResponse.json({ error: "Erreur lors de la recherche de l'utilisateur" }, { status: 500 });
+    }
+
     if (!user) {
-      user = {
+      // Créer un nouvel utilisateur
+      const newUser = {
         id: Date.now().toString(),
         phone: userId,
         password: '',
-        credits: 100,
+        credits: 100 + task.credits,
         pseudo: userId,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
-      users.push(user);
+
+      const { error: createError } = await supabase
+        .from('users')
+        .insert(newUser);
+
+      if (createError) {
+        console.error('Erreur création utilisateur:', createError);
+        return NextResponse.json({ error: "Erreur lors de la création de l'utilisateur" }, { status: 500 });
+      }
+    } else {
+      // Mettre à jour les crédits
+      const { error: updateUserError } = await supabase
+        .from('users')
+        .update({ 
+          credits: user.credits + task.credits,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (updateUserError) {
+        console.error('Erreur mise à jour crédits utilisateur:', updateUserError);
+        return NextResponse.json({ error: "Erreur lors de la mise à jour des crédits" }, { status: 500 });
+      }
     }
-    
-    user.credits += task.credits;
-    user.updatedAt = new Date().toISOString();
-    saveUsers(users);
 
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (error) {
+    console.error('Erreur PATCH /api/exchange/tasks:', error);
     return NextResponse.json({ error: "Erreur lors de la validation de l'action" }, { status: 400 });
   }
 }
@@ -306,12 +342,19 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "ID manquant" }, { status: 400 });
     }
     
-    const tasks = loadTasks();
-    const filteredTasks = tasks.filter(task => task.id !== id);
-    saveTasks(filteredTasks);
+    const { error } = await supabase
+      .from('exchange_tasks')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Erreur suppression tâche:', error);
+      return NextResponse.json({ error: "Erreur lors de la suppression" }, { status: 500 });
+    }
     
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (error) {
+    console.error('Erreur DELETE /api/exchange/tasks:', error);
     return NextResponse.json({ error: "Erreur lors de la suppression" }, { status: 500 });
   }
 }

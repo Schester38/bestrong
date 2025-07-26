@@ -1,28 +1,24 @@
 import { NextResponse } from "next/server";
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
-// Chemin vers le fichier du compteur personnalisé
-const userCountFilePath = path.join(process.cwd(), 'data', 'users_count.json');
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-// Fonction utilitaire pour charger le compteur
-function loadUserCount(): number {
-  try {
-    if (fs.existsSync(userCountFilePath)) {
-      const data = fs.readFileSync(userCountFilePath, 'utf8');
-      const json = JSON.parse(data);
-      return json.count || 0;
-    }
-  } catch (error) {
-    console.error('Erreur lors du chargement du compteur personnalisé:', error);
-  }
-  return 0;
-}
+// Client Supabase côté serveur
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function GET() {
   try {
-    const count = loadUserCount();
-    return NextResponse.json({ count });
+    const { count, error } = await supabase
+      .from('users')
+      .select('*', { count: 'exact', head: true });
+
+    if (error) {
+      console.error('Erreur comptage utilisateurs:', error);
+      return NextResponse.json({ error: "Erreur lors du chargement du nombre d'utilisateurs" }, { status: 500 });
+    }
+
+    return NextResponse.json({ count: count || 0 });
   } catch (error) {
     console.error("Erreur API /api/users/count:", error);
     return NextResponse.json({ error: "Erreur lors du chargement du nombre d'utilisateurs" }, { status: 500 });

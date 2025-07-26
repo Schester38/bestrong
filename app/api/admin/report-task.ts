@@ -1,39 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+// Client Supabase côté serveur
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 interface Report {
   id: string; // id du signalement
-  taskId: string;
+  task_id: string;
   reporter: string; // pseudo ou id
   reason?: string;
   date: string;
-}
-
-const reportsFilePath = path.join(process.cwd(), 'data', 'reports.json');
-
-function loadReports(): Report[] {
-  try {
-    if (fs.existsSync(reportsFilePath)) {
-      const data = fs.readFileSync(reportsFilePath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.error('Erreur lors du chargement des signalements:', error);
-  }
-  return [];
-}
-
-function saveReports(reports: Report[]): void {
-  try {
-    const dataDir = path.dirname(reportsFilePath);
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-    fs.writeFileSync(reportsFilePath, JSON.stringify(reports, null, 2));
-  } catch (error) {
-    console.error('Erreur lors de la sauvegarde des signalements:', error);
-  }
 }
 
 export async function POST(request: NextRequest) {
@@ -42,17 +21,27 @@ export async function POST(request: NextRequest) {
     if (!taskId || !reporter) {
       return NextResponse.json({ error: 'taskId et reporter sont requis' }, { status: 400 });
     }
-    const reports = loadReports();
-    const newReport: Report = {
+
+    const newReport = {
       id: Date.now().toString(),
-      taskId,
+      task_id: taskId,
       reporter,
       reason,
       date: new Date().toISOString(),
     };
-    reports.push(newReport);
-    saveReports(reports);
-    return NextResponse.json({ message: 'Signalement enregistré', report: newReport });
+
+    const { data, error } = await supabase
+      .from('reports')
+      .insert(newReport)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erreur création signalement:', error);
+      return NextResponse.json({ error: 'Erreur lors de l\'enregistrement du signalement' }, { status: 500 });
+    }
+
+    return NextResponse.json({ message: 'Signalement enregistré', report: data });
   } catch (error) {
     console.error('Erreur lors du signalement:', error);
     return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });

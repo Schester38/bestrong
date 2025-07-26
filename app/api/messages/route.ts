@@ -1,28 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
-const messagesFilePath = path.join(process.cwd(), 'data', 'messages.json');
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-function loadMessages() {
-  try {
-    if (fs.existsSync(messagesFilePath)) {
-      const data = fs.readFileSync(messagesFilePath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.error('Erreur lors du chargement des messages:', error);
-  }
-  return [];
-}
-
-function saveMessages(messages) {
-  try {
-    fs.writeFileSync(messagesFilePath, JSON.stringify(messages, null, 2));
-  } catch (error) {
-    console.error('Erreur lors de la sauvegarde des messages:', error);
-  }
-}
+// Client Supabase côté serveur
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Ajouter une fonction de normalisation des numéros de téléphone
 function normalizePhone(phone: string): string {
@@ -56,20 +39,19 @@ export async function GET(request: NextRequest) {
   const normalizedUser = normalizePhone(user);
   console.log('User normalisé:', normalizedUser);
   
-  const messages = loadMessages();
-  console.log('Messages chargés:', messages.length);
-  
-  // Normaliser tous les numéros dans les messages et filtrer
-  const filtered = messages.filter(m => {
-    const fromNormalized = normalizePhone(m.from);
-    const toNormalized = normalizePhone(m.to);
-    const isMatch = fromNormalized === normalizedUser || toNormalized === normalizedUser;
-    console.log(`Message ${m.id}: from="${m.from}" (${fromNormalized}) to="${m.to}" (${toNormalized}) - Match: ${isMatch}`);
-    return isMatch;
-  });
-  
-  console.log('Messages filtrés:', filtered.length);
-  return NextResponse.json(filtered);
+  const { data: messages, error } = await supabase
+    .from('messages')
+    .select('*')
+    .or(`from.eq.${normalizedUser},to.eq.${normalizedUser}`)
+    .order('date', { ascending: true });
+
+  if (error) {
+    console.error('Erreur récupération messages:', error);
+    return NextResponse.json({ error: 'Erreur lors de la récupération des messages' }, { status: 500 });
+  }
+
+  console.log('Messages récupérés:', messages?.length || 0);
+  return NextResponse.json(messages || []);
 }
 
 // POST /api/messages
@@ -79,7 +61,7 @@ export async function POST(request: NextRequest) {
     if (!from || !to || !message) {
       return NextResponse.json({ error: 'Champs requis manquants' }, { status: 400 });
     }
-    const messages = loadMessages();
+
     const newMsg = {
       id: Date.now().toString(),
       from,
@@ -87,10 +69,21 @@ export async function POST(request: NextRequest) {
       message,
       date: new Date().toISOString()
     };
-    messages.push(newMsg);
-    saveMessages(messages);
-    return NextResponse.json(newMsg, { status: 201 });
+
+    const { data, error } = await supabase
+      .from('messages')
+      .insert(newMsg)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erreur création message:', error);
+      return NextResponse.json({ error: 'Erreur lors de l\'envoi du message' }, { status: 500 });
+    }
+
+    return NextResponse.json(data, { status: 201 });
   } catch (error) {
+    console.error('Erreur POST /api/messages:', error);
     return NextResponse.json({ error: 'Erreur lors de l\'envoi du message' }, { status: 500 });
   }
 } 

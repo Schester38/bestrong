@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+// Client Supabase côté serveur
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Simulation de la base de données pour l'instant
 // En production, utilisez Prisma avec le schéma mis à jour
@@ -11,38 +16,8 @@ interface User {
   password: string;
   credits: number;
   pseudo: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Chemin vers le fichier de stockage
-const usersFilePath = path.join(process.cwd(), 'data', 'users.json');
-
-// Fonction pour charger les utilisateurs depuis le fichier
-function loadUsers(): User[] {
-  try {
-    if (fs.existsSync(usersFilePath)) {
-      const data = fs.readFileSync(usersFilePath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.error('Erreur lors du chargement des utilisateurs:', error);
-  }
-  return [];
-}
-
-// Fonction pour sauvegarder les utilisateurs dans le fichier
-function saveUsers(users: User[]): void {
-  try {
-    // Créer le dossier data s'il n'existe pas
-    const dataDir = path.dirname(usersFilePath);
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-    fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
-  } catch (error) {
-    console.error('Erreur lors de la sauvegarde des utilisateurs:', error);
-  }
+  created_at: string;
+  updated_at: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -66,13 +41,14 @@ export async function POST(request: NextRequest) {
 
     const fullPhone = `${country}${phone}`;
 
-    // Charger les utilisateurs existants
-    const users = loadUsers();
-
     // Trouver l'utilisateur
-    const userIndex = users.findIndex(u => u.phone === fullPhone);
+    const { data: user, error: fetchError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('phone', fullPhone)
+      .single();
 
-    if (userIndex === -1) {
+    if (fetchError || !user) {
       return NextResponse.json(
         { error: 'Aucun compte trouvé avec ce numéro de téléphone' },
         { status: 404 }
@@ -83,11 +59,21 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(newPassword, 12);
 
     // Mettre à jour le mot de passe
-    users[userIndex].password = hashedPassword;
-    users[userIndex].updatedAt = new Date().toISOString();
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ 
+        password: hashedPassword,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', user.id);
 
-    // Sauvegarder les modifications
-    saveUsers(users);
+    if (updateError) {
+      console.error('Erreur mise à jour mot de passe:', updateError);
+      return NextResponse.json(
+        { error: 'Erreur lors de la mise à jour du mot de passe' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       message: 'Mot de passe réinitialisé avec succès'

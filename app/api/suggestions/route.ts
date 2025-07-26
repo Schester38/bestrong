@@ -1,28 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
-const suggestionsFilePath = path.join(process.cwd(), 'data', 'suggestions.json');
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-function loadSuggestions() {
-  try {
-    if (fs.existsSync(suggestionsFilePath)) {
-      const data = fs.readFileSync(suggestionsFilePath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (e) {
-    console.error('Erreur chargement suggestions:', e);
-  }
-  return [];
-}
-
-function saveSuggestions(suggestions: any[]) {
-  try {
-    fs.writeFileSync(suggestionsFilePath, JSON.stringify(suggestions, null, 2));
-  } catch (e) {
-    console.error('Erreur sauvegarde suggestions:', e);
-  }
-}
+// Client Supabase côté serveur
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // POST: Ajout suggestion
 export async function POST(req: NextRequest) {
@@ -32,18 +15,27 @@ export async function POST(req: NextRequest) {
     if (!nom || !numeroOuId || !suggestion) {
       return NextResponse.json({ error: 'Tous les champs sont requis.' }, { status: 400 });
     }
-    const suggestions = loadSuggestions();
+
     const newSuggestion = {
       id: Date.now().toString(),
       nom,
-      numeroOuId,
+      numero_ou_id: numeroOuId,
       suggestion,
       date: new Date().toISOString()
     };
-    suggestions.push(newSuggestion);
-    saveSuggestions(suggestions);
+
+    const { error } = await supabase
+      .from('suggestions')
+      .insert(newSuggestion);
+
+    if (error) {
+      console.error('Erreur création suggestion:', error);
+      return NextResponse.json({ error: 'Erreur lors de l\'envoi de la suggestion.' }, { status: 500 });
+    }
+
     return NextResponse.json({ success: true, message: 'Suggestion envoyée avec succès.' });
   } catch (e) {
+    console.error('Erreur POST /api/suggestions:', e);
     return NextResponse.json({ error: 'Erreur lors de l\'envoi de la suggestion.' }, { status: 500 });
   }
 }
@@ -51,9 +43,19 @@ export async function POST(req: NextRequest) {
 // GET: Liste suggestions (admin)
 export async function GET() {
   try {
-    const suggestions = loadSuggestions();
-    return NextResponse.json({ suggestions });
+    const { data: suggestions, error } = await supabase
+      .from('suggestions')
+      .select('*')
+      .order('date', { ascending: false });
+
+    if (error) {
+      console.error('Erreur récupération suggestions:', error);
+      return NextResponse.json({ error: 'Erreur lors de la récupération des suggestions.' }, { status: 500 });
+    }
+
+    return NextResponse.json({ suggestions: suggestions || [] });
   } catch (e) {
+    console.error('Erreur GET /api/suggestions:', e);
     return NextResponse.json({ error: 'Erreur lors de la récupération des suggestions.' }, { status: 500 });
   }
 } 

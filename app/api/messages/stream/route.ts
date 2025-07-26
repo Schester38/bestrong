@@ -1,20 +1,11 @@
 import { NextRequest } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
-const messagesFilePath = path.join(process.cwd(), 'data', 'messages.json');
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-function loadMessages() {
-  try {
-    if (fs.existsSync(messagesFilePath)) {
-      const data = fs.readFileSync(messagesFilePath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.error('Erreur lors du chargement des messages:', error);
-  }
-  return [];
-}
+// Client Supabase côté serveur
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 function normalizePhone(phone: string): string {
   let normalized = phone.replace(/\s+/g, '').replace(/[^\d+]/g, '');
@@ -42,13 +33,21 @@ export async function GET(request: NextRequest) {
     start(controller) {
       let lastMessageCount = 0;
       
-      const checkMessages = () => {
+      const checkMessages = async () => {
         try {
-          const messages = loadMessages();
-          const userMessages = messages.filter((m: any) => 
-            normalizePhone(m.from) === normalizePhone(user) || 
-            normalizePhone(m.to) === normalizePhone(user)
-          );
+          const normalizedUser = normalizePhone(user);
+          const { data: messages, error } = await supabase
+            .from('messages')
+            .select('*')
+            .or(`from.eq.${normalizedUser},to.eq.${normalizedUser}`)
+            .order('date', { ascending: true });
+
+          if (error) {
+            console.error('Erreur récupération messages:', error);
+            return;
+          }
+
+          const userMessages = messages || [];
           
           if (userMessages.length !== lastMessageCount) {
             controller.enqueue(`data: ${JSON.stringify(userMessages)}\n\n`);

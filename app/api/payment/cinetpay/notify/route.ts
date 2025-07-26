@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+// Client Supabase côté serveur
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 interface CinetpayTransaction {
   cpm_trans_id: string;
@@ -9,51 +14,33 @@ interface CinetpayTransaction {
   [key: string]: unknown;
 }
 
-// Chemin du log
-const logFilePath = path.join(process.cwd(), 'data', `cinetpay-log_${new Date().toISOString().slice(0,10)}.log`);
-// Chemin des transactions
-const transactionsFilePath = path.join(process.cwd(), 'data', 'cinetpay-transactions.json');
-
-// Fonction pour logguer
-function logToFile(content: string) {
-  fs.appendFileSync(logFilePath, content + '\n', { encoding: 'utf8' });
-}
-
-// Charger les transactions
-function loadTransactions(): CinetpayTransaction[] {
-  try {
-    if (fs.existsSync(transactionsFilePath)) {
-      return JSON.parse(fs.readFileSync(transactionsFilePath, 'utf8'));
-    }
-  } catch {}
-  return [];
-}
-
-// Sauvegarder les transactions
-function saveTransactions(transactions: CinetpayTransaction[]) {
-  fs.writeFileSync(transactionsFilePath, JSON.stringify(transactions, null, 2));
-}
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { cpm_trans_id, cpm_site_id } = body;
 
     if (!cpm_trans_id) {
-      logToFile(`[${new Date().toISOString()}] cpm_trans_id non fourni`);
+      console.log(`[${new Date().toISOString()}] cpm_trans_id non fourni`);
       return NextResponse.json({ error: 'cpm_trans_id non fourni' }, { status: 400 });
     }
 
     // Log de la requête
-    logToFile(`[${new Date().toISOString()}] NOTIFY: trans_id=${cpm_trans_id}, site_id=${cpm_site_id}`);
+    console.log(`[${new Date().toISOString()}] NOTIFY: trans_id=${cpm_trans_id}, site_id=${cpm_site_id}`);
 
     // Vérifier si la transaction existe déjà et n'a pas été traitée
-    const transactions = loadTransactions();
-    const transaction = transactions.find((t: CinetpayTransaction) => t.cpm_trans_id === cpm_trans_id);
+    const { data: existingTransaction, error: fetchError } = await supabase
+      .from('cinetpay_transactions')
+      .select('*')
+      .eq('cpm_trans_id', cpm_trans_id)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error('Erreur récupération transaction:', fetchError);
+    }
 
     // Si déjà traitée, on arrête
-    if (transaction && transaction.status === 'ACCEPTED') {
-      logToFile(`[${new Date().toISOString()}] Transaction déjà traitée`);
+    if (existingTransaction && existingTransaction.status === 'ACCEPTED') {
+      console.log(`[${new Date().toISOString()}] Transaction déjà traitée`);
       return NextResponse.json({ message: 'Déjà traité' });
     }
 
@@ -74,73 +61,125 @@ export async function POST(request: NextRequest) {
     const checkData = await checkRes.json();
 
     // Log du retour API
-    logToFile(`[${new Date().toISOString()}] API CinetPay: ${JSON.stringify(checkData)}`);
+    console.log(`[${new Date().toISOString()}] API CinetPay: ${JSON.stringify(checkData)}`);
 
     // Vérification du code retour
     if (checkData.code === '00' && checkData.data && checkData.data.status === 'ACCEPTED') {
       // Mettre à jour la transaction comme validée
-      if (transaction) {
-        transaction.status = 'ACCEPTED';
+      if (existingTransaction) {
+        const { error: updateError } = await supabase
+          .from('cinetpay_transactions')
+          .update({ status: 'ACCEPTED' })
+          .eq('cpm_trans_id', cpm_trans_id);
+
+        if (updateError) {
+          console.error('Erreur mise à jour transaction:', updateError);
+        }
       } else {
-        transactions.push({
-          cpm_trans_id,
-          cpm_site_id,
-          status: 'ACCEPTED',
-          ...checkData.data
-        });
+        const { error: insertError } = await supabase
+          .from('cinetpay_transactions')
+          .insert({
+            cpm_trans_id,
+            cpm_site_id,
+            status: 'ACCEPTED',
+            ...checkData.data
+          });
+
+        if (insertError) {
+          console.error('Erreur insertion transaction:', insertError);
+        }
       }
-      saveTransactions(transactions);
-      logToFile(`[${new Date().toISOString()}] Paiement accepté pour trans_id=${cpm_trans_id}`);
-      // Ici tu peux débloquer l'accès utilisateur (mise à jour users.json, etc.)
-      // Mise à jour de la dateDernierPaiement de l'utilisateur si possible
+
+      console.log(`[${new Date().toISOString()}] Paiement accepté pour trans_id=${cpm_trans_id}`);
+      
+      // Mise à jour de la date_dernier_paiement de l'utilisateur si possible
       try {
-        const usersFilePath = path.join(process.cwd(), 'data', 'users.json');
-        if (fs.existsSync(usersFilePath)) {
-          const usersData = fs.readFileSync(usersFilePath, 'utf8');
-          const users = JSON.parse(usersData);
-          // On tente de trouver l'utilisateur par numéro de téléphone
-          const phone = checkData.data?.customer_phone_number || checkData.data?.phone;
-          if (phone) {
-            const idxUser = users.findIndex((u: { phone: string }) => u.phone === phone);
-            if (idxUser !== -1) {
-              users[idxUser].dateDernierPaiement = new Date().toISOString();
-              // Ajout : crédit du parrain si présent
-              const codeParrain = users[idxUser].parrain;
-              if (codeParrain) {
-                const idxParrain = users.findIndex((u: { phone: string }) => u.phone === codeParrain);
-                if (idxParrain !== -1) {
-                  users[idxParrain].credits = (users[idxParrain].credits || 0) + 1000;
-                  logToFile(`[${new Date().toISOString()}] Parrain ${users[idxParrain].phone} crédité de 1000 crédits`);
+        const phone = checkData.data?.customer_phone_number || checkData.data?.phone;
+        if (phone) {
+          // Trouver l'utilisateur par numéro de téléphone
+          const { data: user, error: userError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('phone', phone)
+            .single();
+
+          if (!userError && user) {
+            // Mettre à jour la date de dernier paiement
+            const { error: updateUserError } = await supabase
+              .from('users')
+              .update({ 
+                date_dernier_paiement: new Date().toISOString()
+              })
+              .eq('id', user.id);
+
+            if (updateUserError) {
+              console.error('Erreur mise à jour utilisateur:', updateUserError);
+            }
+
+            // Ajout : crédit du parrain si présent
+            if (user.parrain) {
+              const { data: parrain, error: parrainError } = await supabase
+                .from('users')
+                .select('*')
+                .eq('phone', user.parrain)
+                .single();
+
+              if (!parrainError && parrain) {
+                const { error: updateParrainError } = await supabase
+                  .from('users')
+                  .update({ 
+                    credits: (parrain.credits || 0) + 1000
+                  })
+                  .eq('id', parrain.id);
+
+                if (updateParrainError) {
+                  console.error('Erreur mise à jour parrain:', updateParrainError);
+                } else {
+                  console.log(`[${new Date().toISOString()}] Parrain ${parrain.phone} crédité de 1000 crédits`);
                 }
               }
-              fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
-              logToFile(`[${new Date().toISOString()}] Abonnement mis à jour pour ${phone}`);
             }
+
+            console.log(`[${new Date().toISOString()}] Abonnement mis à jour pour ${phone}`);
           }
         }
       } catch (err) {
-        logToFile(`[${new Date().toISOString()}] Erreur MAJ abonnement utilisateur: ${err}`);
+        console.error(`[${new Date().toISOString()}] Erreur MAJ abonnement utilisateur:`, err);
       }
+
       return NextResponse.json({ message: 'Félicitations, votre paiement a été effectué avec succès' });
     } else {
       // Paiement refusé
-      if (transaction) {
-        transaction.status = 'REFUSED';
+      if (existingTransaction) {
+        const { error: updateError } = await supabase
+          .from('cinetpay_transactions')
+          .update({ status: 'REFUSED' })
+          .eq('cpm_trans_id', cpm_trans_id);
+
+        if (updateError) {
+          console.error('Erreur mise à jour transaction refusée:', updateError);
+        }
       } else {
-        transactions.push({
-          cpm_trans_id,
-          cpm_site_id,
-          status: 'REFUSED',
-          ...checkData.data
-        });
+        const { error: insertError } = await supabase
+          .from('cinetpay_transactions')
+          .insert({
+            cpm_trans_id,
+            cpm_site_id,
+            status: 'REFUSED',
+            ...checkData.data
+          });
+
+        if (insertError) {
+          console.error('Erreur insertion transaction refusée:', insertError);
+        }
       }
-      saveTransactions(transactions);
-      logToFile(`[${new Date().toISOString()}] Paiement refusé pour trans_id=${cpm_trans_id} : ${checkData.message}`);
+
+      console.log(`[${new Date().toISOString()}] Paiement refusé pour trans_id=${cpm_trans_id} : ${checkData.message}`);
       return NextResponse.json({ error: 'Echec, votre paiement a échoué pour cause : ' + (checkData.message || 'inconnue') });
     }
   } catch (e) {
     const errMsg = e instanceof Error ? e.message : String(e);
-    logToFile(`[${new Date().toISOString()}] Erreur: ${errMsg}`);
+    console.error(`[${new Date().toISOString()}] Erreur:`, errMsg);
     return NextResponse.json({ error: 'Erreur serveur: ' + errMsg }, { status: 500 });
   }
 } 
