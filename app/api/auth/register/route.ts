@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
+import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+// Client Supabase côté serveur avec nouvelle syntaxe
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function POST(request: NextRequest) {
   try {
     console.log('=== DÉBUT INSCRIPTION ===');
     console.log('Service key existe:', !!supabaseServiceKey);
+    console.log('Service key commence par:', supabaseServiceKey?.substring(0, 10));
     
     const { phone, password, country, pseudo, parrain } = await request.json();
     console.log('Données reçues:', { phone, country, pseudo, parrain: parrain ? 'oui' : 'non' });
@@ -62,29 +67,18 @@ export async function POST(request: NextRequest) {
       pseudo: userData.pseudo
     });
     
-    console.log('Tentative d\'insertion via API REST avec service key...');
-    const insertUrl = `${supabaseUrl}/rest/v1/users`;
-    console.log('URL d\'insertion:', insertUrl);
-    
-    const insertResponse = await fetch(insertUrl, {
-      method: 'POST',
-      headers: {
-        'apikey': supabaseServiceKey,
-        'Authorization': `Bearer ${supabaseServiceKey}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
-      },
-      body: JSON.stringify(userData)
-    });
+    console.log('Tentative d\'insertion via client Supabase...');
+    const { data, error } = await supabase
+      .from('users')
+      .insert([userData])
+      .select()
+      .single();
 
-    console.log('Réponse insertion:', insertResponse.status, insertResponse.statusText);
-
-    if (!insertResponse.ok) {
-      const errorText = await insertResponse.text();
-      console.error('Erreur insertion API REST:', insertResponse.status, insertResponse.statusText, errorText);
+    if (error) {
+      console.error('Erreur Supabase:', error);
       
       // Si c'est une erreur de doublon, on le gère spécifiquement
-      if (insertResponse.status === 409 || errorText.includes('duplicate key')) {
+      if (error.code === '23505' && error.message.includes('phone')) {
         return NextResponse.json(
           { error: 'Ce numéro est déjà utilisé.' },
           { status: 409 }
@@ -92,38 +86,26 @@ export async function POST(request: NextRequest) {
       }
       
       return NextResponse.json(
-        { error: `Erreur lors de la création du compte: ${insertResponse.status} ${insertResponse.statusText}` },
+        { error: `Erreur lors de la création du compte: ${error.message}` },
         { status: 500 }
       );
     }
 
-    const data = await insertResponse.json();
-    console.log('Données retournées:', data);
-    
-    if (!data || !data[0]) {
-      console.error('Aucune donnée retournée après insertion');
-      return NextResponse.json(
-        { error: 'Erreur: aucune donnée retournée après création' },
-        { status: 500 }
-      );
-    }
-    
-    const createdUser = data[0];
-    console.log('Utilisateur créé avec succès:', createdUser.id);
+    console.log('Utilisateur créé avec succès:', data.id);
 
     // Retourner les données utilisateur (sans le mot de passe)
     return NextResponse.json({
       success: true,
       message: 'Inscription réussie',
       user: {
-        id: createdUser.id,
-        phone: createdUser.phone,
-        pseudo: createdUser.pseudo,
-        credits: createdUser.credits,
-        createdAt: createdUser.created_at,
-        updatedAt: createdUser.updated_at,
-        dateInscription: createdUser.date_inscription,
-        dashboardAccess: createdUser.dashboard_access
+        id: data.id,
+        phone: data.phone,
+        pseudo: data.pseudo,
+        credits: data.credits,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+        dateInscription: data.date_inscription,
+        dashboardAccess: data.dashboard_access
       }
     });
   } catch (error) {
