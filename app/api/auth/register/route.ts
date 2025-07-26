@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { supabase } from '../../../utils/supabase';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,21 +39,24 @@ export async function POST(request: NextRequest) {
 
     // Vérifier si l'utilisateur existe déjà
     console.log('Vérification utilisateur existant...');
-    const { data: existingUser, error: findError } = await supabase
-      .from('users')
-      .select('id')
-      .eq('phone', fullPhone)
-      .maybeSingle();
-    
-    if (findError) {
-      console.error('Erreur lors de la vérification utilisateur existant:', findError);
+    const checkResponse = await fetch(`${supabaseUrl}/rest/v1/users?phone=eq.${fullPhone}&select=id`, {
+      headers: {
+        'apikey': supabaseAnonKey!,
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (!checkResponse.ok) {
+      console.error('Erreur lors de la vérification:', checkResponse.status, checkResponse.statusText);
       return NextResponse.json(
-        { error: `Erreur base de données: ${findError.message}` },
+        { error: 'Erreur lors de la vérification utilisateur' },
         { status: 500 }
       );
     }
-    
-    if (existingUser) {
+
+    const existingUsers = await checkResponse.json();
+    if (existingUsers.length > 0) {
       console.log('Utilisateur déjà existant');
       return NextResponse.json(
         { error: 'Ce numéro est déjà utilisé.' },
@@ -87,39 +92,43 @@ export async function POST(request: NextRequest) {
       pseudo: userData.pseudo
     });
     
-    console.log('Tentative d\'insertion dans Supabase...');
-    const { data, error } = await supabase
-      .from('users')
-      .insert([userData])
-      .select()
-      .single();
+    console.log('Tentative d\'insertion via API REST...');
+    const insertResponse = await fetch(`${supabaseUrl}/rest/v1/users`, {
+      method: 'POST',
+      headers: {
+        'apikey': supabaseAnonKey!,
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(userData)
+    });
 
-    if (error) {
-      console.error('Erreur Supabase détaillée:', error);
-      console.error('Code erreur:', error.code);
-      console.error('Message erreur:', error.message);
-      console.error('Détails erreur:', error.details);
+    if (!insertResponse.ok) {
+      const errorText = await insertResponse.text();
+      console.error('Erreur insertion API REST:', insertResponse.status, insertResponse.statusText, errorText);
       return NextResponse.json(
-        { error: `Erreur lors de la création du compte: ${error.message} (Code: ${error.code})` },
+        { error: `Erreur lors de la création du compte: ${insertResponse.status} ${insertResponse.statusText}` },
         { status: 500 }
       );
     }
 
-    console.log('Utilisateur créé avec succès:', data.id);
+    const data = await insertResponse.json();
+    console.log('Utilisateur créé avec succès:', data[0]?.id);
 
     // Retourner les données utilisateur (sans le mot de passe)
     return NextResponse.json({
       success: true,
       message: 'Inscription réussie',
       user: {
-        id: data.id,
-        phone: data.phone,
-        pseudo: data.pseudo,
-        credits: data.credits,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
-        dateInscription: data.date_inscription,
-        dashboardAccess: data.dashboard_access
+        id: data[0].id,
+        phone: data[0].phone,
+        pseudo: data[0].pseudo,
+        credits: data[0].credits,
+        createdAt: data[0].created_at,
+        updatedAt: data[0].updated_at,
+        dateInscription: data[0].date_inscription,
+        dashboardAccess: data[0].dashboard_access
       }
     });
   } catch (error) {
