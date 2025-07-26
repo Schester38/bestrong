@@ -207,17 +207,32 @@ export async function GET() {
       return NextResponse.json({ error: "Erreur lors de la récupération des tâches" }, { status: 500 });
     }
 
-    // Temporairement, retourner les tâches sans complétions
-    const tasksWithCompletions = tasks.map(task => ({
-      id: task.id,
-      type: task.type,
-      url: task.url,
-      credits: task.credits,
-      actionsRestantes: task.actions_restantes, // Transformation snake_case vers camelCase
-      createur: task.createur,
-      createdAt: task.created_at,
-      updatedAt: task.updated_at,
-      completions: [] // Pas de complétions pour l'instant
+    // Récupérer les complétions pour chaque tâche
+    const tasksWithCompletions = await Promise.all(tasks.map(async (task) => {
+      const { data: completions, error: completionsError } = await supabase
+        .from('task_completions')
+        .select('*')
+        .eq('exchange_task_id', task.id);
+
+      if (completionsError) {
+        console.error('Erreur récupération complétions pour tâche', task.id, ':', completionsError);
+      }
+
+      return {
+        id: task.id,
+        type: task.type,
+        url: task.url,
+        credits: task.credits,
+        actionsRestantes: task.actions_restantes, // Transformation snake_case vers camelCase
+        createur: task.createur,
+        createdAt: task.created_at,
+        updatedAt: task.updated_at,
+        completions: completions?.map(comp => ({
+          id: comp.id,
+          userId: comp.user_id,
+          completedAt: comp.completed_at
+        })) || []
+      };
     }));
     
     return NextResponse.json(tasksWithCompletions);

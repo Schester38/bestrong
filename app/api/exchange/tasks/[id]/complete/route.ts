@@ -160,6 +160,8 @@ export async function POST(
 
     const { id: exchangeTaskId } = await params;
 
+    console.log(`🔍 Vérification si ${userId} a déjà complété la tâche ${exchangeTaskId}`);
+    
     // Vérifier si déjà complété
     const { data: existingCompletion, error: checkError } = await supabase
       .from('task_completions')
@@ -170,13 +172,20 @@ export async function POST(
 
     if (checkError) {
       console.error('Erreur vérification complétion:', checkError);
-      return NextResponse.json({ error: "Erreur lors de la vérification" }, { status: 500 });
+      return NextResponse.json({ 
+        error: "Erreur lors de la vérification", 
+        details: checkError.message 
+      }, { status: 500 });
     }
 
     if (existingCompletion) {
-      return NextResponse.json({ error: "Déjà complété par cet utilisateur" }, { status: 409 });
+      return NextResponse.json({ 
+        error: "Vous avez déjà effectué cette tâche ! Vous ne pouvez pas la faire deux fois." 
+      }, { status: 409 });
     }
 
+    console.log(`🔍 Recherche de la tâche ${exchangeTaskId}`);
+    
     // Trouver la tâche
     const { data: task, error: taskError } = await supabase
       .from('tasks')
@@ -184,13 +193,24 @@ export async function POST(
       .eq('id', exchangeTaskId)
       .single();
 
-    if (taskError || !task) {
+    if (taskError) {
+      console.error('Erreur recherche tâche:', taskError);
+      return NextResponse.json({ 
+        error: "Tâche non trouvée", 
+        details: taskError.message 
+      }, { status: 404 });
+    }
+    
+    if (!task) {
+      console.error('Tâche non trouvée:', exchangeTaskId);
       return NextResponse.json({ error: "Tâche non trouvée" }, { status: 404 });
     }
 
     // Vérifier s'il reste des actions
     if (task.actions_restantes <= 0) {
-      return NextResponse.json({ error: "Aucune action restante pour cette tâche" }, { status: 400 });
+      return NextResponse.json({ 
+        error: "Cette tâche a déjà été complétée par tous les utilisateurs autorisés. Aucune action restante." 
+      }, { status: 400 });
     }
 
     // Vérification automatique de l'action
@@ -320,7 +340,7 @@ export async function PATCH(
 
     // Trouver la complétion
     const { data: completion, error: completionError } = await supabase
-      .from('exchange_task_completions')
+      .from('task_completions')
       .select('*')
       .eq('id', completionId)
       .eq('exchange_task_id', exchangeTaskId)
@@ -337,7 +357,7 @@ export async function PATCH(
     if (approved) {
       // Marquer comme vérifiée manuellement
       const { error: updateCompletionError } = await supabase
-        .from('exchange_task_completions')
+        .from('task_completions')
         .update({
           verified: true,
           verification_date: new Date().toISOString(),
@@ -352,7 +372,7 @@ export async function PATCH(
 
       // Trouver la tâche
       const { data: task, error: taskError } = await supabase
-        .from('exchange_tasks')
+        .from('tasks')
         .select('*')
         .eq('id', exchangeTaskId)
         .single();
@@ -415,7 +435,7 @@ export async function PATCH(
     } else {
       // Rejeter la complétion
       const { error: deleteError } = await supabase
-        .from('exchange_task_completions')
+        .from('task_completions')
         .delete()
         .eq('id', completionId);
 
@@ -426,14 +446,14 @@ export async function PATCH(
 
       // Remettre l'action restante
       const { data: task, error: taskError } = await supabase
-        .from('exchange_tasks')
+        .from('tasks')
         .select('*')
         .eq('id', exchangeTaskId)
         .single();
 
       if (!taskError && task) {
         const { error: updateTaskError } = await supabase
-          .from('exchange_tasks')
+          .from('tasks')
           .update({ 
             actions_restantes: task.actions_restantes + 1,
             updated_at: new Date().toISOString()

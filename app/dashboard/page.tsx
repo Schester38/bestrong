@@ -1776,6 +1776,29 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
     }
   }
 
+  // Fonction pour vérifier si l'utilisateur a déjà complété une tâche
+  const hasUserCompletedTask = (task: ExchangeTask) => {
+    const currentUser = getCurrentUser();
+    if (!currentUser || !task.completions) return false;
+    
+    return task.completions.some(completion => 
+      completion.userId === currentUser.phone || 
+      completion.userId === currentUser.id
+    );
+  };
+
+  // Fonction pour rendre le message de complétion à côté du bouton
+  const renderCompletionStatus = (task: ExchangeTask) => {
+    if (hasUserCompletedTask(task)) {
+      return (
+        <span className="inline-block bg-orange-100 text-orange-800 text-xs px-3 py-1 rounded-full border border-orange-200 ml-2">
+          ✅ Tâche déjà effectuée
+        </span>
+      );
+    }
+    return null;
+  };
+
   async function handleComplete(taskId: string) {
     // Utiliser l'ID de l'utilisateur connecté automatiquement
     const currentUser = getCurrentUser();
@@ -1850,6 +1873,8 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
     }
   }
 
+
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Tâches d&apos;échange disponibles</h3>
@@ -1901,6 +1926,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
                 <td className="px-4 py-2">{task.createur?.slice(0, 7)}</td>
                 <td className="px-4 py-2 space-x-2">
                   <button onClick={() => handleComplete(task.id)} className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">J&apos;ai fait l&apos;action</button>
+                  {renderCompletionStatus(task)}
                   <button onClick={() => handleDelete(task.id)} className="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-600">Supprimer</button>
                   {task.completions && task.completions.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
@@ -1926,6 +1952,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
                 <td className="px-4 py-2">{task.createur?.slice(0, 7)}</td>
                 <td className="px-4 py-2 space-x-2">
                   <button onClick={() => handleComplete(task.id)} className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">J&apos;ai fait l&apos;action</button>
+                  {renderCompletionStatus(task)}
                   {task.completions && task.completions.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
                       {task.completions.map((c: { id: string; userId: string }) => (
@@ -1962,6 +1989,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
                 </td>
                 <td className="px-4 py-2 space-x-2">
                   <button onClick={() => handleComplete(task.id)} className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">J&apos;ai fait l&apos;action</button>
+                  {renderCompletionStatus(task)}
                   <button onClick={() => handleDelete(task.id)} className="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-600">Supprimer</button>
                   {task.completions && task.completions.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
@@ -1989,6 +2017,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
                 <td className="px-4 py-2">{task.createur?.slice(0, 7)}</td>
                 <td className="px-4 py-2 space-x-2">
                   <button onClick={() => handleComplete(task.id)} className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">J&apos;ai fait l&apos;action</button>
+                  {renderCompletionStatus(task)}
                   {task.completions && task.completions.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
                       {task.completions.map((c: { id: string; userId: string }) => (
