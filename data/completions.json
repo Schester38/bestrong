@@ -1,0 +1,82 @@
+[
+  {
+    "id": "1752453141291",
+    "exchangeTaskId": "1752453046941",
+    "userId": "@prophetgadarperets",
+    "completedAt": "2025-07-14T00:32:21.291Z",
+    "verified": true,
+    "verificationResult": "Like vérifié avec succès"
+  },
+  {
+    "id": "1752454864036",
+    "exchangeTaskId": "1752454063775",
+    "userId": "1752449952143",
+    "completedAt": "2025-07-14T01:01:04.036Z",
+    "verified": true,
+    "verificationResult": "Like vérifié avec succès"
+  },
+  {
+    "id": "1752454945378",
+    "exchangeTaskId": "1752454926015",
+    "userId": "1752449952143",
+    "completedAt": "2025-07-14T01:02:25.378Z",
+    "verified": false,
+    "verificationResult": "Partage non détecté"
+  },
+  {
+    "id": "1752692328098",
+    "exchangeTaskId": "1752510877130",
+    "userId": "1752449952143",
+    "completedAt": "2025-07-16T18:58:48.098Z",
+    "verified": true,
+    "verificationResult": "Like vérifié avec succès"
+  },
+  {
+    "id": "1752694371184",
+    "exchangeTaskId": "1752693915066",
+    "userId": "1752449952143",
+    "completedAt": "2025-07-16T19:32:51.185Z",
+    "verified": true,
+    "verificationResult": "Follow vérifié avec succès"
+  },
+  {
+    "id": "1752694385328",
+    "exchangeTaskId": "1752693957422",
+    "userId": "1752449952143",
+    "completedAt": "2025-07-16T19:33:05.328Z",
+    "verified": true,
+    "verificationResult": "Like vérifié avec succès"
+  },
+  {
+    "id": "1753134668709",
+    "exchangeTaskId": "1752892355696",
+    "userId": "1753134126129",
+    "completedAt": "2025-07-21T21:51:08.709Z",
+    "verified": true,
+    "verificationResult": "Like vérifié avec succès"
+  },
+  {
+    "id": "1753134769063",
+    "exchangeTaskId": "1752957310088",
+    "userId": "1753134126129",
+    "completedAt": "2025-07-21T21:52:49.063Z",
+    "verified": true,
+    "verificationResult": "Like vérifié avec succès"
+  },
+  {
+    "id": "1753216736310",
+    "exchangeTaskId": "1752957310088",
+    "userId": "1753132378819",
+    "completedAt": "2025-07-22T20:38:56.310Z",
+    "verified": true,
+    "verificationResult": "Like vérifié avec succès"
+  },
+  {
+    "id": "1753216773525",
+    "exchangeTaskId": "1753135405622",
+    "userId": "1753132378819",
+    "completedAt": "2025-07-22T20:39:33.525Z",
+    "verified": true,
+    "verificationResult": "Like vérifié avec succès"
+  }
+]

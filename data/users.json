@@ -1,0 +1,75 @@
+[
+  {
+    "id": "1752449952143",
+    "phone": "+237699486146",
+    "password": "$2b$12$z7vHI6v3tIzpxMhYxy/fl.gh5B5f0IEn/pEbv8J5xyo/nhCO93jAm",
+    "credits": 1171,
+    "pseudo": null,
+    "createdAt": "2025-07-13T23:39:12.143Z",
+    "updatedAt": "2025-07-21T23:49:01.812Z",
+    "links": [
+      {
+        "label": "",
+        "url": ""
+      },
+      {
+        "label": "",
+        "url": ""
+      },
+      {
+        "label": "",
+        "url": ""
+      }
+    ],
+    "dashboardAccess": true
+  },
+  {
+    "id": "1753046434511",
+    "phone": "+224611170759",
+    "password": "$2b$12$dq4RcIIGgQdjgQ/.HibbfuDsrVs3WdBFJEhNklyfGaR.tBy7Gm9bK",
+    "credits": 200,
+    "pseudo": "Yolagrace",
+    "createdAt": "2025-07-20T21:20:34.881Z",
+    "updatedAt": "2025-07-26T10:09:20.523Z",
+    "dateDernierPaiement": null,
+    "dashboardAccess": true,
+    "dashboardAccessExpiresAt": "2025-08-25T10:09:20.523Z"
+  },
+  {
+    "id": "1753134126129",
+    "phone": "+237679475343",
+    "password": "$2b$12$sZwO18KccV0N6KqOOkoD8Oql./8WYqrFkrqIF0exnQJACVdj8OgFK",
+    "credits": 1070,
+    "pseudo": "VÉRONE",
+    "createdAt": "2025-07-21T21:42:06.538Z",
+    "updatedAt": "2025-07-21T23:49:01.812Z",
+    "dateDernierPaiement": null,
+    "dateInscription": "2025-07-21T21:42:06.538Z",
+    "dashboardAccess": true
+  },
+  {
+    "id": "1753263957275",
+    "phone": "+237694636021",
+    "password": "$2b$12$Za15a0qAdFMkfNb9RiXVIeoGBi05rjWQA7b545C5GKAh4h0wsU/EC",
+    "credits": 150,
+    "pseudo": "Prophète Moïse Kerugma",
+    "createdAt": "2025-07-23T09:45:57.750Z",
+    "updatedAt": "2025-07-23T09:45:57.750Z",
+    "dateDernierPaiement": null,
+    "dateInscription": "2025-07-23T09:45:57.751Z",
+    "dashboardAccess": true
+  },
+  {
+    "id": "1753523042447",
+    "phone": "+237672886348",
+    "password": "$2b$12$SJ6pKTMEPfyQ1Dg9sco4hOEvsjGjr5wELyOFAc3LoqP22OBc1FjLq",
+    "credits": 150,
+    "pseudo": "Jean",
+    "createdAt": "2025-07-26T09:44:02.819Z",
+    "updatedAt": "2025-07-26T11:47:34.370Z",
+    "dateDernierPaiement": null,
+    "dateInscription": "2025-07-26T09:44:02.819Z",
+    "dashboardAccess": true,
+    "dashboardAccessExpiresAt": "2025-08-25T11:47:34.370Z"
+  }
+]

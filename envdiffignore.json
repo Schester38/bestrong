@@ -1,0 +1,7 @@
+{
+  "DIFF_IGNORE": [
+    "APP_NAME",
+    "CACHE_TTL",
+    "REDIS_URL"
+  ]
+}

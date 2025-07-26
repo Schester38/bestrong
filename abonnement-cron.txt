@@ -1,0 +1,1 @@
+﻿0 6 * * * cd C:/Users/EASYSTORE/Desktop/app && node app/utils/abonnement.ts

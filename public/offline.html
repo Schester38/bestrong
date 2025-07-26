@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pas de connexion Internet</title>
+  <style>
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #232946 0%, #3a3a5d 100%);
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    .container {
+      background: rgba(30, 32, 48, 0.98);
+      border-radius: 2rem;
+      box-shadow: 0 10px 40px rgba(236,72,153,0.10), 0 2px 8px rgba(139,92,246,0.08);
+      padding: 2.5rem 2rem 2rem 2rem;
+      border: 2px solid #a78bfa;
+      text-align: center;
+      max-width: 370px;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+    .brand {
+      font-size: 2rem;
+      font-weight: bold;
+      background: linear-gradient(90deg, #ec4899, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-fill-color: transparent;
+      margin-bottom: 1.2rem;
+      letter-spacing: 2px;
+      text-shadow: 0 2px 8px #f472b655;
+    }
+    .icon {
+      width: 80px;
+      height: 80px;
+      color: #f472b6;
+      margin-bottom: 1.5rem;
+      filter: drop-shadow(0 2px 8px #f472b655);
+    }
+    h1 {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #f9a8d4;
+      margin-bottom: 0.5rem;
+      letter-spacing: 1px;
+    }
+    p {
+      color: #e5e7eb;
+      margin-bottom: 1.5rem;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+    .btn {
+      background: linear-gradient(to right, #ec4899, #8b5cf6);
+      color: white;
+      padding: 0.75rem 2rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: box-shadow 0.2s, transform 0.2s;
+      box-shadow: 0 2px 8px #8b5cf655;
+    }
+    .btn:hover {
+      box-shadow: 0 4px 16px #f472b6aa;
+      transform: translateY(-2px) scale(1.04);
+    }
+    .wave {
+      position: absolute;
+      left: 0; right: 0; top: -40px;
+      height: 60px;
+      background: linear-gradient(90deg, #ec4899 30%, #8b5cf6 100%);
+      opacity: 0.10;
+      border-radius: 0 0 100% 100%/0 0 80% 80%;
+      z-index: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="wave"></div>
+    <div class="brand">BE STRONG</div>
+    <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18v.01M8.93 6.588a5 5 0 016.14 0M5.07 10.588a9 9 0 0113.86 0M1.5 14.588a13 13 0 0121 0" /></svg>
+    <h1>Pas de connexion Internet</h1>
+    <p>Impossible de charger la page.<br>Vérifiez votre connexion réseau et réessayez.</p>
+    <button class="btn" onclick="window.location.href='https://dogfish-devoted-gannet.ngrok-free.app'">Réessayer</button>
+  </div>
+</body>
+</html> 

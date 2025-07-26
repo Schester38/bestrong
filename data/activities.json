@@ -1,0 +1,374 @@
+[
+  {
+    "userId": "1753525010855",
+    "userPhone": "+237699887744",
+    "userPseudo": "Jean2",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1753525011271",
+    "timestamp": "2025-07-26T10:16:51.271Z"
+  },
+  {
+    "userId": "1753524630989",
+    "userPhone": "+237699887744",
+    "userPseudo": "Jean 2",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1753524631428",
+    "timestamp": "2025-07-26T10:10:31.428Z"
+  },
+  {
+    "userId": "1753523042447",
+    "userPhone": "+237672886348",
+    "userPseudo": "Jean",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1753523042948",
+    "timestamp": "2025-07-26T09:44:02.948Z"
+  },
+  {
+    "userId": "1753522641406",
+    "userPhone": "+237672886348",
+    "userPseudo": "Jean",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1753522642439",
+    "timestamp": "2025-07-26T09:37:22.439Z"
+  },
+  {
+    "userId": "1753444486659",
+    "userPhone": "+237633221166",
+    "userPseudo": "hand",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1753444487836",
+    "timestamp": "2025-07-25T11:54:47.836Z"
+  },
+  {
+    "userId": "1753199941600",
+    "userPhone": "+237655441122",
+    "userPseudo": "hall",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1753199942724",
+    "timestamp": "2025-07-22T15:59:02.724Z"
+  },
+  {
+    "userId": "1753132378819",
+    "userPhone": "+237677889944",
+    "userPseudo": "luise",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1753132379274",
+    "timestamp": "2025-07-21T21:12:59.274Z"
+  },
+  {
+    "userId": "1753132319397",
+    "userPhone": "+237648556655",
+    "userPseudo": "karl",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1753132319868",
+    "timestamp": "2025-07-21T21:11:59.868Z"
+  },
+  {
+    "userId": "1753132049678",
+    "userPhone": "+237655889922",
+    "userPseudo": "anne",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1753132050914",
+    "timestamp": "2025-07-21T21:07:30.914Z"
+  },
+  {
+    "userId": "1752691765798",
+    "userPhone": "+237672886348",
+    "userPseudo": "Jean",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1752691767069",
+    "timestamp": "2025-07-16T18:49:27.069Z"
+  },
+  {
+    "userId": "1752667856880",
+    "userPhone": "+237672886348",
+    "userPseudo": "jean",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1752667857999",
+    "timestamp": "2025-07-16T12:10:57.999Z"
+  },
+  {
+    "userId": "1752633275538",
+    "userPhone": "+237672886348",
+    "userPseudo": "Jean",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1752633277058",
+    "timestamp": "2025-07-16T02:34:37.059Z"
+  },
+  {
+    "userId": "1752628335420",
+    "userPhone": "+237672886348",
+    "userPseudo": "Jean",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1752628336484",
+    "timestamp": "2025-07-16T01:12:16.484Z"
+  },
+  {
+    "userId": "1752608959327",
+    "userPhone": "+237672886348",
+    "userPseudo": "Jean",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1752608960609",
+    "timestamp": "2025-07-15T19:49:20.609Z"
+  },
+  {
+    "userId": "1752596705662",
+    "userPhone": "+237672886348",
+    "userPseudo": "Jean",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1752596706146",
+    "timestamp": "2025-07-15T16:25:06.146Z"
+  },
+  {
+    "userId": "1752596038897",
+    "userPhone": "+237672886348",
+    "userPseudo": "Jean",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1752596039394",
+    "timestamp": "2025-07-15T16:13:59.394Z"
+  },
+  {
+    "userId": "1752595720509",
+    "userPhone": "+237672886348",
+    "userPseudo": "Jean",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1752595721046",
+    "timestamp": "2025-07-15T16:08:41.046Z"
+  },
+  {
+    "userId": "1752595229188",
+    "userPhone": "+237672886348",
+    "userPseudo": "Jean",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1752595229689",
+    "timestamp": "2025-07-15T16:00:29.689Z"
+  },
+  {
+    "userId": "1752594712937",
+    "userPhone": "+237672886348",
+    "userPseudo": "Jean",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1752594713448",
+    "timestamp": "2025-07-15T15:51:53.448Z"
+  },
+  {
+    "userId": "1752594045402",
+    "userPhone": "+237672886348",
+    "userPseudo": "Jean",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1752594045853",
+    "timestamp": "2025-07-15T15:40:45.853Z"
+  },
+  {
+    "userId": "1752593325104",
+    "userPhone": "+237672886348",
+    "userPseudo": "Jean",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1752593325607",
+    "timestamp": "2025-07-15T15:28:45.607Z"
+  },
+  {
+    "userId": "1752592329512",
+    "userPhone": "+237672886348",
+    "userPseudo": "Jean",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1752592330007",
+    "timestamp": "2025-07-15T15:12:10.007Z"
+  },
+  {
+    "userId": "1752591866558",
+    "userPhone": "+237672886348",
+    "userPseudo": "Jean",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1752591867713",
+    "timestamp": "2025-07-15T15:04:27.713Z"
+  },
+  {
+    "userId": "1752590577777",
+    "userPhone": "+237672886348",
+    "userPseudo": "Jean",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1752590578341",
+    "timestamp": "2025-07-15T14:42:58.341Z"
+  },
+  {
+    "userId": "1752586498503",
+    "userPhone": "+237672886348",
+    "userPseudo": "Jean",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1752586499492",
+    "timestamp": "2025-07-15T13:34:59.492Z"
+  },
+  {
+    "userId": "1752449952143",
+    "userPhone": "+237699486146",
+    "userPseudo": null,
+    "type": "credits_earned",
+    "description": "Crédits ajoutés par l'administrateur (+830)",
+    "credits": 830,
+    "details": {
+      "oldCredits": 170,
+      "newCredits": 1000,
+      "difference": 830,
+      "action": "admin_update"
+    },
+    "id": "1752528279109",
+    "timestamp": "2025-07-14T21:24:39.109Z"
+  },
+  {
+    "userId": "1752527983631",
+    "userPhone": "+237672886348",
+    "userPseudo": "jean",
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1752527985039",
+    "timestamp": "2025-07-14T21:19:45.039Z"
+  },
+  {
+    "userId": "1752519426027",
+    "userPhone": "+237672886348",
+    "userPseudo": null,
+    "type": "register",
+    "description": "Nouveau compte créé",
+    "credits": 150,
+    "id": "1752519427709",
+    "timestamp": "2025-07-14T18:57:07.709Z"
+  },
+  {
+    "userId": "1752449952143",
+    "userPhone": "+237699486146",
+    "userPseudo": null,
+    "type": "login",
+    "description": "Connexion réussie",
+    "credits": 180,
+    "id": "1752502874416",
+    "timestamp": "2025-07-14T14:21:14.416Z"
+  },
+  {
+    "userId": "1752449952143",
+    "userPhone": "+237699486146",
+    "userPseudo": null,
+    "type": "login",
+    "description": "Connexion réussie",
+    "credits": 200,
+    "id": "1752454498111",
+    "timestamp": "2025-07-14T00:54:58.111Z"
+  },
+  {
+    "userId": "1752449952143",
+    "userPhone": "+237699486146",
+    "userPseudo": null,
+    "type": "login",
+    "description": "Connexion réussie",
+    "credits": 200,
+    "id": "1752454089287",
+    "timestamp": "2025-07-14T00:48:09.287Z"
+  },
+  {
+    "userId": "1752449952143",
+    "userPhone": "+237699486146",
+    "userPseudo": null,
+    "type": "login",
+    "description": "Connexion réussie",
+    "credits": 200,
+    "id": "1752454029176",
+    "timestamp": "2025-07-14T00:47:09.176Z"
+  },
+  {
+    "userId": "1752449952143",
+    "userPhone": "+237699486146",
+    "userPseudo": null,
+    "type": "login",
+    "description": "Connexion réussie",
+    "credits": 200,
+    "id": "1752453014255",
+    "timestamp": "2025-07-14T00:30:14.255Z"
+  },
+  {
+    "userId": "1752449952143",
+    "userPhone": "+237699486146",
+    "userPseudo": null,
+    "type": "login",
+    "description": "Connexion réussie",
+    "credits": 200,
+    "id": "1752451492020",
+    "timestamp": "2025-07-14T00:04:52.020Z"
+  },
+  {
+    "userId": "1752449952143",
+    "userPhone": "+237699486146",
+    "userPseudo": null,
+    "type": "credits_earned",
+    "description": "Crédits ajoutés par l'administrateur (+50)",
+    "credits": 50,
+    "details": {
+      "oldCredits": 150,
+      "newCredits": 200,
+      "difference": 50,
+      "action": "admin_update"
+    },
+    "id": "1752450715471",
+    "timestamp": "2025-07-13T23:51:55.471Z"
+  },
+  {
+    "userId": "1752449952143",
+    "userPhone": "+237699486146",
+    "userPseudo": null,
+    "type": "login",
+    "description": "Connexion réussie",
+    "credits": 150,
+    "id": "1752449993149",
+    "timestamp": "2025-07-13T23:39:53.149Z"
+  }
+]
