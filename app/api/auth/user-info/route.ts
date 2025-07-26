@@ -1,36 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
-
-interface User {
-  id: string;
-  phone: string;
-  password: string;
-  credits: number;
-  pseudo: string | null;
-  createdAt: string;
-  updatedAt: string;
-  dashboardAccess?: boolean;
-  dateDernierPaiement?: string;
-  dateInscription?: string; // Ajout pour la période d'essai
-  dashboardAccessExpiresAt?: string; // Ajout pour la date d'expiration de l'accès admin
-}
-
-// Chemin vers le fichier de stockage
-const usersFilePath = path.join(process.cwd(), 'data', 'users.json');
-
-// Fonction pour charger les utilisateurs depuis le fichier
-function loadUsers(): User[] {
-  try {
-    if (fs.existsSync(usersFilePath)) {
-      const data = fs.readFileSync(usersFilePath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.error('Erreur lors du chargement des utilisateurs:', error);
-  }
-  return [];
-}
+import { supabase } from '../../../utils/supabase';
 
 export async function GET(request: NextRequest) {
   try {
@@ -45,18 +14,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Charger les utilisateurs existants
-    const users = loadUsers();
-
-    // Trouver l'utilisateur
-    let user: User | undefined;
+    // Récupérer l'utilisateur depuis Supabase
+    let query = supabase.from('users').select('*');
+    
     if (userId) {
-      user = users.find(u => u.id === userId);
+      query = query.eq('id', userId);
     } else if (phone) {
-      user = users.find(u => u.phone === phone);
+      query = query.eq('phone', phone);
     }
 
-    if (!user) {
+    const { data: user, error } = await query.maybeSingle();
+
+    if (error || !user) {
       return NextResponse.json(
         { error: 'Utilisateur non trouvé' },
         { status: 404 }
@@ -65,10 +34,10 @@ export async function GET(request: NextRequest) {
 
     // Bloquer l'accès admin si la date d'expiration est dépassée
     let dashboardAccessDaysLeft = null;
-    let dashboardAccess = user.dashboardAccess;
-    if (user.dashboardAccess && user.dashboardAccessExpiresAt) {
+    let dashboardAccess = user.dashboard_access;
+    if (user.dashboard_access && user.dashboard_access_expires_at) {
       const now = new Date();
-      const expiresAt = new Date(user.dashboardAccessExpiresAt);
+      const expiresAt = new Date(user.dashboard_access_expires_at);
       const diffMs = expiresAt.getTime() - now.getTime();
       dashboardAccessDaysLeft = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
       if (diffMs < 0) {
@@ -76,19 +45,21 @@ export async function GET(request: NextRequest) {
         dashboardAccessDaysLeft = 0;
       }
     }
+
     // Retourner les données utilisateur (sans le mot de passe)
     const userWithoutPassword = {
       id: user.id,
       phone: user.phone,
       credits: user.credits,
       pseudo: user.pseudo,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
+      createdAt: user.created_at,
+      updatedAt: user.updated_at,
       dashboardAccess: dashboardAccess,
-      dateDernierPaiement: user.dateDernierPaiement,
-      dateInscription: user.dateInscription, // Ajout pour la période d'essai
-      dashboardAccessExpiresAt: user.dashboardAccessExpiresAt
+      dateDernierPaiement: user.date_dernier_paiement,
+      dateInscription: user.date_inscription,
+      dashboardAccessExpiresAt: user.dashboard_access_expires_at
     };
+
     return NextResponse.json({
       user: userWithoutPassword,
       dashboardAccessDaysLeft

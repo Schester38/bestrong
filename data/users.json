@@ -58,18 +58,5 @@
     "dateDernierPaiement": null,
     "dateInscription": "2025-07-23T09:45:57.751Z",
     "dashboardAccess": true
-  },
-  {
-    "id": "1753523042447",
-    "phone": "+237672886348",
-    "password": "$2b$12$SJ6pKTMEPfyQ1Dg9sco4hOEvsjGjr5wELyOFAc3LoqP22OBc1FjLq",
-    "credits": 150,
-    "pseudo": "Jean",
-    "createdAt": "2025-07-26T09:44:02.819Z",
-    "updatedAt": "2025-07-26T11:47:34.370Z",
-    "dateDernierPaiement": null,
-    "dateInscription": "2025-07-26T09:44:02.819Z",
-    "dashboardAccess": true,
-    "dashboardAccessExpiresAt": "2025-08-25T11:47:34.370Z"
   }
 ]

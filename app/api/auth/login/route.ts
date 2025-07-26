@@ -1,36 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import fs from 'fs';
-import path from 'path';
-
-// Simulation de la base de données pour l'instant
-// En production, utilisez Prisma avec le schéma mis à jour
-interface User {
-  id: string;
-  phone: string;
-  password: string;
-  credits: number;
-  pseudo: string | null;
-  createdAt: string;
-  updatedAt: string;
-  dateDernierPaiement?: string; // Ajout de la date de dernier paiement
-}
-
-// Chemin vers le fichier de stockage
-const usersFilePath = path.join(process.cwd(), 'data', 'users.json');
-
-// Fonction pour charger les utilisateurs depuis le fichier
-function loadUsers(): User[] {
-  try {
-    if (fs.existsSync(usersFilePath)) {
-      const data = fs.readFileSync(usersFilePath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.error('Erreur lors du chargement des utilisateurs:', error);
-  }
-  return [];
-}
+import { supabase } from '../../../utils/supabase';
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,14 +15,22 @@ export async function POST(request: NextRequest) {
     }
 
     const fullPhone = `${country}${phone}`;
-    const users = loadUsers();
-    const user = users.find(u => u.phone === fullPhone);
-    if (!user) {
+    
+    // Récupérer l'utilisateur depuis Supabase
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('phone', fullPhone)
+      .maybeSingle();
+
+    if (error || !user) {
       return NextResponse.json(
         { error: 'Numéro de téléphone ou mot de passe incorrect' },
         { status: 401 }
       );
     }
+
+    // Vérifier le mot de passe
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return NextResponse.json(
@@ -60,25 +38,28 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
-    // Retourner les données utilisateur (sans le mot de passe)
-    // Ajout vérification abonnement
+
+    // Vérifier l'abonnement
     let abonnementValide = false;
     let dateDernierPaiement = null;
-    if ('dateDernierPaiement' in user && user.dateDernierPaiement) {
-      dateDernierPaiement = user.dateDernierPaiement;
-      const dateFin = new Date(user.dateDernierPaiement);
+    if (user.date_dernier_paiement) {
+      dateDernierPaiement = user.date_dernier_paiement;
+      const dateFin = new Date(user.date_dernier_paiement);
       dateFin.setDate(dateFin.getDate() + 30);
       abonnementValide = new Date() < dateFin;
     }
+
+    // Retourner les données utilisateur (sans le mot de passe)
     const userWithoutPassword = {
       id: user.id,
       phone: user.phone,
       credits: user.credits,
       pseudo: user.pseudo,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
+      createdAt: user.created_at,
+      updatedAt: user.updated_at,
       dateDernierPaiement: dateDernierPaiement
     };
+
     return NextResponse.json({
       message: 'Connexion réussie',
       user: userWithoutPassword,
