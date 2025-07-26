@@ -130,21 +130,31 @@ export async function POST(request: NextRequest) {
 
     const data = await insertResponse.json();
     console.log('Données retournées:', data);
-    console.log('Utilisateur créé avec succès:', data[0]?.id);
+    
+    if (!data || !data[0]) {
+      console.error('Aucune donnée retournée après insertion');
+      return NextResponse.json(
+        { error: 'Erreur: aucune donnée retournée après création' },
+        { status: 500 }
+      );
+    }
+    
+    const createdUser = data[0];
+    console.log('Utilisateur créé avec succès:', createdUser.id);
 
     // Retourner les données utilisateur (sans le mot de passe)
     return NextResponse.json({
       success: true,
       message: 'Inscription réussie',
       user: {
-        id: data[0].id,
-        phone: data[0].phone,
-        pseudo: data[0].pseudo,
-        credits: data[0].credits,
-        createdAt: data[0].created_at,
-        updatedAt: data[0].updated_at,
-        dateInscription: data[0].date_inscription,
-        dashboardAccess: data[0].dashboard_access
+        id: createdUser.id,
+        phone: createdUser.phone,
+        pseudo: createdUser.pseudo,
+        credits: createdUser.credits,
+        createdAt: createdUser.created_at,
+        updatedAt: createdUser.updated_at,
+        dateInscription: createdUser.date_inscription,
+        dashboardAccess: createdUser.dashboard_access
       }
     });
   } catch (error) {
