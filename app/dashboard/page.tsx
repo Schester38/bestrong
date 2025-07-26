@@ -229,51 +229,82 @@ export default function Dashboard() {
     }
   }, [activeTab, user, selectedConv, fetchMessages]);
 
-  // Server-Sent Events pour les messages en temps réel
+  // Server-Sent Events pour les messages en temps réel avec reconnexion automatique
   useEffect(() => {
     if (activeTab === "messages" && user) {
-      const eventSource = new EventSource(`/api/messages/stream?user=${encodeURIComponent(user.phone)}`);
+      let eventSource: EventSource | null = null;
+      let reconnectTimeout: NodeJS.Timeout | null = null;
       
-      eventSource.onmessage = (event) => {
-        try {
-          const data: Message[] = JSON.parse(event.data);
-          setMessages(data);
-          
-          // Mettre à jour les messages non lus
-          setUnreadMessages(prev => {
-            const unread = {...prev};
-            
-            // Vérifier s'il y a de nouveaux messages
-            data.forEach((message: Message) => {
-              // Si le message est destiné à l'utilisateur et n'est pas de l'utilisateur lui-même
-              const to = typeof message.to === 'string' ? message.to : '';
-              const from = typeof message.from === 'string' ? message.from : '';
-              const userPhone = typeof user?.phone === 'string' ? user.phone : '';
-              if (
-                normalizePhone(to) === normalizePhone(userPhone) &&
-                normalizePhone(from) !== normalizePhone(userPhone)
-              ) {
-                const sender = normalizePhone(from);
-                // Si la conversation n'est pas actuellement sélectionnée, compter comme non lu
-                if (selectedConv !== sender) {
-                  unread[sender] = (unread[sender] || 0) + 1;
-                }
-              }
-            });
-            
-            return unread;
-          });
-        } catch (error) {
-          // Erreur silencieuse
+      const connectSSE = () => {
+        if (eventSource) {
+          eventSource.close();
         }
+        
+        eventSource = new EventSource(`/api/messages/stream?user=${encodeURIComponent(user.phone)}`);
+        
+        eventSource.onmessage = (event) => {
+          try {
+            const data: Message[] = JSON.parse(event.data);
+            setMessages(data);
+            
+            // Mettre à jour les messages non lus
+            setUnreadMessages(prev => {
+              const unread = {...prev};
+              
+              // Vérifier s'il y a de nouveaux messages
+              data.forEach((message: Message) => {
+                // Si le message est destiné à l'utilisateur et n'est pas de l'utilisateur lui-même
+                const to = typeof message.to === 'string' ? message.to : '';
+                const from = typeof message.from === 'string' ? message.from : '';
+                const userPhone = typeof user?.phone === 'string' ? user.phone : '';
+                if (
+                  normalizePhone(to) === normalizePhone(userPhone) &&
+                  normalizePhone(from) !== normalizePhone(userPhone)
+                ) {
+                  const sender = normalizePhone(from);
+                  // Si la conversation n'est pas actuellement sélectionnée, compter comme non lu
+                  if (selectedConv !== sender) {
+                    unread[sender] = (unread[sender] || 0) + 1;
+                  }
+                }
+              });
+              
+              return unread;
+            });
+          } catch (error) {
+            console.error('Erreur parsing SSE:', error);
+          }
+        };
+        
+        eventSource.onerror = () => {
+          console.log('SSE déconnecté, reconnexion dans 1 seconde...');
+          if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+          }
+          
+          // Reconnexion automatique après 1 seconde
+          if (reconnectTimeout) {
+            clearTimeout(reconnectTimeout);
+          }
+          reconnectTimeout = setTimeout(connectSSE, 1000);
+        };
+        
+        eventSource.onopen = () => {
+          console.log('SSE connecté');
+        };
       };
       
-      eventSource.onerror = () => {
-        eventSource.close();
-      };
+      // Démarrer la connexion
+      connectSSE();
       
       return () => {
-        eventSource.close();
+        if (eventSource) {
+          eventSource.close();
+        }
+        if (reconnectTimeout) {
+          clearTimeout(reconnectTimeout);
+        }
       };
     }
   }, [activeTab, user, selectedConv]);
@@ -700,7 +731,7 @@ export default function Dashboard() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <RefreshCw className="w-8 h-8 animate-spin mx-auto text-pink-500 mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">Veilez patienter svp...</p>
+          <p className="text-gray-600 dark:text-gray-400">Veuillez patienter svp...</p>
         </div>
       </div>
     );
@@ -752,11 +783,24 @@ export default function Dashboard() {
     // Ajouter le message à l'état local immédiatement
     setMessages(prev => [...prev, newMessage]);
     
+    // Scroll automatique vers le bas
+    setTimeout(() => {
+      const chatContainer = document.getElementById('chat-messages');
+      if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    }, 100);
+    
     // Envoyer le message au serveur en arrière-plan (non-bloquant)
     fetch('/api/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ from: user.phone, to: toNormalized, message: messageText })
+    }).then(() => {
+      // Forcer un rechargement des messages après l'envoi pour s'assurer de la synchronisation
+      setTimeout(() => {
+        fetchMessages();
+      }, 100);
     }).catch(() => {
       // Erreur silencieuse - le message reste affiché localement
     });
