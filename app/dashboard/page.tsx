@@ -55,7 +55,7 @@ type User = {
 };
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("exchange");
   const [credits, setCredits] = useState(150);
   const [tasks, setTasks] = useState<ExchangeTask[]>([]);
   const router = useRouter();
@@ -195,8 +195,8 @@ export default function Dashboard() {
         // Si aucune conversation n'est sélectionnée, sélectionner celle avec le dernier message reçu
         // ou la première conversation disponible
         if (!selectedConv && convs.length > 0) {
-          if (lastReceivedMessage && typeof lastReceivedMessage.from === 'string') {
-            const sender = normalizePhone(lastReceivedMessage.from);
+          if (lastReceivedMessage && (lastReceivedMessage as Message).from && typeof (lastReceivedMessage as Message).from === 'string') {
+            const sender = normalizePhone((lastReceivedMessage as Message).from);
             setSelectedConv(sender);
             setChatClosed(false); // Ouvrir automatiquement la conversation
             
@@ -700,7 +700,7 @@ export default function Dashboard() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <RefreshCw className="w-8 h-8 animate-spin mx-auto text-pink-500 mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">Vérification de l&apos;accès...</p>
+          <p className="text-gray-600 dark:text-gray-400">Veilez patienter svp...</p>
         </div>
       </div>
     );
@@ -1497,7 +1497,7 @@ export default function Dashboard() {
       )}
         {/* Affichage du compteur de jours restants sur la période d'essai gratuite EN BAS DE PAGE */}
         <div className="w-full flex flex-col items-center mt-12 mb-4">
-          {hasDashboardAccess && dashboardAccessDaysLeft !== null && (
+        {hasDashboardAccess && dashboardAccessDaysLeft !== null && (
             <span className={`inline-block px-3 py-1 rounded text-xs font-semibold blinking ${dashboardAccessDaysLeft <= 2 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}> 
               Accès admin : {dashboardAccessDaysLeft} jour{dashboardAccessDaysLeft > 1 ? 's' : ''} restant{dashboardAccessDaysLeft > 1 ? 's' : ''}
             </span>
@@ -1507,7 +1507,7 @@ export default function Dashboard() {
               Période d'essai : {freeTrialDaysLeft} jour{freeTrialDaysLeft > 1 ? 's' : ''} restant{freeTrialDaysLeft > 1 ? 's' : ''} sur 45
             </span>
           )}
-        </div>
+    </div>
         {/* Modal Suggestions */}
         {showSuggestionModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-2 sm:px-0">

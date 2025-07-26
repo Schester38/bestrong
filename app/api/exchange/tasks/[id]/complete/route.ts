@@ -3,10 +3,11 @@ import { createClient } from '@supabase/supabase-js';
 import { z } from "zod";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 // Client Supabase côté serveur
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 interface User {
   id: string;
@@ -30,7 +31,7 @@ interface ExchangeTask {
 }
 
 interface ExchangeTaskCompletion {
-  id: string;
+      id: string;
   exchange_task_id: string;
   user_id: string;
   completed_at: string;
@@ -161,7 +162,7 @@ export async function POST(
 
     // Vérifier si déjà complété
     const { data: existingCompletion, error: checkError } = await supabase
-      .from('exchange_task_completions')
+      .from('task_completions')
       .select('*')
       .eq('exchange_task_id', exchangeTaskId)
       .eq('user_id', userId)
@@ -178,7 +179,7 @@ export async function POST(
 
     // Trouver la tâche
     const { data: task, error: taskError } = await supabase
-      .from('exchange_tasks')
+      .from('tasks')
       .select('*')
       .eq('id', exchangeTaskId)
       .single();
@@ -207,7 +208,7 @@ export async function POST(
     };
     
     const { error: completionError } = await supabase
-      .from('exchange_task_completions')
+      .from('task_completions')
       .insert(newCompletion);
 
     if (completionError) {
@@ -217,7 +218,7 @@ export async function POST(
 
     // Décrémenter actions_restantes
     const { error: updateTaskError } = await supabase
-      .from('exchange_tasks')
+      .from('tasks')
       .update({ 
         actions_restantes: task.actions_restantes - 1,
         updated_at: new Date().toISOString()

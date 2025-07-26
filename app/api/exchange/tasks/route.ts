@@ -3,10 +3,11 @@ import { createClient } from '@supabase/supabase-js';
 import { z } from "zod";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-// Client Supabase côté serveur
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+// Client Supabase côté serveur - utiliser la clé anon pour l'instant
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Interfaces
 interface User {
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
       };
 
       const { error } = await supabase
-        .from('exchange_tasks')
+        .from('tasks')
         .insert(newTask);
 
       if (error) {
@@ -167,7 +168,7 @@ export async function POST(request: NextRequest) {
     };
 
     const { error: taskError } = await supabase
-      .from('exchange_tasks')
+      .from('tasks')
       .insert(newTask);
 
     if (taskError) {
@@ -197,7 +198,7 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   try {
     const { data: tasks, error: tasksError } = await supabase
-      .from('exchange_tasks')
+      .from('tasks')
       .select('*')
       .order('created_at', { ascending: false });
 
@@ -206,16 +207,7 @@ export async function GET() {
       return NextResponse.json({ error: "Erreur lors de la récupération des tâches" }, { status: 500 });
     }
 
-    const { data: completions, error: completionsError } = await supabase
-      .from('exchange_task_completions')
-      .select('*');
-
-    if (completionsError) {
-      console.error('Erreur récupération complétions:', completionsError);
-      return NextResponse.json({ error: "Erreur lors de la récupération des complétions" }, { status: 500 });
-    }
-    
-    // Ajouter les complétions à chaque tâche et transformer les noms de propriétés
+    // Temporairement, retourner les tâches sans complétions
     const tasksWithCompletions = tasks.map(task => ({
       id: task.id,
       type: task.type,
@@ -225,11 +217,7 @@ export async function GET() {
       createur: task.createur,
       createdAt: task.created_at,
       updatedAt: task.updated_at,
-      completions: completions.filter(c => c.exchange_task_id === task.id).map(comp => ({
-        id: comp.id,
-        userId: comp.user_id, // Transformation snake_case vers camelCase
-        completedAt: comp.completed_at
-      }))
+      completions: [] // Pas de complétions pour l'instant
     }));
     
     return NextResponse.json(tasksWithCompletions);
@@ -255,7 +243,7 @@ export async function PATCH(request: NextRequest) {
 
     // Vérifier si déjà complété
     const { data: existingCompletion, error: checkError } = await supabase
-      .from('exchange_task_completions')
+      .from('task_completions')
       .select('*')
       .eq('exchange_task_id', exchangeTaskId)
       .eq('user_id', userId)
@@ -272,7 +260,7 @@ export async function PATCH(request: NextRequest) {
 
     // Trouver la tâche
     const { data: task, error: taskError } = await supabase
-      .from('exchange_tasks')
+      .from('tasks')
       .select('*')
       .eq('id', exchangeTaskId)
       .single();
@@ -290,7 +278,7 @@ export async function PATCH(request: NextRequest) {
     };
     
     const { error: completionError } = await supabase
-      .from('exchange_task_completions')
+      .from('task_completions')
       .insert(newCompletion);
 
     if (completionError) {
@@ -300,7 +288,7 @@ export async function PATCH(request: NextRequest) {
 
     // Décrémenter actions_restantes
     const { error: updateTaskError } = await supabase
-      .from('exchange_tasks')
+      .from('tasks')
       .update({ 
         actions_restantes: task.actions_restantes - 1,
         updated_at: new Date().toISOString()
@@ -376,7 +364,7 @@ export async function DELETE(request: NextRequest) {
     }
     
     const { error } = await supabase
-      .from('exchange_tasks')
+      .from('tasks')
       .delete()
       .eq('id', id);
 
