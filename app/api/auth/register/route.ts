@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
 
     console.log('Utilisateur non trouvé, création...');
 
-    // Créer le nouvel utilisateur
+    // Créer le nouvel utilisateur avec données simplifiées
     const id = Date.now().toString();
     const hashedPassword = await bcrypt.hash(password, 12);
     
@@ -88,10 +88,8 @@ export async function POST(request: NextRequest) {
       pseudo: pseudo.trim(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      date_dernier_paiement: null,
       date_inscription: new Date().toISOString(),
-      dashboard_access: true,
-      ...(parrain ? { parrain } : {}),
+      dashboard_access: true
     };
     
     console.log('Données utilisateur à insérer:', { 
