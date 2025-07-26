@@ -41,33 +41,7 @@ export async function POST(request: NextRequest) {
     const fullPhone = `${country}${phone}`;
     console.log('Numéro complet:', fullPhone);
 
-    // Vérifier si l'utilisateur existe déjà
-    console.log('Vérification utilisateur existant...');
-    const { data: existingUser, error: findError } = await supabase
-      .from('users')
-      .select('id')
-      .eq('phone', fullPhone)
-      .maybeSingle();
-
-    if (findError) {
-      console.error('Erreur lors de la vérification:', findError);
-      return NextResponse.json(
-        { error: 'Erreur lors de la vérification utilisateur' },
-        { status: 500 }
-      );
-    }
-    
-    if (existingUser) {
-      console.log('Utilisateur déjà existant');
-      return NextResponse.json(
-        { error: 'Ce numéro est déjà utilisé.' },
-        { status: 409 }
-      );
-    }
-
-    console.log('Utilisateur non trouvé, création...');
-
-    // Créer le nouvel utilisateur
+    // Créer le nouvel utilisateur directement
     const id = Date.now().toString();
     const hashedPassword = await bcrypt.hash(password, 12);
     
@@ -91,7 +65,7 @@ export async function POST(request: NextRequest) {
       pseudo: userData.pseudo
     });
     
-    console.log('Tentative d\'insertion via client Supabase...');
+    console.log('Tentative d\'insertion directe...');
     const { data, error } = await supabase
       .from('users')
       .insert([userData])
@@ -100,6 +74,15 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Erreur Supabase:', error);
+      
+      // Si c'est une erreur de doublon, on le gère spécifiquement
+      if (error.code === '23505' && error.message.includes('phone')) {
+        return NextResponse.json(
+          { error: 'Ce numéro est déjà utilisé.' },
+          { status: 409 }
+        );
+      }
+      
       return NextResponse.json(
         { error: `Erreur lors de la création du compte: ${error.message}` },
         { status: 500 }
