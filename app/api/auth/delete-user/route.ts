@@ -1,49 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
-interface User {
-  id: string;
-  phone: string;
-  password: string;
-  credits: number;
-  pseudo: string | null;
-  createdAt: string;
-  updatedAt: string;
-  dateInscription?: string;
-  dashboardAccess?: boolean;
-  dashboardAccessExpiresAt?: string;
-}
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-// Chemin vers le fichier de stockage
-const usersFilePath = path.join(process.cwd(), 'data', 'users.json');
-
-// Fonction pour charger les utilisateurs depuis le fichier
-function loadUsers(): User[] {
-  try {
-    if (fs.existsSync(usersFilePath)) {
-      const data = fs.readFileSync(usersFilePath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.error('Erreur lors du chargement des utilisateurs:', error);
-  }
-  return [];
-}
-
-// Fonction pour sauvegarder les utilisateurs dans le fichier
-function saveUsers(users: User[]): void {
-  try {
-    // Créer le dossier data s'il n'existe pas
-    const dataDir = path.dirname(usersFilePath);
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-    fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
-  } catch (error) {
-    console.error('Erreur lors de la sauvegarde des utilisateurs:', error);
-  }
-}
+// Client Supabase côté serveur
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function DELETE(request: NextRequest) {
   try {
@@ -57,43 +19,65 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Charger les utilisateurs existants
-    const users = loadUsers();
-
-    let userIndex = -1;
+    let userToDelete = null;
 
     if (userId) {
       // Rechercher par ID (priorité)
-      userIndex = users.findIndex(u => u.id === userId);
+      const { data: user, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error || !user) {
+        return NextResponse.json(
+          { error: 'Aucun compte trouvé' },
+          { status: 404 }
+        );
+      }
+      userToDelete = user;
     } else {
       // Rechercher par téléphone (fallback)
       const fullPhone = `${country}${phone}`;
-      userIndex = users.findIndex(u => u.phone === fullPhone);
-    }
+      const { data: user, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('phone', fullPhone)
+        .single();
 
-    if (userIndex === -1) {
-      return NextResponse.json(
-        { error: 'Aucun compte trouvé' },
-        { status: 404 }
-      );
+      if (error || !user) {
+        return NextResponse.json(
+          { error: 'Aucun compte trouvé' },
+          { status: 404 }
+        );
+      }
+      userToDelete = user;
     }
 
     // Supprimer l'utilisateur
-    const deletedUser = users.splice(userIndex, 1)[0];
+    const { error: deleteError } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', userToDelete.id);
 
-    // Sauvegarder les modifications
-    saveUsers(users);
+    if (deleteError) {
+      console.error('Erreur lors de la suppression:', deleteError);
+      return NextResponse.json(
+        { error: 'Erreur lors de la suppression' },
+        { status: 500 }
+      );
+    }
 
-    console.log(`Utilisateur supprimé: ${deletedUser.phone} (ID: ${deletedUser.id})`);
+    console.log(`Utilisateur supprimé: ${userToDelete.phone} (ID: ${userToDelete.id})`);
 
     return NextResponse.json({
       message: 'Utilisateur supprimé avec succès',
       deletedUser: {
-        id: deletedUser.id,
-        phone: deletedUser.phone,
-        credits: deletedUser.credits,
-        pseudo: deletedUser.pseudo,
-        createdAt: deletedUser.createdAt
+        id: userToDelete.id,
+        phone: userToDelete.phone,
+        credits: userToDelete.credits,
+        pseudo: userToDelete.pseudo,
+        createdAt: userToDelete.created_at
       }
     });
 
@@ -109,15 +93,29 @@ export async function DELETE(request: NextRequest) {
 // API pour lister tous les utilisateurs (pour l'interface d'administration)
 export async function GET() {
   try {
-    const users = loadUsers();
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Erreur lors du chargement des utilisateurs:', error);
+      return NextResponse.json(
+        { error: 'Erreur lors du chargement des utilisateurs' },
+        { status: 500 }
+      );
+    }
+
     const now = new Date();
+    
     // Retourner les utilisateurs sans les mots de passe, avec dashboardAccess info
     const usersWithoutPasswords = users.map(user => {
       let dashboardAccessDaysLeft = null;
-      let dashboardAccess = user.dashboardAccess;
-      let dashboardAccessExpiresAt = user.dashboardAccessExpiresAt;
-      if (user.dashboardAccess && user.dashboardAccessExpiresAt) {
-        const expiresAt = new Date(user.dashboardAccessExpiresAt);
+      let dashboardAccess = user.dashboard_access;
+      let dashboardAccessExpiresAt = user.dashboard_access_expires_at;
+      
+      if (user.dashboard_access && user.dashboard_access_expires_at) {
+        const expiresAt = new Date(user.dashboard_access_expires_at);
         const diffMs = expiresAt.getTime() - now.getTime();
         dashboardAccessDaysLeft = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
         if (diffMs < 0) {
@@ -125,19 +123,21 @@ export async function GET() {
           dashboardAccessDaysLeft = 0;
         }
       }
+      
       return {
         id: user.id,
         phone: user.phone,
         credits: user.credits,
         pseudo: user.pseudo,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-        dateInscription: user.dateInscription,
+        createdAt: user.created_at,
+        updatedAt: user.updated_at,
+        dateInscription: user.date_inscription,
         dashboardAccess,
         dashboardAccessExpiresAt,
         dashboardAccessDaysLeft
       };
     });
+
     return NextResponse.json({
       users: usersWithoutPasswords,
       total: usersWithoutPasswords.length
