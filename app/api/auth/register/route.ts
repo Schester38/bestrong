@@ -7,6 +7,8 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 export async function POST(request: NextRequest) {
   try {
     console.log('=== DÉBUT INSCRIPTION ===');
+    console.log('Supabase URL:', supabaseUrl);
+    console.log('Supabase Key existe:', !!supabaseAnonKey);
     
     const { phone, password, country, pseudo, parrain } = await request.json();
     console.log('Données reçues:', { phone, country, pseudo, parrain: parrain ? 'oui' : 'non' });
@@ -39,7 +41,10 @@ export async function POST(request: NextRequest) {
 
     // Vérifier si l'utilisateur existe déjà
     console.log('Vérification utilisateur existant...');
-    const checkResponse = await fetch(`${supabaseUrl}/rest/v1/users?phone=eq.${fullPhone}&select=id`, {
+    const checkUrl = `${supabaseUrl}/rest/v1/users?phone=eq.${fullPhone}&select=id`;
+    console.log('URL de vérification:', checkUrl);
+    
+    const checkResponse = await fetch(checkUrl, {
       headers: {
         'apikey': supabaseAnonKey!,
         'Authorization': `Bearer ${supabaseAnonKey}`,
@@ -47,15 +52,20 @@ export async function POST(request: NextRequest) {
       }
     });
 
+    console.log('Réponse vérification:', checkResponse.status, checkResponse.statusText);
+
     if (!checkResponse.ok) {
-      console.error('Erreur lors de la vérification:', checkResponse.status, checkResponse.statusText);
+      const errorText = await checkResponse.text();
+      console.error('Erreur lors de la vérification:', checkResponse.status, checkResponse.statusText, errorText);
       return NextResponse.json(
-        { error: 'Erreur lors de la vérification utilisateur' },
+        { error: `Erreur lors de la vérification utilisateur: ${checkResponse.status}` },
         { status: 500 }
       );
     }
 
     const existingUsers = await checkResponse.json();
+    console.log('Utilisateurs existants trouvés:', existingUsers.length);
+    
     if (existingUsers.length > 0) {
       console.log('Utilisateur déjà existant');
       return NextResponse.json(
@@ -93,7 +103,10 @@ export async function POST(request: NextRequest) {
     });
     
     console.log('Tentative d\'insertion via API REST...');
-    const insertResponse = await fetch(`${supabaseUrl}/rest/v1/users`, {
+    const insertUrl = `${supabaseUrl}/rest/v1/users`;
+    console.log('URL d\'insertion:', insertUrl);
+    
+    const insertResponse = await fetch(insertUrl, {
       method: 'POST',
       headers: {
         'apikey': supabaseAnonKey!,
@@ -103,6 +116,8 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify(userData)
     });
+
+    console.log('Réponse insertion:', insertResponse.status, insertResponse.statusText);
 
     if (!insertResponse.ok) {
       const errorText = await insertResponse.text();
@@ -114,6 +129,7 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await insertResponse.json();
+    console.log('Données retournées:', data);
     console.log('Utilisateur créé avec succès:', data[0]?.id);
 
     // Retourner les données utilisateur (sans le mot de passe)
@@ -133,6 +149,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Erreur générale lors de l\'inscription:', error);
+    console.error('Stack trace:', error instanceof Error ? error.stack : 'Pas de stack trace');
     return NextResponse.json(
       { error: 'Erreur interne du serveur' },
       { status: 500 }
