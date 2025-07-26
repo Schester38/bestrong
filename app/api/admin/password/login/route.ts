@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     
     const { data: admin, error } = await supabase
       .from('admin')
-      .select('password_hash')
+      .select('password')
       .single();
 
     if (error || !admin) {
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
     }
 
-    const valid = await bcrypt.compare(password, admin.password_hash);
+    const valid = await bcrypt.compare(password, admin.password);
     if (valid) {
       return NextResponse.json({ success: true });
     } else {

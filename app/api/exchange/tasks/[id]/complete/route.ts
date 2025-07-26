@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { z } from "zod";
+import { logActivity } from '../../../../../utils/activities';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -298,6 +299,17 @@ export async function POST(
       }
 
       console.log(`💰 ${userId} crédité de ${task.credits} crédits pour la tâche ${task.type}`);
+
+      // Enregistrer l'activité de completion de tâche
+      await logActivity({
+        userId: user.id,
+        userPhone: user.phone,
+        userPseudo: user.pseudo,
+        type: 'task_completed',
+        description: `Tâche ${task.type} complétée avec succès`,
+        details: { taskId: task.id, taskType: task.type, creditsEarned: task.credits },
+        credits: task.credits
+      });
 
       return NextResponse.json({ 
         success: true,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { supabase } from '../../../utils/supabase';
+import { logActivity } from '../../../utils/activities';
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,6 +49,15 @@ export async function POST(request: NextRequest) {
       dateFin.setDate(dateFin.getDate() + 30);
       abonnementValide = new Date() < dateFin;
     }
+
+    // Enregistrer l'activité de connexion
+    await logActivity({
+      userId: user.id,
+      userPhone: user.phone,
+      userPseudo: user.pseudo,
+      type: 'login',
+      description: 'Connexion réussie'
+    });
 
     // Retourner les données utilisateur (sans le mot de passe)
     const userWithoutPassword = {

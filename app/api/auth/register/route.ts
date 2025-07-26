@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { createClient } from '@supabase/supabase-js';
+import { logActivity } from '../../../utils/activities';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -93,6 +94,15 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('Utilisateur créé avec succès:', data.id);
+
+    // Enregistrer l'activité d'inscription
+    await logActivity({
+      userId: data.id,
+      userPhone: data.phone,
+      userPseudo: data.pseudo,
+      type: 'register',
+      description: 'Inscription réussie'
+    });
 
     // Gestion du parrainage si un parrain est fourni
     if (parrain && parrain.trim()) {

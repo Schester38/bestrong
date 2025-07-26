@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from('activities')
       .select('*')
-      .order('timestamp', { ascending: false });
+      .order('created_at', { ascending: false });
     
     // Filtrer par utilisateur si spécifié
     if (userId) {
@@ -40,11 +40,11 @@ export async function GET(request: NextRequest) {
     
     // Filtrer par date si spécifié
     if (startDate) {
-      query = query.gte('timestamp', startDate);
+      query = query.gte('created_at', startDate);
     }
     
     if (endDate) {
-      query = query.lte('timestamp', endDate);
+      query = query.lte('created_at', endDate);
     }
     
     const { data: activities, error } = await query;
@@ -57,9 +57,22 @@ export async function GET(request: NextRequest) {
       );
     }
     
+    // Transformer les données pour correspondre au format attendu par le frontend
+    const transformedActivities = activities?.map(activity => ({
+      id: activity.id,
+      userId: activity.user_id,
+      userPhone: activity.user_phone,
+      userPseudo: activity.user_pseudo,
+      type: activity.type,
+      description: activity.description,
+      credits: activity.credits,
+      details: activity.details,
+      timestamp: activity.created_at
+    })) || [];
+    
     return NextResponse.json({
-      activities: activities || [],
-      total: activities?.length || 0
+      activities: transformedActivities,
+      total: transformedActivities.length
     });
 
   } catch (error) {

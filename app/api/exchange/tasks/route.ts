@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from '@supabase/supabase-js';
 import { z } from "zod";
+import { logActivity } from '../../../utils/activities';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -175,6 +176,17 @@ export async function POST(request: NextRequest) {
       console.error('Erreur création tâche:', taskError);
       return NextResponse.json({ error: "Erreur lors de la création de la tâche" }, { status: 500 });
     }
+
+    // Enregistrer l'activité de création de tâche
+    await logActivity({
+      userId: user.id,
+      userPhone: user.phone,
+      userPseudo: user.pseudo,
+      type: 'task_created',
+      description: `Création d'une tâche ${type} pour ${actionsRestantes} actions`,
+      details: { taskId: newTask.id, taskType: type, actionsCount: actionsRestantes, creditsPerAction: credits },
+      credits: totalCost
+    });
     
           // Transformer les données pour correspondre au format attendu par le frontend
       const transformedTask = {

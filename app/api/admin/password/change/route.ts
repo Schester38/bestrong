@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     // Récupérer le mot de passe actuel
     const { data: admin, error: fetchError } = await supabase
       .from('admin')
-      .select('password_hash')
+      .select('password')
       .single();
 
     if (fetchError || !admin) {
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Vérifier l'ancien mot de passe
-    const valid = await bcrypt.compare(oldPassword, admin.password_hash);
+    const valid = await bcrypt.compare(oldPassword, admin.password);
     if (!valid) {
       return NextResponse.json({ error: 'Ancien mot de passe incorrect' }, { status: 401 });
     }
@@ -39,7 +39,8 @@ export async function POST(request: NextRequest) {
     // Mettre à jour le mot de passe
     const { error: updateError } = await supabase
       .from('admin')
-      .update({ password_hash: newHash });
+      .update({ password: newHash })
+      .eq('username', 'admin');
 
     if (updateError) {
       console.error('Erreur mise à jour mot de passe admin:', updateError);
