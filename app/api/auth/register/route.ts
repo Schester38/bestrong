@@ -93,6 +93,45 @@ export async function POST(request: NextRequest) {
 
     console.log('Utilisateur créé avec succès:', data.id);
 
+    // Gestion du parrainage si un parrain est fourni
+    if (parrain && parrain.trim()) {
+      try {
+        console.log('Traitement du parrainage pour:', parrain);
+        
+        // Chercher le parrain par pseudo ou téléphone
+        const { data: parrainData, error: parrainError } = await supabase
+          .from('users')
+          .select('*')
+          .or(`pseudo.eq.${parrain.trim()},phone.eq.${parrain.trim()}`)
+          .maybeSingle();
+
+        if (parrainError) {
+          console.error('Erreur recherche parrain:', parrainError);
+        } else if (parrainData) {
+          console.log('Parrain trouvé:', parrainData.pseudo);
+          
+          // Créditer le parrain de 1000 crédits
+          const { error: updateError } = await supabase
+            .from('users')
+            .update({ 
+              credits: parrainData.credits + 1000,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', parrainData.id);
+
+          if (updateError) {
+            console.error('Erreur crédit parrain:', updateError);
+          } else {
+            console.log('Parrain crédité de 1000 crédits');
+          }
+        } else {
+          console.log('Parrain non trouvé:', parrain);
+        }
+      } catch (error) {
+        console.error('Erreur lors du traitement du parrainage:', error);
+      }
+    }
+
     // Retourner les données utilisateur (sans le mot de passe)
     return NextResponse.json({
       success: true,

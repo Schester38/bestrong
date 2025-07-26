@@ -39,16 +39,26 @@ export async function GET(request: NextRequest) {
   const normalizedUser = normalizePhone(user);
   console.log('User normalisé:', normalizedUser);
   
-  const { data: messages, error } = await supabase
+  // Utiliser une approche différente pour la requête OR
+  const { data: messagesFrom, error: errorFrom } = await supabase
     .from('messages')
     .select('*')
-    .or(`from.eq.${normalizedUser},to.eq.${normalizedUser}`)
-    .order('date', { ascending: true });
+    .eq('from', normalizedUser);
 
-  if (error) {
-    console.error('Erreur récupération messages:', error);
+  const { data: messagesTo, error: errorTo } = await supabase
+    .from('messages')
+    .select('*')
+    .eq('to', normalizedUser);
+
+  if (errorFrom || errorTo) {
+    console.error('Erreur récupération messages:', errorFrom || errorTo);
     return NextResponse.json({ error: 'Erreur lors de la récupération des messages' }, { status: 500 });
   }
+
+  const messages = [...(messagesFrom || []), ...(messagesTo || [])];
+  messages.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+
 
   console.log('Messages récupérés:', messages?.length || 0);
   return NextResponse.json(messages || []);

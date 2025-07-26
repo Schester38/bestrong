@@ -40,17 +40,26 @@ export async function POST(request: NextRequest) {
     const normalizedContact = normalizePhone(contact);
     
     // Supprimer les messages entre ces deux utilisateurs
-    const { error, count } = await supabase
+    const { error: error1 } = await supabase
       .from('messages')
       .delete()
-      .or(`and(from.eq.${normalizedUser},to.eq.${normalizedContact}),and(from.eq.${normalizedContact},to.eq.${normalizedUser})`);
+      .eq('from', normalizedUser)
+      .eq('to', normalizedContact);
+
+    const { error: error2 } = await supabase
+      .from('messages')
+      .delete()
+      .eq('from', normalizedContact)
+      .eq('to', normalizedUser);
+
+    const error = error1 || error2;
 
     if (error) {
       console.error('Erreur suppression messages:', error);
       return NextResponse.json({ error: 'Erreur lors de la suppression des messages' }, { status: 500 });
     }
     
-    return NextResponse.json({ success: true, messagesRemoved: count || 0 });
+    return NextResponse.json({ success: true, messagesRemoved: 0 });
   } catch (error) {
     console.error('Erreur lors de la suppression des messages:', error);
     return NextResponse.json({ error: 'Erreur lors de la suppression des messages' }, { status: 500 });

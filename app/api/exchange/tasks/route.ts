@@ -78,7 +78,18 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Erreur lors de la création de la tâche" }, { status: 500 });
       }
 
-      return NextResponse.json(newTask, { status: 201 });
+      // Transformer les données pour correspondre au format attendu par le frontend
+      const transformedTask = {
+        id: newTask.id,
+        type: newTask.type,
+        url: newTask.url,
+        credits: newTask.credits,
+        actionsRestantes: newTask.actions_restantes,
+        createur: newTask.createur,
+        createdAt: newTask.created_at,
+        updatedAt: newTask.updated_at
+      };
+      return NextResponse.json(transformedTask, { status: 201 });
     }
     
     // Trouver l'utilisateur par téléphone ou pseudo
@@ -164,7 +175,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Erreur lors de la création de la tâche" }, { status: 500 });
     }
     
-    return NextResponse.json(newTask, { status: 201 });
+          // Transformer les données pour correspondre au format attendu par le frontend
+      const transformedTask = {
+        id: newTask.id,
+        type: newTask.type,
+        url: newTask.url,
+        credits: newTask.credits,
+        actionsRestantes: newTask.actions_restantes,
+        createur: newTask.createur,
+        createdAt: newTask.created_at,
+        updatedAt: newTask.updated_at
+      };
+      return NextResponse.json(transformedTask, { status: 201 });
   } catch (error) {
     console.error('Erreur POST /api/exchange/tasks:', error);
     return NextResponse.json({ error: "Erreur lors de la création de la tâche", details: error }, { status: 400 });
@@ -193,10 +215,21 @@ export async function GET() {
       return NextResponse.json({ error: "Erreur lors de la récupération des complétions" }, { status: 500 });
     }
     
-    // Ajouter les complétions à chaque tâche
+    // Ajouter les complétions à chaque tâche et transformer les noms de propriétés
     const tasksWithCompletions = tasks.map(task => ({
-      ...task,
-      completions: completions.filter(c => c.exchange_task_id === task.id)
+      id: task.id,
+      type: task.type,
+      url: task.url,
+      credits: task.credits,
+      actionsRestantes: task.actions_restantes, // Transformation snake_case vers camelCase
+      createur: task.createur,
+      createdAt: task.created_at,
+      updatedAt: task.updated_at,
+      completions: completions.filter(c => c.exchange_task_id === task.id).map(comp => ({
+        id: comp.id,
+        userId: comp.user_id, // Transformation snake_case vers camelCase
+        completedAt: comp.completed_at
+      }))
     }));
     
     return NextResponse.json(tasksWithCompletions);
