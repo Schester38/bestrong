@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     const fullPhone = `${country}${phone}`;
+    console.log('Tentative d\'inscription pour:', fullPhone);
 
     // Vérifier si l'utilisateur existe déjà
     const { data: existingUser, error: findError } = await supabase
@@ -34,6 +35,11 @@ export async function POST(request: NextRequest) {
       .select('id')
       .eq('phone', fullPhone)
       .maybeSingle();
+    
+    if (findError) {
+      console.error('Erreur lors de la vérification utilisateur existant:', findError);
+    }
+    
     if (existingUser) {
       return NextResponse.json(
         { error: 'Ce numéro est déjà utilisé.' },
@@ -44,33 +50,38 @@ export async function POST(request: NextRequest) {
     // Créer le nouvel utilisateur
     const id = Date.now().toString();
     const hashedPassword = await bcrypt.hash(password, 12);
+    
+    const userData = {
+      id,
+      phone: fullPhone,
+      password: hashedPassword,
+      credits: 150,
+      pseudo: pseudo.trim(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      date_dernier_paiement: null,
+      date_inscription: new Date().toISOString(),
+      dashboard_access: true,
+      ...(parrain ? { parrain } : {}),
+    };
+    
+    console.log('Données utilisateur à insérer:', { ...userData, password: '[HIDDEN]' });
+    
     const { data, error } = await supabase
       .from('users')
-      .insert([
-        {
-          id,
-          phone: fullPhone,
-          password: hashedPassword,
-          credits: 150,
-          pseudo: pseudo.trim(),
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          date_dernier_paiement: null,
-          date_inscription: new Date().toISOString(),
-          dashboard_access: true,
-          ...(parrain ? { parrain } : {}),
-        },
-      ])
+      .insert([userData])
       .select()
       .single();
 
     if (error) {
-      console.error('Erreur Supabase:', error);
+      console.error('Erreur Supabase détaillée:', error);
       return NextResponse.json(
-        { error: 'Erreur lors de la création du compte' },
+        { error: `Erreur lors de la création du compte: ${error.message}` },
         { status: 500 }
       );
     }
+
+    console.log('Utilisateur créé avec succès:', data.id);
 
     // Retourner les données utilisateur (sans le mot de passe)
     return NextResponse.json({
