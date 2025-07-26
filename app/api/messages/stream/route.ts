@@ -41,12 +41,12 @@ export async function GET(request: NextRequest) {
           const { data: messagesFrom, error: errorFrom } = await supabase
             .from('messages')
             .select('*')
-            .eq('from', normalizedUser);
+            .eq('from_user', normalizedUser);
 
           const { data: messagesTo, error: errorTo } = await supabase
             .from('messages')
             .select('*')
-            .eq('to', normalizedUser);
+            .eq('to_user', normalizedUser);
 
           if (errorFrom || errorTo) {
             console.error('Erreur récupération messages:', errorFrom || errorTo);
@@ -56,9 +56,17 @@ export async function GET(request: NextRequest) {
           const messages = [...(messagesFrom || []), ...(messagesTo || [])];
           messages.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
+          // Transformer les données pour correspondre au format attendu par le frontend
+          const transformedMessages = messages.map(msg => ({
+            id: msg.id,
+            from: msg.from_user,
+            to: msg.to_user,
+            message: msg.message,
+            date: msg.date,
+            lu: msg.lu
+          }));
 
-
-          const userMessages = messages || [];
+          const userMessages = transformedMessages || [];
           
           if (userMessages.length !== lastMessageCount) {
             controller.enqueue(`data: ${JSON.stringify(userMessages)}\n\n`);

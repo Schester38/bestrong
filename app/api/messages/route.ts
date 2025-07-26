@@ -31,38 +31,77 @@ function normalizePhone(phone: string): string {
 
 // GET /api/messages?user=xxx
 export async function GET(request: NextRequest) {
-  console.log('API messages GET appelée');
-  const url = new URL(request.url);
-  const user = url.searchParams.get('user');
-  console.log('Paramètre user:', user);
-  if (!user) return NextResponse.json({ error: 'Paramètre user requis' }, { status: 400 });
-  
-  const normalizedUser = normalizePhone(user);
-  console.log('User normalisé:', normalizedUser);
-  
-  // Utiliser une approche différente pour la requête OR
-  const { data: messagesFrom, error: errorFrom } = await supabase
-    .from('messages')
-    .select('*')
-    .eq('from', normalizedUser);
+  try {
+    console.log('API messages GET appelée');
+    const url = new URL(request.url);
+    const user = url.searchParams.get('user');
+    console.log('Paramètre user:', user);
+    if (!user) return NextResponse.json({ error: 'Paramètre user requis' }, { status: 400 });
+    
+    const normalizedUser = normalizePhone(user);
+    console.log('User normalisé:', normalizedUser);
+    
+    // Test simple d'abord
+    console.log('Test connexion Supabase...');
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    
+    // Test avec une requête simple
+    const { data: testData, error: testError } = await supabase
+      .from('messages')
+      .select('*')
+      .limit(1);
+    
+    if (testError) {
+      console.error('Erreur test table messages:', testError);
+      return NextResponse.json({ 
+        error: 'Erreur table messages', 
+        details: testError.message 
+      }, { status: 500 });
+    }
+    
+    console.log('Test réussi, données:', testData);
+    
+    // Utiliser une approche différente pour la requête OR
+    const { data: messagesFrom, error: errorFrom } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('from_user', normalizedUser);
 
-  const { data: messagesTo, error: errorTo } = await supabase
-    .from('messages')
-    .select('*')
-    .eq('to', normalizedUser);
+    const { data: messagesTo, error: errorTo } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('to_user', normalizedUser);
 
-  if (errorFrom || errorTo) {
-    console.error('Erreur récupération messages:', errorFrom || errorTo);
-    return NextResponse.json({ error: 'Erreur lors de la récupération des messages' }, { status: 500 });
+    if (errorFrom || errorTo) {
+      console.error('Erreur récupération messages:', errorFrom || errorTo);
+      return NextResponse.json({ 
+        error: 'Erreur lors de la récupération des messages',
+        details: errorFrom?.message || errorTo?.message
+      }, { status: 500 });
+    }
+
+    const messages = [...(messagesFrom || []), ...(messagesTo || [])];
+    messages.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    // Transformer les données pour correspondre au format attendu par le frontend
+    const transformedMessages = messages.map(msg => ({
+      id: msg.id,
+      from: msg.from_user,
+      to: msg.to_user,
+      message: msg.message,
+      date: msg.date,
+      lu: msg.lu
+    }));
+
+    console.log('Messages récupérés:', transformedMessages?.length || 0);
+    return NextResponse.json(transformedMessages || []);
+  } catch (error) {
+    console.error('Erreur générale GET /api/messages:', error);
+    return NextResponse.json({ 
+      error: 'Erreur générale',
+      details: error instanceof Error ? error.message : String(error)
+    }, { status: 500 });
   }
-
-  const messages = [...(messagesFrom || []), ...(messagesTo || [])];
-  messages.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-
-
-  console.log('Messages récupérés:', messages?.length || 0);
-  return NextResponse.json(messages || []);
 }
 
 // POST /api/messages
@@ -75,8 +114,8 @@ export async function POST(request: NextRequest) {
 
     const newMsg = {
       id: Date.now().toString(),
-      from,
-      to,
+      from_user: from,
+      to_user: to,
       message,
       date: new Date().toISOString()
     };

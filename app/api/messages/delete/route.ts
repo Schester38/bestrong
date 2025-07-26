@@ -44,14 +44,14 @@ export async function POST(request: NextRequest) {
     const { error: error1 } = await supabase
       .from('messages')
       .delete()
-      .eq('from', normalizedUser)
-      .eq('to', normalizedContact);
+      .eq('from_user', normalizedUser)
+      .eq('to_user', normalizedContact);
 
     const { error: error2 } = await supabase
       .from('messages')
       .delete()
-      .eq('from', normalizedContact)
-      .eq('to', normalizedUser);
+      .eq('from_user', normalizedContact)
+      .eq('to_user', normalizedUser);
 
     const error = error1 || error2;
 
