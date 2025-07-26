@@ -1,8 +1,44 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import fs from "fs";
+import path from "path";
 import { z } from "zod";
 
-const prisma = new PrismaClient();
+interface BoostOrder {
+  id: string;
+  type: "FOLLOWERS" | "VIEWS" | "LIKES" | "COMMENTS";
+  quantity: number;
+  amount: number;
+  paymentMethod?: string;
+  status: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED" | "CANCELLED";
+  createdAt: string;
+  updatedAt: string;
+}
+
+const ordersFilePath = path.join(process.cwd(), 'data', 'boost-orders.json');
+
+function loadOrders(): BoostOrder[] {
+  try {
+    if (fs.existsSync(ordersFilePath)) {
+      const data = fs.readFileSync(ordersFilePath, 'utf8');
+      return JSON.parse(data);
+    }
+  } catch (error) {
+    console.error('Erreur lors du chargement des commandes:', error);
+  }
+  return [];
+}
+
+function saveOrders(orders: BoostOrder[]): void {
+  try {
+    const dataDir = path.dirname(ordersFilePath);
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    fs.writeFileSync(ordersFilePath, JSON.stringify(orders, null, 2));
+  } catch (error) {
+    console.error('Erreur lors de la sauvegarde des commandes:', error);
+  }
+}
 
 const createOrderSchema = z.object({
   type: z.enum(["FOLLOWERS", "VIEWS", "LIKES", "COMMENTS"]),
@@ -17,32 +53,23 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { type, quantity, amount, paymentMethod, phone } = { ...body, ...createOrderSchema.parse(body) };
-    // Bypass admin : accès total
-    if (phone === ADMIN_PHONE) {
-      const order = await prisma.boostOrder.create({
-        data: {
-          type,
-          quantity,
-          amount,
-          paymentMethod,
-          status: "COMPLETED",
-        },
-      });
-      return NextResponse.json(order, { status: 201 });
-    }
+    
+    const orders = loadOrders();
+    const newOrder: BoostOrder = {
+      id: Date.now().toString(),
+      type,
+      quantity,
+      amount,
+      paymentMethod,
+      status: phone === ADMIN_PHONE ? "COMPLETED" : "PENDING",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    
+    orders.push(newOrder);
+    saveOrders(orders);
 
-    // Créer la commande de boost
-    const order = await prisma.boostOrder.create({
-      data: {
-        type,
-        quantity,
-        amount,
-        paymentMethod,
-        status: "PENDING",
-      },
-    });
-
-    return NextResponse.json(order, { status: 201 });
+    return NextResponse.json(newOrder, { status: 201 });
   } catch (error) {
     console.error("Erreur création commande:", error);
     return NextResponse.json(
@@ -57,20 +84,17 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
 
-    const where: {
-      status?: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED" | "CANCELLED";
-    } = {};
+    const orders = loadOrders();
+    let filteredOrders = orders;
 
     if (status) {
-      where.status = status as "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED" | "CANCELLED";
+      filteredOrders = orders.filter(order => order.status === status);
     }
 
-    const orders = await prisma.boostOrder.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-    });
+    // Trier par date de création décroissante
+    filteredOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-    return NextResponse.json(orders);
+    return NextResponse.json(filteredOrders);
   } catch (error) {
     console.error("Erreur récupération commandes:", error);
     return NextResponse.json(
