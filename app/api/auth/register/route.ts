@@ -4,22 +4,28 @@ import { supabase } from '../../../utils/supabase';
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('=== DÉBUT INSCRIPTION ===');
+    
     const { phone, password, country, pseudo, parrain } = await request.json();
+    console.log('Données reçues:', { phone, country, pseudo, parrain: parrain ? 'oui' : 'non' });
 
     // Validation des données
     if (!phone || !password || !country || !pseudo) {
+      console.log('Erreur validation: champs manquants');
       return NextResponse.json(
         { error: 'Tous les champs sont requis' },
         { status: 400 }
       );
     }
     if (typeof pseudo !== 'string' || pseudo.trim().length < 2) {
+      console.log('Erreur validation: pseudo trop court');
       return NextResponse.json(
         { error: 'Le pseudo est obligatoire (2 caractères minimum)' },
         { status: 400 }
       );
     }
     if (password.length < 6) {
+      console.log('Erreur validation: mot de passe trop court');
       return NextResponse.json(
         { error: 'Le mot de passe doit contenir au moins 6 caractères' },
         { status: 400 }
@@ -27,9 +33,10 @@ export async function POST(request: NextRequest) {
     }
 
     const fullPhone = `${country}${phone}`;
-    console.log('Tentative d\'inscription pour:', fullPhone);
+    console.log('Numéro complet:', fullPhone);
 
     // Vérifier si l'utilisateur existe déjà
+    console.log('Vérification utilisateur existant...');
     const { data: existingUser, error: findError } = await supabase
       .from('users')
       .select('id')
@@ -38,14 +45,21 @@ export async function POST(request: NextRequest) {
     
     if (findError) {
       console.error('Erreur lors de la vérification utilisateur existant:', findError);
+      return NextResponse.json(
+        { error: `Erreur base de données: ${findError.message}` },
+        { status: 500 }
+      );
     }
     
     if (existingUser) {
+      console.log('Utilisateur déjà existant');
       return NextResponse.json(
         { error: 'Ce numéro est déjà utilisé.' },
         { status: 409 }
       );
     }
+
+    console.log('Utilisateur non trouvé, création...');
 
     // Créer le nouvel utilisateur
     const id = Date.now().toString();
@@ -65,8 +79,15 @@ export async function POST(request: NextRequest) {
       ...(parrain ? { parrain } : {}),
     };
     
-    console.log('Données utilisateur à insérer:', { ...userData, password: '[HIDDEN]' });
+    console.log('Données utilisateur à insérer:', { 
+      ...userData, 
+      password: '[HIDDEN]',
+      id,
+      phone: userData.phone,
+      pseudo: userData.pseudo
+    });
     
+    console.log('Tentative d\'insertion dans Supabase...');
     const { data, error } = await supabase
       .from('users')
       .insert([userData])
@@ -75,8 +96,11 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Erreur Supabase détaillée:', error);
+      console.error('Code erreur:', error.code);
+      console.error('Message erreur:', error.message);
+      console.error('Détails erreur:', error.details);
       return NextResponse.json(
-        { error: `Erreur lors de la création du compte: ${error.message}` },
+        { error: `Erreur lors de la création du compte: ${error.message} (Code: ${error.code})` },
         { status: 500 }
       );
     }
@@ -99,7 +123,7 @@ export async function POST(request: NextRequest) {
       }
     });
   } catch (error) {
-    console.error('Erreur lors de l\'inscription:', error);
+    console.error('Erreur générale lors de l\'inscription:', error);
     return NextResponse.json(
       { error: 'Erreur interne du serveur' },
       { status: 500 }
