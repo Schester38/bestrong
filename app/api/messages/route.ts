@@ -32,15 +32,15 @@ function normalizePhone(phone: string): string {
 // GET /api/messages?user=xxx
 export async function GET(request: NextRequest) {
   try {
-    console.log('API messages GET appelée');
-    const url = new URL(request.url);
-    const user = url.searchParams.get('user');
-    console.log('Paramètre user:', user);
-    if (!user) return NextResponse.json({ error: 'Paramètre user requis' }, { status: 400 });
-    
-    const normalizedUser = normalizePhone(user);
-    console.log('User normalisé:', normalizedUser);
-    
+  console.log('API messages GET appelée');
+  const url = new URL(request.url);
+  const user = url.searchParams.get('user');
+  console.log('Paramètre user:', user);
+  if (!user) return NextResponse.json({ error: 'Paramètre user requis' }, { status: 400 });
+  
+  const normalizedUser = normalizePhone(user);
+  console.log('User normalisé:', normalizedUser);
+  
     // Test simple d'abord
     console.log('Test connexion Supabase...');
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
     }
     
     console.log('Test réussi, données:', testData);
-    
+  
     // Utiliser une approche différente pour la requête OR
     const { data: messagesFrom, error: errorFrom } = await supabase
       .from('messages')
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
       date: msg.date,
       lu: msg.lu
     }));
-
+  
     console.log('Messages récupérés:', transformedMessages?.length || 0);
     return NextResponse.json(transformedMessages || []);
   } catch (error) {

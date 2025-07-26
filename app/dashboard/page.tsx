@@ -140,6 +140,49 @@ export default function Dashboard() {
     
     return normalized;
   };
+
+  // Fonction pour mettre à jour les messages non lus
+  const updateUnreadMessages = useCallback((data: Message[]) => {
+    setUnreadMessages(prev => {
+      const unread = {...prev};
+      
+      data.forEach((message: Message) => {
+        const to = typeof message.to === 'string' ? message.to : '';
+        const from = typeof message.from === 'string' ? message.from : '';
+        const userPhone = typeof user?.phone === 'string' ? user.phone : '';
+        if (
+          normalizePhone(to) === normalizePhone(userPhone) &&
+          normalizePhone(from) !== normalizePhone(userPhone)
+        ) {
+          const sender = normalizePhone(from);
+          if (selectedConv !== sender) {
+            unread[sender] = (unread[sender] || 0) + 1;
+          }
+        }
+      });
+      
+      // Mettre à jour le compteur de notifications
+      const totalUnread = Object.values(unread).reduce((sum, count) => sum + count, 0);
+      setNotifUnread(totalUnread);
+      
+      return unread;
+    });
+  }, [user, selectedConv]);
+
+  // Fonction pour mettre à jour la liste des conversations
+  const updateConversations = useCallback((data: Message[]) => {
+    if (!user) return;
+    
+    const convs = Array.from(
+      new Set(
+        data
+          .map((m: Message) => normalizePhone(m.from) === normalizePhone(user.phone) ? m.to : m.from)
+          .filter(conv => conv && normalizePhone(conv) !== normalizePhone(user.phone))
+          .map(conv => normalizePhone(conv)) // Normaliser les conversations
+      )
+    );
+    setConversations(convs);
+  }, [user]);
   
      // Charger les messages de l'utilisateur connecté
   const fetchMessages = useCallback(async () => {
@@ -229,11 +272,12 @@ export default function Dashboard() {
     }
   }, [activeTab, user, selectedConv, fetchMessages]);
 
-  // Server-Sent Events pour les messages en temps réel avec reconnexion automatique
+  // Server-Sent Events pour les messages en temps réel
   useEffect(() => {
-    if (activeTab === "messages" && user) {
+    if (user) { // Retirer la condition activeTab pour que le SSE reste actif
       let eventSource: EventSource | null = null;
       let reconnectTimeout: NodeJS.Timeout | null = null;
+      let lastMessageCount = 0;
       
       const connectSSE = () => {
         if (eventSource) {
@@ -241,36 +285,20 @@ export default function Dashboard() {
         }
         
         eventSource = new EventSource(`/api/messages/stream?user=${encodeURIComponent(user.phone)}`);
-        
-        eventSource.onmessage = (event) => {
+      
+              eventSource.onmessage = (event) => {
           try {
             const data: Message[] = JSON.parse(event.data);
-            setMessages(data);
             
-            // Mettre à jour les messages non lus
-            setUnreadMessages(prev => {
-              const unread = {...prev};
+            // Éviter les mises à jour inutiles si le nombre de messages n'a pas changé
+            if (data.length !== lastMessageCount) {
+              setMessages(data);
+              lastMessageCount = data.length;
+              updateUnreadMessages(data);
               
-              // Vérifier s'il y a de nouveaux messages
-              data.forEach((message: Message) => {
-                // Si le message est destiné à l'utilisateur et n'est pas de l'utilisateur lui-même
-                const to = typeof message.to === 'string' ? message.to : '';
-                const from = typeof message.from === 'string' ? message.from : '';
-                const userPhone = typeof user?.phone === 'string' ? user.phone : '';
-                if (
-                  normalizePhone(to) === normalizePhone(userPhone) &&
-                  normalizePhone(from) !== normalizePhone(userPhone)
-                ) {
-                  const sender = normalizePhone(from);
-                  // Si la conversation n'est pas actuellement sélectionnée, compter comme non lu
-                  if (selectedConv !== sender) {
-                    unread[sender] = (unread[sender] || 0) + 1;
-                  }
-                }
-              });
-              
-              return unread;
-            });
+              // Mettre à jour la liste des conversations
+              updateConversations(data);
+            }
           } catch (error) {
             console.error('Erreur parsing SSE:', error);
           }
@@ -295,19 +323,21 @@ export default function Dashboard() {
         };
       };
       
-      // Démarrer la connexion
+      
+      
+      // Démarrer SSE seulement
       connectSSE();
       
       return () => {
         if (eventSource) {
-          eventSource.close();
+        eventSource.close();
         }
         if (reconnectTimeout) {
           clearTimeout(reconnectTimeout);
         }
       };
     }
-  }, [activeTab, user, selectedConv]);
+  }, [user, selectedConv, updateUnreadMessages, updateConversations]);
 
   // Scroll automatique vers le bas quand de nouveaux messages arrivent
   useEffect(() => {
@@ -796,11 +826,6 @@ export default function Dashboard() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ from: user.phone, to: toNormalized, message: messageText })
-    }).then(() => {
-      // Forcer un rechargement des messages après l'envoi pour s'assurer de la synchronisation
-      setTimeout(() => {
-        fetchMessages();
-      }, 100);
     }).catch(() => {
       // Erreur silencieuse - le message reste affiché localement
     });

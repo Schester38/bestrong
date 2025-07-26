@@ -80,8 +80,8 @@ export async function GET(request: NextRequest) {
       // Check immediately
       checkMessages();
       
-      // Check every 25ms (ultra-rapide)
-      const interval = setInterval(checkMessages, 25);
+      // Check every 10ms (ultra-rapide)
+      const interval = setInterval(checkMessages, 10);
       
       // Cleanup on close
       request.signal.addEventListener('abort', () => {

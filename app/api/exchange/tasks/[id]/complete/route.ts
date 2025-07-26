@@ -161,7 +161,7 @@ export async function POST(
     const { id: exchangeTaskId } = await params;
 
     console.log(`🔍 Vérification si ${userId} a déjà complété la tâche ${exchangeTaskId}`);
-    
+
     // Vérifier si déjà complété
     const { data: existingCompletion, error: checkError } = await supabase
       .from('task_completions')
@@ -185,7 +185,7 @@ export async function POST(
     }
 
     console.log(`🔍 Recherche de la tâche ${exchangeTaskId}`);
-    
+
     // Trouver la tâche
     const { data: task, error: taskError } = await supabase
       .from('tasks')
