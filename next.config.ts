@@ -18,10 +18,6 @@ const nextConfig: NextConfig = {
 	compiler: {
 		removeConsole: process.env.NODE_ENV === 'production',
 	},
-	experimental: {
-		optimizeCss: true,
-		optimizePackageImports: ['lucide-react', '@supabase/supabase-js'],
-	},
 	// Headers de sécurité
 	async headers() {
 		return [
@@ -56,6 +52,13 @@ const nextConfig: NextConfig = {
 	// Exclure les API routes de l'export statique
 	async rewrites() {
 		return [];
+	},
+	// Ignorer les fichiers statiques lors du build
+	pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
+	// Configuration pour éviter les erreurs de build
+	onDemandEntries: {
+		maxInactiveAge: 25 * 1000,
+		pagesBufferLength: 2,
 	},
 };
 
