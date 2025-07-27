@@ -1719,7 +1719,7 @@ function ExchangeTaskForm({ onTaskCreated }: ExchangeTaskFormProps) {
         </div>
         <div>
           <label htmlFor="url" className="block text-sm font-medium mb-1">
-            {actionType === "FOLLOW" ? "Lien du compte TikTok" : "Lien de la vid&eacute;o"}
+            {actionType === "FOLLOW" ? "Lien du compte TikTok" : "Lien de la vidéo"}
           </label>
           <input
             id="url"
