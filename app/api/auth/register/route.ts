@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { createClient } from '@supabase/supabase-js';
 import { logActivity } from '../../../utils/activities';
-import { incrementUserCount } from '../../../utils/counter';
+import fs from 'fs';
+import path from 'path';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -97,8 +98,32 @@ export async function POST(request: NextRequest) {
     console.log('Utilisateur créé avec succès:', data.id);
 
     // Incrémenter le compteur d'utilisateurs
-    const newCount = incrementUserCount();
-    console.log('Nouveau compteur d\'utilisateurs:', newCount);
+    const countFilePath = path.join(process.cwd(), 'data', 'users_count.json');
+    let currentCount = 1785;
+    
+    try {
+      if (fs.existsSync(countFilePath)) {
+        const countData = JSON.parse(fs.readFileSync(countFilePath, 'utf8'));
+        currentCount = countData.count || 1785;
+      }
+      
+      const newCount = currentCount + 1;
+      const updatedData = {
+        count: newCount,
+        lastUpdated: new Date().toISOString()
+      };
+      
+      // Créer le dossier data s'il n'existe pas
+      const dataDir = path.dirname(countFilePath);
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+      
+      fs.writeFileSync(countFilePath, JSON.stringify(updatedData, null, 2));
+      console.log('Compteur d\'utilisateurs incrémenté:', newCount);
+    } catch (error) {
+      console.error('Erreur lors de l\'incrémentation du compteur:', error);
+    }
 
     // Enregistrer l'activité d'inscription
     await logActivity({
