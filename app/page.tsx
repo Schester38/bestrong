@@ -205,22 +205,37 @@ export default function Home() {
                   url: "https://mybestrong.netlify.app",
                 };
 
-                // Détecter si on est dans l'app Android
-                const isAndroidApp = /Android/i.test(navigator.userAgent) && window.location.href.includes('mybestrong.netlify.app');
+                // Détecter si on est dans l'app Android (median.co)
+                const isAndroidApp = /Android/i.test(navigator.userAgent);
+                const isGoNativeApp = typeof window !== 'undefined' && (window as any).GoNative;
                 
-                if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-                  // Utiliser l'API de partage natif d'Android
+                console.log('Détection app:', { isAndroidApp, isGoNativeApp, userAgent: navigator.userAgent });
+                
+                // Essayer d'abord l'API GoNative si disponible
+                if (isGoNativeApp && (window as any).GoNative && (window as any).GoNative.share) {
+                  console.log('Utilisation API GoNative');
+                  (window as any).GoNative.share({
+                    title: shareData.title,
+                    text: shareData.text,
+                    url: shareData.url
+                  }).catch((error: any) => {
+                    console.log('Erreur GoNative share:', error);
+                    fallbackShare(shareData);
+                  });
+                }
+                // Sinon essayer l'API native de partage
+                else if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+                  console.log('Utilisation API navigator.share');
                   navigator.share(shareData)
                     .then(() => {
                       console.log('Partage réussi');
                     })
                     .catch((error) => {
                       console.log('Erreur de partage:', error);
-                      // Fallback vers la copie
                       fallbackShare(shareData);
                     });
                 } else {
-                  // Fallback pour les navigateurs qui ne supportent pas l'API de partage
+                  console.log('Fallback vers copie');
                   fallbackShare(shareData);
                 }
               }}
