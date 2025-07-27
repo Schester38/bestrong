@@ -1,64 +1,32 @@
 import { NextResponse } from "next/server";
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
-// Chemin vers le fichier de compteur
-const countFilePath = path.join(process.cwd(), 'data', 'users_count.json');
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-// Compteur en mémoire pour éviter les problèmes de fichier
-let userCountCache = 1785;
-let lastCacheUpdate = 0;
-
-// Fonction pour lire le compteur depuis le fichier
-function readUserCountFromFile(): number {
-  try {
-    if (fs.existsSync(countFilePath)) {
-      const countData = JSON.parse(fs.readFileSync(countFilePath, 'utf8'));
-      return countData.count || 1785;
-    }
-  } catch (error) {
-    console.error('Erreur lecture fichier compteur:', error);
-  }
-  return 1785;
-}
-
-// Fonction pour écrire le compteur dans le fichier
-function writeUserCountToFile(count: number): void {
-  try {
-    const countData = {
-      count: count,
-      lastUpdated: new Date().toISOString()
-    };
-    
-    // Créer le dossier data s'il n'existe pas
-    const dataDir = path.dirname(countFilePath);
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-    
-    fs.writeFileSync(countFilePath, JSON.stringify(countData, null, 2));
-    console.log('Compteur sauvegardé dans le fichier:', count);
-  } catch (error) {
-    console.error('Erreur écriture fichier compteur:', error);
-  }
-}
-
-// Initialiser le cache au démarrage
-userCountCache = readUserCountFromFile();
+// Client Supabase côté serveur
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export async function GET() {
   try {
     console.log('API users/count appelée');
     
-    // Vérifier si le cache est à jour (moins de 5 secondes)
-    const now = Date.now();
-    if (now - lastCacheUpdate > 5000) {
-      userCountCache = readUserCountFromFile();
-      lastCacheUpdate = now;
+    // Lire le compteur depuis la table app_stats
+    const { data, error } = await supabase
+      .from('app_stats')
+      .select('user_count')
+      .eq('id', 'main')
+      .single();
+
+    if (error) {
+      console.error('Erreur lecture compteur depuis Supabase:', error);
+      // Si la table n'existe pas ou pas de données, retourner la valeur par défaut
+      return NextResponse.json({ count: 1787 });
     }
-    
-    console.log('Nombre d\'utilisateurs retourné:', userCountCache);
-    return NextResponse.json({ count: userCountCache });
+
+    const count = data?.user_count || 1787;
+    console.log('Nombre d\'utilisateurs depuis Supabase:', count);
+    return NextResponse.json({ count });
   } catch (error) {
     console.error("Erreur API /api/users/count:", error);
     return NextResponse.json({ 
@@ -69,10 +37,40 @@ export async function GET() {
 }
 
 // Fonction pour incrémenter le compteur (exportée pour être utilisée par d'autres APIs)
-export function incrementUserCount(): number {
-  userCountCache += 1;
-  lastCacheUpdate = Date.now();
-  writeUserCountToFile(userCountCache);
-  console.log('Compteur incrémenté:', userCountCache);
-  return userCountCache;
+export async function incrementUserCount(): Promise<number> {
+  try {
+    // Utiliser une transaction pour incrémenter de manière atomique
+    const { data: currentData, error: readError } = await supabase
+      .from('app_stats')
+      .select('user_count')
+      .eq('id', 'main')
+      .single();
+
+    let currentCount = 1787;
+    if (currentData) {
+      currentCount = currentData.user_count || 1787;
+    }
+
+    const newCount = currentCount + 1;
+
+    // Mettre à jour ou créer l'enregistrement
+    const { error: updateError } = await supabase
+      .from('app_stats')
+      .upsert({ 
+        id: 'main', 
+        user_count: newCount,
+        last_updated: new Date().toISOString()
+      });
+
+    if (updateError) {
+      console.error('Erreur mise à jour compteur dans Supabase:', updateError);
+      return currentCount;
+    }
+
+    console.log('Compteur incrémenté dans Supabase:', newCount);
+    return newCount;
+  } catch (error) {
+    console.error('Erreur lors de l\'incrémentation du compteur:', error);
+    return 1787; // Valeur de fallback
+  }
 } 

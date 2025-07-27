@@ -3,7 +3,8 @@ import { incrementUserCount } from "../users/count/route";
 
 export async function GET() {
   try {
-    const newCount = incrementUserCount();
+    const { incrementUserCount } = await import('../users/count/route');
+    const newCount = await incrementUserCount();
     return NextResponse.json({ 
       success: true, 
       message: 'Compteur incrémenté avec succès',
