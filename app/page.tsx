@@ -17,6 +17,34 @@ export default function Home() {
   const [userCount, setUserCount] = useState<number | null>(null);
   const [currentUser, setCurrentUser] = useState<{ phone: string; pseudo?: string } | null>(null);
 
+  // Fonction de fallback pour le partage
+  const fallbackShare = useCallback((shareData: { title: string; text: string; url: string }) => {
+    const message = `${shareData.title}\n\n${shareData.text} ${shareData.url}`;
+    
+    // Essayer de copier dans le presse-papiers
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(message)
+        .then(() => {
+          // Afficher une notification de succès
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('BE STRONG', {
+              body: 'Lien copié ! Partage-le avec tes amis',
+              icon: '/icon-512.png'
+            });
+          } else {
+            alert("✅ Lien copié ! Partage-le avec tes amis :\n\n" + message);
+          }
+        })
+        .catch(() => {
+          // Fallback si la copie échoue
+          alert("📱 Partage BE STRONG :\n\n" + message);
+        });
+    } else {
+      // Fallback pour les navigateurs plus anciens
+      alert("📱 Partage BE STRONG :\n\n" + message);
+    }
+  }, []);
+
   // Optimisation du fetch avec useCallback et interval plus long
   const fetchUserCount = useCallback(async () => {
     try {
@@ -53,6 +81,11 @@ export default function Home() {
           setCurrentUser(null);
         }
       }
+    }
+
+    // Demander les permissions de notification pour l'app Android
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
     }
   }, []);
 
@@ -171,12 +204,24 @@ export default function Home() {
                   text: "🔥 Découvre BE STRONG : la plateforme éthique qui booste ta visibilité TikTok avec des échanges organiques, analytics et conseils d'optimisation ! Clique ici pour vivre l'expérience 👉",
                   url: "https://mybestrong.netlify.app",
                 };
-                if (navigator.share) {
-                  navigator.share(shareData).catch(() => {});
+
+                // Détecter si on est dans l'app Android
+                const isAndroidApp = /Android/i.test(navigator.userAgent) && window.location.href.includes('mybestrong.netlify.app');
+                
+                if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+                  // Utiliser l'API de partage natif d'Android
+                  navigator.share(shareData)
+                    .then(() => {
+                      console.log('Partage réussi');
+                    })
+                    .catch((error) => {
+                      console.log('Erreur de partage:', error);
+                      // Fallback vers la copie
+                      fallbackShare(shareData);
+                    });
                 } else {
-                  const message = `${shareData.title}\n\n${shareData.text} ${shareData.url}`;
-                  navigator.clipboard.writeText(message);
-                  alert("Lien copié ! Partage-le avec tes amis :\n\n" + message);
+                  // Fallback pour les navigateurs qui ne supportent pas l'API de partage
+                  fallbackShare(shareData);
                 }
               }}
               className="bg-gradient-to-r from-green-400 to-blue-500 text-white px-12 py-4 rounded-full text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap"
