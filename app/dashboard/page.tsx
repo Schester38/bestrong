@@ -1997,13 +1997,6 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
                   <button onClick={() => handleComplete(task.id)} className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">J&apos;ai fait l&apos;action</button>
                   {renderCompletionStatus(task)}
                   <button onClick={() => handleDelete(task.id)} className="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-600">Supprimer</button>
-                  {task.completions && task.completions.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {task.completions.map((c: { id: string; userId: string }) => (
-                        <span key={c.id} className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Action validée</span>
-                      ))}
-                    </div>
-                  )}
                 </td>
               </tr>
             ))}
@@ -2022,13 +2015,6 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
                 <td className="px-4 py-2 space-x-2">
                   <button onClick={() => handleComplete(task.id)} className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">J&apos;ai fait l&apos;action</button>
                   {renderCompletionStatus(task)}
-                  {task.completions && task.completions.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {task.completions.map((c: { id: string; userId: string }) => (
-                        <span key={c.id} className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Action validée</span>
-                      ))}
-                    </div>
-                  )}
                 </td>
               </tr>
             ))}
@@ -2060,13 +2046,6 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
                   <button onClick={() => handleComplete(task.id)} className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">J&apos;ai fait l&apos;action</button>
                   {renderCompletionStatus(task)}
                   <button onClick={() => handleDelete(task.id)} className="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-600">Supprimer</button>
-                  {task.completions && task.completions.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {task.completions.map((c: { id: string; userId: string }) => (
-                        <span key={c.id} className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Action validée</span>
-                      ))}
-                    </div>
-                  )}
                 </td>
               </tr>
             ))}
@@ -2087,13 +2066,6 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
                 <td className="px-4 py-2 space-x-2">
                   <button onClick={() => handleComplete(task.id)} className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">J&apos;ai fait l&apos;action</button>
                   {renderCompletionStatus(task)}
-                  {task.completions && task.completions.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {task.completions.map((c: { id: string; userId: string }) => (
-                        <span key={c.id} className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Action validée</span>
-                      ))}
-                    </div>
-                  )}
                 </td>
               </tr>
             ))}
