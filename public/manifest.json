@@ -9,8 +9,12 @@
   "background_color": "#ffffff",
   "theme_color": "#3b82f6",
   "orientation": "portrait-primary",
-  "scope": "/",
-
+    "scope": "/",
+  "scope_extensions": [
+    {
+      "origin": "https://mybestrong.netlify.app"
+    }
+  ],
   "lang": "fr",
   "dir": "ltr",
   "categories": ["social", "business", "productivity", "lifestyle"],
@@ -39,9 +43,31 @@
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
+        }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Page d'accueil BE STRONG"
+    },
+    {
+      "src": "/screenshot2.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Dashboard utilisateur"
+    },
+    {
+      "src": "/screenshot3.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Système d'échanges de tâches"
     }
   ],
-
   "shortcuts": [
     {
       "name": "Dashboard",
