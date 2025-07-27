@@ -286,28 +286,28 @@ export default function Dashboard() {
         
         eventSource = new EventSource(`/api/messages/stream?user=${encodeURIComponent(user.phone)}`);
       
-              eventSource.onmessage = (event) => {
-          try {
-            const data: Message[] = JSON.parse(event.data);
+      eventSource.onmessage = (event) => {
+        try {
+          const data: Message[] = JSON.parse(event.data);
             
             // Éviter les mises à jour inutiles si le nombre de messages n'a pas changé
             if (data.length !== lastMessageCount) {
-              setMessages(data);
+          setMessages(data);
               lastMessageCount = data.length;
               updateUnreadMessages(data);
               
               // Mettre à jour la liste des conversations
               updateConversations(data);
-            }
-          } catch (error) {
+                }
+        } catch (error) {
             console.error('Erreur parsing SSE:', error);
-          }
-        };
-        
-        eventSource.onerror = () => {
+        }
+      };
+      
+      eventSource.onerror = () => {
           console.log('SSE déconnecté, reconnexion dans 1 seconde...');
           if (eventSource) {
-            eventSource.close();
+        eventSource.close();
             eventSource = null;
           }
           

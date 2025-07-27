@@ -889,7 +889,7 @@ export default function AdminPage() {
                               <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                                 <div className={`text-xs font-semibold border rounded px-2 py-1 inline-block ${user.dashboardAccessDaysLeft <= 2 ? 'text-red-600 bg-red-100 dark:bg-red-900 border-red-300 dark:border-red-700' : 'text-blue-600 bg-blue-100 dark:bg-blue-900 border-blue-300 dark:border-blue-700'}`}> 
                                   Accès admin : {user.dashboardAccessDaysLeft} jour{user.dashboardAccessDaysLeft > 1 ? 's' : ''} restant{user.dashboardAccessDaysLeft > 1 ? 's' : ''}
-                                </div>
+                              </div>
                               </div>
                             )}
                           </div>
@@ -1166,11 +1166,11 @@ export default function AdminPage() {
               <div className="max-h-96 overflow-y-auto divide-y divide-gray-200 dark:divide-gray-700">
                 {(suggestionsList as Suggestion[]).map((s, i) => (
                   s && (
-                    <div key={s.id || i} className="py-3 px-2">
-                      <div className="font-semibold text-gray-900 dark:text-white">{s.nom} <span className="text-xs text-gray-400">({s.numeroOuId})</span></div>
-                      <div className="text-gray-700 dark:text-gray-200 mb-1">{s.suggestion}</div>
-                      <div className="text-xs text-gray-500">{new Date(s.date).toLocaleString('fr-FR')}</div>
-                    </div>
+                  <div key={s.id || i} className="py-3 px-2">
+                    <div className="font-semibold text-gray-900 dark:text-white">{s.nom} <span className="text-xs text-gray-400">({s.numeroOuId})</span></div>
+                    <div className="text-gray-700 dark:text-gray-200 mb-1">{s.suggestion}</div>
+                    <div className="text-xs text-gray-500">{new Date(s.date).toLocaleString('fr-FR')}</div>
+                  </div>
                   )
                 ))}
               </div>
