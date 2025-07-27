@@ -101,6 +101,11 @@
   "launch_handler": {
     "client_mode": "navigate-existing"
   },
+  "service_worker": {
+    "src": "/sw.js",
+    "scope": "/",
+    "type": "module"
+  },
   "file_handlers": [
     {
       "action": "/",
@@ -126,7 +131,10 @@
       "android.permission.ACCESS_NETWORK_STATE",
       "android.permission.ACCESS_WIFI_STATE",
       "android.permission.WRITE_EXTERNAL_STORAGE",
-      "android.permission.READ_EXTERNAL_STORAGE"
+      "android.permission.READ_EXTERNAL_STORAGE",
+      "android.permission.WAKE_LOCK",
+      "android.permission.RECEIVE_BOOT_COMPLETED",
+      "android.permission.VIBRATE"
     ],
     "webViewSettings": {
       "allowUniversalAccessFromFileURLs": true,
@@ -139,6 +147,8 @@
     },
     "enableExternalLinks": true,
     "enableMixedContent": true,
-    "backgroundSync": true
+    "backgroundSync": true,
+    "periodicSync": true,
+    "pushNotifications": true
   }
 } 
