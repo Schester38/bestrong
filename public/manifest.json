@@ -5,15 +5,12 @@
   "description": "Plateforme éthique pour augmenter votre visibilité TikTok avec des échanges organiques, analytics et conseils d'optimisation",
   "start_url": "/",
   "display": "standalone",
+  "offline_enabled": true,
   "background_color": "#ffffff",
   "theme_color": "#3b82f6",
   "orientation": "portrait-primary",
   "scope": "/",
-  "scope_extensions": [
-    {
-      "origin": "https://mybestrong.netlify.app"
-    }
-  ],
+
   "lang": "fr",
   "dir": "ltr",
   "categories": ["social", "business", "productivity", "lifestyle"],
@@ -44,29 +41,7 @@
       "purpose": "any"
     }
   ],
-  "screenshots": [
-    {
-      "src": "/screenshot1.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Page d'accueil BE STRONG"
-    },
-    {
-      "src": "/screenshot2.png",
-      "sizes": "750x1334",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Dashboard utilisateur"
-    },
-    {
-      "src": "/screenshot3.png",
-      "sizes": "750x1334",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Système d'échanges de tâches"
-    }
-  ],
+
   "shortcuts": [
     {
       "name": "Dashboard",
@@ -103,8 +78,7 @@
   },
   "service_worker": {
     "src": "/sw.js",
-    "scope": "/",
-    "type": "module"
+    "scope": "/"
   },
   "file_handlers": [
     {
