@@ -6,6 +6,9 @@
   "start_url": "/",
   "display": "standalone",
   "offline_enabled": true,
+  "background_sync": true,
+  "periodic_sync": true,
+  "push_notifications": true,
   "background_color": "#ffffff",
   "theme_color": "#3b82f6",
   "orientation": "portrait-primary",
@@ -122,6 +125,13 @@
       "url": "/?protocol=%s"
     }
   ],
+  "background_sync": {
+    "enabled": true,
+    "periodic_sync": true
+  },
+  "push_notifications": {
+    "enabled": true
+  },
   "android": {
     "package": "com.bestrong.app",
     "versionCode": 111,
