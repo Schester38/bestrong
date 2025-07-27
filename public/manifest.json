@@ -101,6 +101,22 @@
   "launch_handler": {
     "client_mode": "navigate-existing"
   },
+  "file_handlers": [
+    {
+      "action": "/",
+      "accept": {
+        "text/plain": [".txt"],
+        "image/*": [".png", ".jpg", ".jpeg", ".gif", ".webp"]
+      }
+    }
+  ],
+  "handle_links": "preferred",
+  "protocol_handlers": [
+    {
+      "protocol": "web+bestrong",
+      "url": "/?protocol=%s"
+    }
+  ],
   "android": {
     "package": "com.bestrong.app",
     "versionCode": 111,
