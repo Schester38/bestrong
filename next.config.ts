@@ -8,6 +8,14 @@ const nextConfig: NextConfig = {
 	typescript: {
 		ignoreBuildErrors: true,
 	},
+	trailingSlash: true,
+	images: {
+		unoptimized: true
+	},
+	// Exclure les API routes de l'export statique
+	async rewrites() {
+		return [];
+	},
   /* config options here */
 };
 
