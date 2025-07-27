@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { ArrowRight, Users, TrendingUp, Shield } from "lucide-react";
 import ScrollToTop from "./components/ScrollToTop";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 
-const PhoneAuthModal = dynamic(() => import("./components/PhoneAuthModal"), { ssr: false });
+const PhoneAuthModal = dynamic(() => import("./components/PhoneAuthModal"), { 
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200 h-96 rounded-lg"></div>
+});
 
 export default function Home() {
   const [modalOpen, setModalOpen] = useState<null | "login" | "register">(null);
@@ -14,23 +17,29 @@ export default function Home() {
   const [userCount, setUserCount] = useState<number | null>(null);
   const [currentUser, setCurrentUser] = useState<{ phone: string; pseudo?: string } | null>(null);
 
-  // Fetch le nombre d'utilisateurs au chargement et toutes les 10 secondes
-  useEffect(() => {
-    const fetchUserCount = async () => {
-      try {
-        const response = await fetch('/api/users/count');
-        const data = await response.json();
-        setUserCount(data.count);
-      } catch (error) {
-        console.error("Erreur lors de la récupération du nombre d'utilisateurs:", error);
-      }
-    };
+  // Optimisation du fetch avec useCallback et interval plus long
+  const fetchUserCount = useCallback(async () => {
+    try {
+      const response = await fetch('/api/users/count', {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
+      const data = await response.json();
+      setUserCount(data.count);
+    } catch (error) {
+      console.error("Erreur lors de la récupération du nombre d'utilisateurs:", error);
+    }
+  }, []);
 
+  // Fetch le nombre d'utilisateurs au chargement et toutes les 30 secondes (au lieu de 10)
+  useEffect(() => {
     fetchUserCount(); // Premier appel
-    const interval = setInterval(fetchUserCount, 10000); // Polling toutes les 10 secondes
+    const interval = setInterval(fetchUserCount, 30000); // Polling toutes les 30 secondes
 
     return () => clearInterval(interval); // Nettoyage de l'intervalle
-  }, []);
+  }, [fetchUserCount]);
 
 
   useEffect(() => {
