@@ -33,6 +33,8 @@ export async function GET(request: NextRequest) {
   const stream = new ReadableStream({
     start(controller) {
       let lastMessageCount = 0;
+      let errorCount = 0;
+      const MAX_ERRORS = 5;
       
       const checkMessages = async () => {
         try {
@@ -49,9 +51,22 @@ export async function GET(request: NextRequest) {
             .eq('to_user', normalizedUser);
 
           if (errorFrom || errorTo) {
-            console.error('Erreur récupération messages:', errorFrom || errorTo);
+            errorCount++;
+            console.error(`Erreur récupération messages (${errorCount}/${MAX_ERRORS}):`, errorFrom || errorTo);
+            
+            if (errorCount >= MAX_ERRORS) {
+              console.error('Trop d\'erreurs, fermeture du stream');
+              controller.close();
+              return;
+            }
+            
+            // Attendre un peu avant de réessayer en cas d'erreur
+            await new Promise(resolve => setTimeout(resolve, 5000));
             return;
           }
+          
+          // Reset error count on success
+          errorCount = 0;
 
           const messages = [...(messagesFrom || []), ...(messagesTo || [])];
           messages.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -73,15 +88,25 @@ export async function GET(request: NextRequest) {
             lastMessageCount = userMessages.length;
           }
         } catch (error) {
-          console.error('Erreur SSE:', error);
+          errorCount++;
+          console.error(`Erreur SSE (${errorCount}/${MAX_ERRORS}):`, error);
+          
+          if (errorCount >= MAX_ERRORS) {
+            console.error('Trop d\'erreurs, fermeture du stream');
+            controller.close();
+            return;
+          }
+          
+          // Attendre un peu avant de réessayer en cas d'erreur
+          await new Promise(resolve => setTimeout(resolve, 5000));
         }
       };
       
       // Check immediately
       checkMessages();
       
-      // Check every 10ms (ultra-rapide)
-      const interval = setInterval(checkMessages, 10);
+      // Check every 2 seconds (plus raisonnable)
+      const interval = setInterval(checkMessages, 2000);
       
       // Cleanup on close
       request.signal.addEventListener('abort', () => {
