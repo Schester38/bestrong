@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Liens Externes - BE STRONG</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .test-section {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        .test-link {
+            display: block;
+            background: #3b82f6;
+            color: white;
+            padding: 15px;
+            margin: 10px 0;
+            text-decoration: none;
+            border-radius: 8px;
+            text-align: center;
+            transition: background 0.3s;
+        }
+        .test-link:hover {
+            background: #2563eb;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background: #10b981; }
+        .error { background: #ef4444; }
+        .info { background: #3b82f6; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Liens Externes - BE STRONG</h1>
+    
+    <div class="test-section">
+        <h2>✅ Configuration APK</h2>
+        <div class="status success">
+            ✅ Liens externes activés<br>
+            ✅ Contenu mixte autorisé<br>
+            ✅ Permissions Internet configurées<br>
+            ✅ WebView optimisé pour les liens externes
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔗 Test Liens Externes</h2>
+        <p>Cliquez sur ces liens pour tester la navigation externe :</p>
+        
+        <a href="https://mybestrong.netlify.app/" class="test-link">
+            🏠 Accueil BE STRONG
+        </a>
+        
+        <a href="https://mybestrong.netlify.app/dashboard" class="test-link">
+            📊 Dashboard Utilisateur
+        </a>
+        
+        <a href="https://mybestrong.netlify.app/admin" class="test-link">
+            ⚙️ Panel Admin
+        </a>
+        
+        <a href="https://supabase.com" class="test-link">
+            🗄️ Supabase (Base de données)
+        </a>
+        
+        <a href="https://netlify.com" class="test-link">
+            ☁️ Netlify (Hébergement)
+        </a>
+    </div>
+
+    <div class="test-section">
+        <h2>📱 Test Fonctionnalités APK</h2>
+        <div class="status info">
+            🔄 Test de navigation arrière<br>
+            📱 Test de rotation d'écran<br>
+            🔗 Test d'ouverture de liens externes<br>
+            💾 Test de stockage local
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 Instructions de Test</h2>
+        <ol>
+            <li>Cliquez sur chaque lien pour vérifier qu'il s'ouvre</li>
+            <li>Testez le bouton retour de l'APK</li>
+            <li>Vérifiez que les liens externes fonctionnent</li>
+            <li>Testez la rotation de l'écran</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Résultats Attendus</h2>
+        <div class="status success">
+            ✅ Tous les liens doivent s'ouvrir<br>
+            ✅ Navigation fluide entre les pages<br>
+            ✅ Bouton retour fonctionnel<br>
+            ✅ Pas d'erreurs de sécurité
+        </div>
+    </div>
+
+    <script>
+        // Test de fonctionnalités JavaScript
+        console.log('🧪 Test APK BE STRONG - Liens externes activés');
+        
+        // Test de stockage local
+        try {
+            localStorage.setItem('test_apk', 'BE_STRONG_v1.1.1');
+            console.log('✅ Stockage local fonctionnel');
+        } catch (e) {
+            console.log('❌ Erreur stockage local:', e);
+        }
+        
+        // Test de navigation
+        document.addEventListener('click', function(e) {
+            if (e.target.tagName === 'A') {
+                console.log('🔗 Lien cliqué:', e.target.href);
+            }
+        });
+    </script>
+</body>
+</html> 

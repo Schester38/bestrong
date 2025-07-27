@@ -19,6 +19,9 @@ const configContent = `<?xml version="1.0" encoding="utf-8"?>
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -67,7 +70,26 @@ public class MainActivity extends Activity {
         webSettings.setBuiltInZoomControls(true);
         webSettings.setDisplayZoomControls(false);
         
-        webView.setWebViewClient(new WebViewClient());
+        // Permettre les liens externes
+        webSettings.setAllowUniversalAccessFromFileURLs(true);
+        webSettings.setAllowFileAccessFromFileURLs(true);
+        webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        
+        // Configuration pour les liens externes
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                // Permettre tous les liens externes
+                view.loadUrl(url);
+                return true;
+            }
+            
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+            }
+        });
+        
         webView.loadUrl("${APK_CONFIG.url}");
     }
     

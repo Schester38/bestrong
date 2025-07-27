@@ -46,6 +46,8 @@ try {
     backgroundColor: '#ffffff',
     enableNotifications: true,
     enableShortcuts: true,
+    enableExternalLinks: true,
+    enableMixedContent: true,
     shortcuts: [
       {
         name: 'Dashboard',
