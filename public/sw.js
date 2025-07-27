@@ -2,8 +2,8 @@
 
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/5.1.2/workbox-sw.js');
 
-const CACHE = "bestrong-offline-v2";
-const STATIC_CACHE = "bestrong-static-v1";
+const CACHE = "bestrong-offline-v3";
+const STATIC_CACHE = "bestrong-static-v2";
 
 // Page de fallback hors ligne
 const offlineFallbackPage = "offline.html";
@@ -16,34 +16,68 @@ const STATIC_RESOURCES = [
   '/icon-512-maskable.png',
   '/icon-512-any.png',
   '/icon-maskable.png',
-  '/icon.png'
+  '/icon.png',
+  '/screenshot1.png',
+  '/screenshot2.png',
+  '/screenshot3.png'
 ];
 
+// Installation du service worker
+self.addEventListener('install', (event) => {
+  console.log('Service Worker installing...');
+  event.waitUntil(
+    Promise.all([
+      caches.open(CACHE).then((cache) => {
+        console.log('Caching offline page');
+        return cache.add(offlineFallbackPage);
+      }),
+      caches.open(STATIC_CACHE).then((cache) => {
+        console.log('Caching static resources');
+        return cache.addAll(STATIC_RESOURCES);
+      })
+    ])
+  );
+  self.skipWaiting();
+});
+
+// Activation du service worker
+self.addEventListener('activate', (event) => {
+  console.log('Service Worker activating...');
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE && cacheName !== STATIC_CACHE) {
+            console.log('Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+  self.clients.claim();
+});
+
+// Gestion des messages
 self.addEventListener("message", (event) => { 
   if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
   }
 });
 
-self.addEventListener('install', async (event) => {
-  event.waitUntil(
-    Promise.all([
-      caches.open(CACHE).then((cache) => cache.add(offlineFallbackPage)),
-      caches.open(STATIC_CACHE).then((cache) => cache.addAll(STATIC_RESOURCES))
-    ])
-  );
-});
-
+// Activation du preload si supporté
 if (workbox.navigationPreload.isSupported()) {
   workbox.navigationPreload.enable();
 }
 
+// Gestion des requêtes
 self.addEventListener('fetch', (event) => {
+  console.log('Fetch event for:', event.request.url);
+  
   if (event.request.mode === 'navigate') { 
     event.respondWith((async () => {
       try {
         const preloadResp = await event.preloadResponse;
-
         if (preloadResp) {
           return preloadResp;
         }
@@ -51,6 +85,7 @@ self.addEventListener('fetch', (event) => {
         const networkResp = await fetch(event.request);
         return networkResp;
       } catch (error) {
+        console.log('Navigation failed, serving offline page');
         const cache = await caches.open(CACHE);
         const cachedResp = await cache.match(offlineFallbackPage);
         return cachedResp;
