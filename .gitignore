@@ -43,3 +43,11 @@ next-env.d.ts
 # environment variables
 # Local Netlify folder
 .netlify
+
+# Android
+android-app/local.properties
+android-app/.gradle/
+android-app/app/build/
+clean-android-app/local.properties
+clean-android-app/.gradle/
+clean-android-app/app/build/

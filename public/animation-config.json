@@ -1,0 +1,129 @@
+{
+  "app": {
+    "name": "BE STRONG",
+    "version": "1.1.1",
+    "description": "Plateforme éthique pour augmenter votre visibilité TikTok",
+    "tagline": "Augmentez votre visibilité TikTok",
+    "features": [
+      "Échanges organiques",
+      "Analytics avancés", 
+      "Conseils d'optimisation",
+      "Messagerie instantanée",
+      "Panel d'administration",
+      "Compteur d'essai gratuit 45 jours"
+    ]
+  },
+  "animations": {
+    "logo": {
+      "type": "glow",
+      "duration": 2000,
+      "colors": ["#ec4899", "#8b5cf6", "#3b82f6"],
+      "effects": ["pulse", "glow", "gradient"]
+    },
+    "particles": {
+      "count": 20,
+      "speed": 6000,
+      "delay": 200,
+      "colors": ["#ec4899", "#8b5cf6", "#3b82f6"],
+      "size": {
+        "min": 2,
+        "max": 6
+      },
+      "movement": {
+        "type": "float",
+        "distance": 20,
+        "rotation": true
+      }
+    },
+    "loading": {
+      "duration": 3000,
+      "steps": [
+        {
+          "progress": 0,
+          "text": "Initialisation...",
+          "duration": 600
+        },
+        {
+          "progress": 30,
+          "text": "Connexion...",
+          "duration": 600
+        },
+        {
+          "progress": 60,
+          "text": "Chargement des données...",
+          "duration": 600
+        },
+        {
+          "progress": 90,
+          "text": "Finalisation...",
+          "duration": 600
+        },
+        {
+          "progress": 100,
+          "text": "Prêt !",
+          "duration": 600
+        }
+      ]
+    },
+    "wave": {
+      "enabled": true,
+      "duration": 4000,
+      "colors": ["#ec4899", "#8b5cf6"],
+      "opacity": 0.1
+    },
+    "success": {
+      "enabled": true,
+      "delay": 3000,
+      "color": "#4ade80",
+      "animation": "checkmark"
+    }
+  },
+  "theme": {
+    "primary": "#3b82f6",
+    "secondary": "#8b5cf6", 
+    "accent": "#ec4899",
+    "success": "#4ade80",
+    "background": "linear-gradient(135deg, #232946 0%, #3a3a5d 100%)",
+    "text": {
+      "primary": "#ffffff",
+      "secondary": "#e5e7eb",
+      "muted": "#9ca3af"
+    }
+  },
+  "timing": {
+    "splash_duration": 4000,
+    "redirect_delay": 4000,
+    "fade_in_delay": 500,
+    "loading_start_delay": 1000
+  },
+  "responsive": {
+    "mobile": {
+      "logo_size": "2.5rem",
+      "tagline_size": "1rem",
+      "loading_width": "180px"
+    },
+    "tablet": {
+      "logo_size": "3rem", 
+      "tagline_size": "1.2rem",
+      "loading_width": "200px"
+    },
+    "desktop": {
+      "logo_size": "3.5rem",
+      "tagline_size": "1.4rem", 
+      "loading_width": "250px"
+    }
+  },
+  "performance": {
+    "enable_particles": true,
+    "enable_wave": true,
+    "enable_success_animation": true,
+    "smooth_transitions": true,
+    "hardware_acceleration": true
+  },
+  "accessibility": {
+    "high_contrast": false,
+    "reduced_motion": false,
+    "screen_reader_friendly": true,
+    "focus_indicators": true
+  }
+} 

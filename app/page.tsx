@@ -149,7 +149,7 @@ export default function Home() {
           </div>
           {/* Bouton de téléchargement APK */}
           <div className="flex flex-row flex-wrap gap-4 justify-center mt-4">
-            <a href="/apk/BE%20STRONG_1_1.0.apk" download className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-12 py-4 rounded-full text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap">
+            <a href="/apk/Be Strong.apk" download className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-12 py-4 rounded-full text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap">
               Télécharger l&apos;App Android
               <ArrowRight className="w-5 h-5" />
             </a>
@@ -159,8 +159,8 @@ export default function Home() {
               onClick={() => {
                 const shareData = {
                   title: "🚀 Rejoins BE STRONG et deviens une légende !",
-                  text: "🔥 Découvre BE STRONG : la plateforme qui booste ta visibilité, ta motivation et t'offre des récompenses exclusives ! Clique ici pour vivre l'expérience 👉",
-                  url: "https://dogfish-devoted-gannet.ngrok-free.app",
+                  text: "🔥 Découvre BE STRONG : la plateforme éthique qui booste ta visibilité TikTok avec des échanges organiques, analytics et conseils d'optimisation ! Clique ici pour vivre l'expérience 👉",
+                  url: "https://mybestrong.netlify.app",
                 };
                 if (navigator.share) {
                   navigator.share(shareData).catch(() => {});

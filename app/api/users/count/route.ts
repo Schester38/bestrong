@@ -1,39 +1,26 @@
 import { NextResponse } from "next/server";
-import { createClient } from '@supabase/supabase-js';
+import fs from 'fs';
+import path from 'path';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-console.log('Variables d\'environnement:');
-console.log('URL:', supabaseUrl);
-console.log('Anon Key existe:', !!supabaseAnonKey);
-console.log('Service Key existe:', !!supabaseServiceKey);
-console.log('Service Key longueur:', supabaseServiceKey?.length || 0);
-
-// Client Supabase côté serveur - utiliser la clé anon pour l'instant
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Chemin vers le fichier de compteur
+const countFilePath = path.join(process.cwd(), 'data', 'users_count.json');
 
 export async function GET() {
   try {
     console.log('API users/count appelée');
-    console.log('Supabase URL:', supabaseUrl);
-    console.log('Service key existe:', !!supabaseServiceKey);
     
-    const { count, error } = await supabase
-      .from('users')
-      .select('*', { count: 'exact', head: true });
-
-    if (error) {
-      console.error('Erreur comptage utilisateurs:', error);
-      return NextResponse.json({ 
-        error: "Erreur lors du chargement du nombre d'utilisateurs",
-        details: error.message 
-      }, { status: 500 });
+    // Lire le fichier de compteur
+    if (fs.existsSync(countFilePath)) {
+      const countData = JSON.parse(fs.readFileSync(countFilePath, 'utf8'));
+      console.log('Nombre d\'utilisateurs depuis fichier:', countData.count);
+      return NextResponse.json({ count: countData.count });
+    } else {
+      // Si le fichier n'existe pas, créer avec la valeur par défaut
+      const defaultCount = { count: 1785, lastUpdated: new Date().toISOString() };
+      fs.writeFileSync(countFilePath, JSON.stringify(defaultCount, null, 2));
+      console.log('Fichier de compteur créé avec valeur par défaut:', defaultCount.count);
+      return NextResponse.json({ count: defaultCount.count });
     }
-
-    console.log('Nombre d\'utilisateurs:', count);
-    return NextResponse.json({ count: count || 0 });
   } catch (error) {
     console.error("Erreur API /api/users/count:", error);
     return NextResponse.json({ 

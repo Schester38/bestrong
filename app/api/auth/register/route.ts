@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { createClient } from '@supabase/supabase-js';
 import { logActivity } from '../../../utils/activities';
+import { incrementUserCount } from '../../../utils/counter';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -94,6 +95,10 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('Utilisateur créé avec succès:', data.id);
+
+    // Incrémenter le compteur d'utilisateurs
+    const newCount = incrementUserCount();
+    console.log('Nouveau compteur d\'utilisateurs:', newCount);
 
     // Enregistrer l'activité d'inscription
     await logActivity({
