@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
 		optimizeCss: true,
 		optimizePackageImports: ['lucide-react', '@supabase/supabase-js'],
 	},
-	// Headers de cache et compression
+	// Headers de sécurité
 	async headers() {
 		return [
 			{
@@ -48,15 +48,6 @@ const nextConfig: NextConfig = {
 					{
 						key: 'Cache-Control',
 						value: 'no-cache, no-store, must-revalidate',
-					},
-				],
-			},
-			{
-				source: '/(.*\\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot))',
-				headers: [
-					{
-						key: 'Cache-Control',
-						value: 'public, max-age=31536000, immutable',
 					},
 				],
 			},
