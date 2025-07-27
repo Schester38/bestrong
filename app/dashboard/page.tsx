@@ -77,6 +77,11 @@ export default function Dashboard() {
   const [suggestionSuccess, setSuggestionSuccess] = useState("");
   const [suggestionError, setSuggestionError] = useState("");
   
+  // États pour la modification du numéro de téléphone
+  const [newPhone, setNewPhone] = useState("");
+  const [phoneLoading, setPhoneLoading] = useState(false);
+  const [phoneResult, setPhoneResult] = useState("");
+  
   // Compteur de jours d'essai accessible partout dans le composant
   const [freeTrialDaysLeft, setFreeTrialDaysLeft] = useState<number|null>(null);
   useEffect(() => {
@@ -643,38 +648,84 @@ export default function Dashboard() {
   }, [darkMode]);
 
   // Changement de mot de passe
-  const handlePwdChange = async () => {
-    setPwdResult("");
+  const handlePwdChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pwdNew.trim()) return;
+    
     setPwdLoading(true);
+    setPwdResult("");
+    
     try {
-      if (!user) throw new Error("Utilisateur non connecté");
-      if (!pwdNew) {
-        setPwdResult("Veuillez saisir un nouveau mot de passe.");
-        setPwdLoading(false);
-        return;
-      }
-      if (pwdNew.length < 6) {
-        setPwdResult("Le nouveau mot de passe doit contenir au moins 6 caractères.");
-        setPwdLoading(false);
-        return;
-      }
-      // Appel API (on suppose que le phone est complet)
-      const res = await fetch('/api/auth/reset-password', {
+      const response = await fetch('/api/admin/password/change', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: user.phone, newPassword: pwdNew, country: '' })
+        body: JSON.stringify({
+          userId: user?.id,
+          newPassword: pwdNew
+        })
       });
-      const data = await res.json();
-      if (data.message) {
-        setPwdResult("Mot de passe modifié avec succès !");
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setPwdResult("Mot de passe changé avec succès !");
         setPwdNew("");
       } else {
         setPwdResult(data.error || "Erreur lors du changement de mot de passe");
       }
-    } catch {
-      setPwdResult("Erreur lors du changement de mot de passe");
+    } catch (error) {
+      setPwdResult("Erreur de connexion");
     } finally {
       setPwdLoading(false);
+    }
+  };
+
+  const handlePhoneChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPhone.trim()) return;
+    
+    setPhoneLoading(true);
+    setPhoneResult("");
+    
+    try {
+      console.log('Tentative de changement de numéro:', { userId: user?.id, oldPhone: user?.phone, newPhone: newPhone.trim() });
+      
+      const response = await fetch('/api/auth/change-phone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user?.id,
+          oldPhone: user?.phone,
+          newPhone: newPhone.trim()
+        })
+      });
+      
+      console.log('Réponse API:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Données reçues:', data);
+      
+      if (data.success) {
+        setPhoneResult("Numéro de téléphone changé avec succès !");
+        setNewPhone("");
+        // Mettre à jour l'utilisateur local
+        if (user) {
+          const updatedUser = { ...user, phone: newPhone.trim() };
+          localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+          window.location.reload(); // Recharger pour mettre à jour l'interface
+        }
+      } else {
+        setPhoneResult(data.error || "Erreur lors du changement de numéro");
+      }
+    } catch (error) {
+      console.error('Erreur changement téléphone:', error);
+      setPhoneResult("Erreur de connexion au serveur");
+    } finally {
+      setPhoneLoading(false);
     }
   };
 
@@ -1199,16 +1250,9 @@ export default function Dashboard() {
         {/* Section Échange */}
         {activeTab === "exchange" && (
           <div data-tab="exchange" className="space-y-6">
-            {/* En-tête avec bouton de rafraîchissement */}
+            {/* En-tête */}
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Tâches d&apos;échange</h2>
-              <button
-                onClick={fetchTasks}
-                className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                <RefreshCw className="w-4 h-4" />
-                <span>Actualiser</span>
-              </button>
             </div>
             
             {/* Formulaire de création de tâche */}
@@ -1512,6 +1556,30 @@ export default function Dashboard() {
               <div className="text-sm text-gray-500 dark:text-gray-400 mb-1 mt-2">Crédits :</div>
               <div className="font-semibold text-pink-600 dark:text-pink-400">{user?.credits}</div>
             </div>
+            <hr className="my-4 border-gray-200 dark:border-gray-700" />
+            <form onSubmit={handlePhoneChange} className="mb-4">
+              <div className="font-semibold mb-2 text-gray-900 dark:text-white">Changer le numéro de téléphone</div>
+              <div className="mb-2">
+                <input
+                  type="tel"
+                  className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 p-2"
+                  placeholder="Nouveau numéro (ex: +237655441122)"
+                  value={newPhone}
+                  onChange={e => setNewPhone(e.target.value)}
+                  pattern="^\+[0-9]{10,15}$"
+                  title="Format: +237655441122"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 mt-2 disabled:opacity-60"
+                disabled={phoneLoading}
+              >
+                {phoneLoading ? "Changement..." : "Changer le numéro"}
+              </button>
+              {phoneResult && <div className={`mt-2 text-sm ${phoneResult.includes('succès') ? 'text-green-600' : 'text-red-500'}`}>{phoneResult}</div>}
+            </form>
             <hr className="my-4 border-gray-200 dark:border-gray-700" />
             <form onSubmit={handlePwdChange} className="mb-4">
               <div className="font-semibold mb-2 text-gray-900 dark:text-white">Changer le mot de passe</div>
@@ -1999,6 +2067,17 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+      {/* Bouton Actualiser juste au-dessus du titre */}
+      <div className="flex justify-end mb-3">
+        <button
+          onClick={onRefresh}
+          className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+        >
+          <RefreshCw className="w-4 h-4" />
+          <span>Actualiser</span>
+        </button>
+      </div>
+      
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Tâches d&apos;échange disponibles</h3>
       {/* Si showOnlyMine, bouton pour lancer une nouvelle tâche */}
       {showOnlyMine && (
