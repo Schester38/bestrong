@@ -16,8 +16,9 @@ import {
   Zap,
   LogOut,
   RefreshCw,
- 
+  Brain,
 } from "lucide-react";
+import AIDashboardWidget from "../components/AIDashboardWidget";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getCurrentUser, logout } from "../utils/auth";
@@ -389,8 +390,8 @@ export default function Dashboard() {
     } else {
         setTasks([]);
       }
-    } catch {
-      console.error('Erreur lors du chargement des tâches:', Error);
+    } catch (error) {
+      console.error('Erreur lors du chargement des tâches:', error);
       setTasks([]);
     }
   }, []);
@@ -410,9 +411,9 @@ export default function Dashboard() {
       } else {
         setCredits(currentUser.credits);
       }
-    } catch {
+    } catch (error) {
       // Gestion douce : fallback sur les crédits locaux
-      console.warn("Impossible de rafraîchir les crédits depuis l'API, fallback local.", Error);
+      console.warn("Impossible de rafraîchir les crédits depuis l'API, fallback local.", error);
       setCredits(currentUser.credits);
     }
   }, []);
@@ -1012,7 +1013,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" data-dashboard>
         {/* Navigation */}
         <nav className="flex space-x-2 sm:space-x-8 mb-4 sm:mb-8 overflow-x-auto scrollbar-thin scrollbar-thumb-pink-300 scrollbar-track-transparent -mx-2 sm:mx-0 px-2 sm:px-0">
           <button
@@ -1061,10 +1062,21 @@ export default function Dashboard() {
               </span>
             )}
           </button>
+          <button
+            onClick={() => setActiveTab("ai")}
+            className={`flex-shrink-0 px-3 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base min-w-[120px] sm:min-w-0 ${
+              activeTab === "ai"
+                ? "bg-pink-500 text-white"
+                : "text-gray-600 dark:text-gray-300 hover:text-pink-500"
+            }`}
+          >
+            <Brain className="w-4 h-4 mr-1" />
+            IA
+          </button>
         </nav>
 
         {activeTab === "overview" && (
-          <div className="space-y-8">
+          <div data-tab="overview" className="space-y-8">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
@@ -1168,6 +1180,10 @@ export default function Dashboard() {
                       <span>Suggestions</span>
                       <Zap className="w-5 h-5" />
                     </button>
+                    <button onClick={() => setActiveTab('ai')} className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all duration-200">
+                      <span>Assistant IA</span>
+                      <Brain className="w-5 h-5" />
+                    </button>
                     <a href="https://whatsapp.com/channel/0029Vb69KpVLo4hhz4Qnkm1m" target="_blank" rel="noopener noreferrer" className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-green-500 to-green-700 text-white rounded-lg hover:shadow-lg transition-all duration-200">
                       <span>Rejoindre la communauté</span>
                       <Users className="w-5 h-5" />
@@ -1180,8 +1196,9 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Section Échange */}
         {activeTab === "exchange" && (
-          <div className="space-y-8">
+          <div data-tab="exchange" className="space-y-6">
             {/* En-tête avec bouton de rafraîchissement */}
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Tâches d&apos;échange</h2>
@@ -1307,7 +1324,7 @@ export default function Dashboard() {
         )}
 
         {activeTab === "messages" && (
-          <div className="flex flex-col md:flex-row gap-6 h-[70vh]">
+          <div data-tab="messages" className="flex flex-col md:flex-row gap-6 h-[70vh]">
             {/* Liste des conversations */}
             <div className="w-full md:w-1/3 w-4/5 bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700 overflow-y-auto h-[80vh] md:h-auto">
               <div className="mb-4">
@@ -1439,6 +1456,42 @@ export default function Dashboard() {
                 />
                 <button type="submit" className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-3 py-2 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 text-sm whitespace-nowrap">Envoyer</button>
               </form>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "ai" && (
+          <div data-tab="ai" className="space-y-8">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+                <Brain className="w-8 h-8 text-purple-500" />
+                Assistant IA BE STRONG
+              </h2>
+              <Link 
+                href="/ai" 
+                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 flex items-center gap-2"
+              >
+                <Brain className="w-4 h-4" />
+                IA Complète
+              </Link>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Widget IA Principal */}
+              <div className="lg:col-span-2">
+                <AIDashboardWidget userId={user?.id || 'default'} />
+              </div>
+              
+              {/* Section IA existante améliorée */}
+              <div className="lg:col-span-2">
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+                  <h3 className="text-xl font-semibold mb-6 text-gray-900 dark:text-white flex items-center gap-2">
+                    <Zap className="w-6 h-6 text-purple-500" />
+                    Recommandations TikTok IA
+                  </h3>
+                  <DynamicTikTokAIRecommendations />
+                </div>
+              </div>
             </div>
           </div>
         )}
