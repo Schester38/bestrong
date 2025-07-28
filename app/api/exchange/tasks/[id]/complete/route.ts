@@ -74,6 +74,9 @@ async function verifyLikeAction(url: string, userId: string): Promise<{ verified
       .eq('user_id', userId)
       .eq('task_url', url)
       .eq('action_type', 'LIKE')
+      .eq('clicked_view', true)
+      .eq('left_app', true)
+      .eq('returned_to_app', true)
       .eq('status', 'completed')
       .order('created_at', { ascending: false })
       .limit(1)
@@ -81,7 +84,7 @@ async function verifyLikeAction(url: string, userId: string): Promise<{ verified
 
     if (trackingError || !trackingData) {
       console.log(`❌ Aucun tracking trouvé pour ${userId} sur ${url}`);
-      return { verified: false, result: 'Action non détectée : vous devez cliquer sur "voir" et revenir à l\'application' };
+      return { verified: false, result: 'Action non détectée : vous devez cliquer sur "voir", quitter l\'application (ou la mettre en arrière-plan), puis revenir' };
     }
 
     // Vérifier que le tracking a été fait récemment (dans les 5 dernières minutes)
@@ -98,7 +101,7 @@ async function verifyLikeAction(url: string, userId: string): Promise<{ verified
     // Vérifier que l'utilisateur a bien suivi le processus complet
     if (!trackingData.clicked_view || !trackingData.left_app || !trackingData.returned_to_app) {
       console.log(`❌ Processus incomplet pour ${userId} sur ${url}`);
-      return { verified: false, result: 'Processus incomplet : vous devez cliquer sur "voir", sortir de l\'app et revenir' };
+      return { verified: false, result: 'Processus incomplet : vous devez cliquer sur "voir", quitter l\'application (ou la mettre en arrière-plan), puis revenir' };
     }
 
     console.log(`✅ Like vérifié avec tracking complet pour ${userId} sur ${url}`);
@@ -119,6 +122,9 @@ async function verifyFollowAction(url: string, userId: string): Promise<{ verifi
       .eq('user_id', userId)
       .eq('task_url', url)
       .eq('action_type', 'FOLLOW')
+      .eq('clicked_view', true)
+      .eq('left_app', true)
+      .eq('returned_to_app', true)
       .eq('status', 'completed')
       .order('created_at', { ascending: false })
       .limit(1)
@@ -143,7 +149,7 @@ async function verifyFollowAction(url: string, userId: string): Promise<{ verifi
     // Vérifier que l'utilisateur a bien suivi le processus complet
     if (!trackingData.clicked_view || !trackingData.left_app || !trackingData.returned_to_app) {
       console.log(`❌ Processus incomplet pour ${userId} sur ${url}`);
-      return { verified: false, result: 'Processus incomplet : vous devez cliquer sur "voir", sortir de l\'app et revenir' };
+      return { verified: false, result: 'Processus incomplet : vous devez cliquer sur "voir", quitter l\'application (ou la mettre en arrière-plan), puis revenir' };
     }
 
     console.log(`✅ Follow vérifié avec tracking complet pour ${userId} sur ${url}`);
@@ -164,6 +170,9 @@ async function verifyCommentAction(url: string, userId: string): Promise<{ verif
       .eq('user_id', userId)
       .eq('task_url', url)
       .eq('action_type', 'COMMENT')
+      .eq('clicked_view', true)
+      .eq('left_app', true)
+      .eq('returned_to_app', true)
       .eq('status', 'completed')
       .order('created_at', { ascending: false })
       .limit(1)
@@ -188,7 +197,7 @@ async function verifyCommentAction(url: string, userId: string): Promise<{ verif
     // Vérifier que l'utilisateur a bien suivi le processus complet
     if (!trackingData.clicked_view || !trackingData.left_app || !trackingData.returned_to_app) {
       console.log(`❌ Processus incomplet pour ${userId} sur ${url}`);
-      return { verified: false, result: 'Processus incomplet : vous devez cliquer sur "voir", sortir de l\'app et revenir' };
+      return { verified: false, result: 'Processus incomplet : vous devez cliquer sur "voir", quitter l\'application (ou la mettre en arrière-plan), puis revenir' };
     }
 
     console.log(`✅ Commentaire vérifié avec tracking complet pour ${userId} sur ${url}`);
@@ -209,6 +218,9 @@ async function verifyShareAction(url: string, userId: string): Promise<{ verifie
       .eq('user_id', userId)
       .eq('task_url', url)
       .eq('action_type', 'SHARE')
+      .eq('clicked_view', true)
+      .eq('left_app', true)
+      .eq('returned_to_app', true)
       .eq('status', 'completed')
       .order('created_at', { ascending: false })
       .limit(1)
@@ -233,7 +245,7 @@ async function verifyShareAction(url: string, userId: string): Promise<{ verifie
     // Vérifier que l'utilisateur a bien suivi le processus complet
     if (!trackingData.clicked_view || !trackingData.left_app || !trackingData.returned_to_app) {
       console.log(`❌ Processus incomplet pour ${userId} sur ${url}`);
-      return { verified: false, result: 'Processus incomplet : vous devez cliquer sur "voir", sortir de l\'app et revenir' };
+      return { verified: false, result: 'Processus incomplet : vous devez cliquer sur "voir", quitter l\'application (ou la mettre en arrière-plan), puis revenir' };
     }
 
     console.log(`✅ Partage vérifié avec tracking complet pour ${userId} sur ${url}`);
@@ -313,7 +325,16 @@ export async function POST(
     console.log(`🔍 Début de la vérification automatique pour ${userId} sur la tâche ${task.type}`);
     const verification = await verifyTaskAction(task, userId);
 
-    // Créer la complétion avec le résultat de la vérification
+    // Si la vérification échoue, ne pas créer de complétion
+    if (!verification.verified) {
+      console.log(`❌ Vérification échouée pour ${userId}: ${verification.result}`);
+      return NextResponse.json({ 
+        error: verification.result,
+        verified: false
+      }, { status: 400 });
+    }
+
+    // Créer la complétion seulement si la vérification réussit
     const newCompletion = {
       id: Date.now().toString(),
       exchange_task_id: exchangeTaskId,

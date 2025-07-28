@@ -2050,26 +2050,43 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
         })
       });
 
-      // Détecter si c'est un appareil Android
-      const isAndroid = /Android/i.test(navigator.userAgent);
-      if (isAndroid) {
-        // Ouvre le lien dans l'app TikTok si installée, sinon dans le navigateur
-        const intentUrl = `intent://${url.replace(/^https?:\/\//, '')}#Intent;package=com.zhiliaoapp.musically;scheme=https;end`;
-        window.location.href = intentUrl;
+    // Détecter si c'est un appareil Android
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    if (isAndroid) {
+      // Ouvre le lien dans l'app TikTok si installée, sinon dans le navigateur
+      const intentUrl = `intent://${url.replace(/^https?:\/\//, '')}#Intent;package=com.zhiliaoapp.musically;scheme=https;end`;
+      window.location.href = intentUrl;
         
-        // Fallback navigateur après 1s si l'app n'est pas installée
-        setTimeout(() => {
-          window.open(url, '_blank', 'noopener,noreferrer');
-        }, 1000);
-      } else {
-        // Sur iOS ou PC, ouvrir dans un nouvel onglet
+      // Fallback navigateur après 1s si l'app n'est pas installée
+      setTimeout(() => {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }, 1000);
+    } else {
+      // Sur iOS ou PC, ouvrir dans un nouvel onglet
         window.open(url, '_blank', 'noopener,noreferrer');
       }
 
-      // Détecter le retour à l'application
+      // Détecter les changements de visibilité de l'application
       const handleVisibilityChange = async () => {
-        if (!document.hidden) {
+        if (document.hidden) {
+          // L'utilisateur a quitté l'application ou l'a mise en arrière-plan
+          console.log('🚪 Utilisateur a quitté l\'application ou l\'a mise en arrière-plan');
+          try {
+            await fetch('/api/tracking/task-action', {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                trackingId,
+                action: 'left_app',
+                userId: currentUser.id
+              })
+            });
+          } catch (error) {
+            console.error('Erreur lors du marquage de la sortie:', error);
+          }
+        } else {
           // L'utilisateur est revenu à l'application
+          console.log('🏠 Utilisateur est revenu dans l\'application');
           try {
             await fetch('/api/tracking/task-action', {
               method: 'PATCH',
@@ -2081,7 +2098,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
               })
             });
 
-            // Supprimer l'écouteur d'événement
+            // Supprimer l'écouteur d'événement après le retour
             document.removeEventListener('visibilitychange', handleVisibilityChange);
           } catch (error) {
             console.error('Erreur lors du marquage du retour:', error);
@@ -2188,7 +2205,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
       // Créer un set des tâches complétées basé sur les URLs
       const completedSet = new Set<string>();
       const completedTasks = data.completedTasks || {};
-      
+
       // Vérifier quelles tâches actuelles correspondent aux trackings complétés
       for (const task of tasks) {
         if (completedTasks[task.url]) {
