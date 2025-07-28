@@ -26,11 +26,30 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { userId, taskUrl, actionType } = body;
 
+    console.log('🔍 Démarrage tracking:', { userId, taskUrl, actionType });
+
     if (!userId || !taskUrl || !actionType) {
+      console.error('❌ Données manquantes:', { userId, taskUrl, actionType });
       return NextResponse.json({ 
         error: "Données manquantes: userId, taskUrl et actionType requis" 
       }, { status: 400 });
     }
+
+    // Vérifier si la table task_tracking existe
+    const { data: tableCheck, error: tableError } = await supabase
+      .from('task_tracking')
+      .select('id')
+      .limit(1);
+
+    if (tableError) {
+      console.error('❌ Table task_tracking non trouvée:', tableError);
+      return NextResponse.json({ 
+        error: "Table task_tracking non disponible. Veuillez contacter l'administrateur.",
+        details: tableError.message
+      }, { status: 500 });
+    }
+
+    console.log('✅ Table task_tracking disponible');
 
     // Créer un nouveau tracking
     const newTracking = {
@@ -46,16 +65,21 @@ export async function POST(request: NextRequest) {
       updated_at: new Date().toISOString()
     };
 
+    console.log('📝 Tentative d\'insertion tracking:', newTracking);
+
     const { error } = await supabase
       .from('task_tracking')
       .insert(newTracking);
 
     if (error) {
-      console.error('Erreur création tracking:', error);
+      console.error('❌ Erreur création tracking:', error);
       return NextResponse.json({ 
-        error: "Erreur lors de la création du tracking" 
+        error: "Erreur lors de la création du tracking",
+        details: error.message
       }, { status: 500 });
     }
+
+    console.log('✅ Tracking créé avec succès:', newTracking.id);
 
     return NextResponse.json({ 
       success: true, 
@@ -64,9 +88,10 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Erreur POST /api/tracking/task-action:', error);
+    console.error('❌ Erreur POST /api/tracking/task-action:', error);
     return NextResponse.json({ 
-      error: "Erreur lors du démarrage du tracking" 
+      error: "Erreur lors du démarrage du tracking",
+      details: error instanceof Error ? error.message : 'Erreur inconnue'
     }, { status: 500 });
   }
 }
