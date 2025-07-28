@@ -191,7 +191,7 @@ export default function Home() {
           </div>
           {/* Bouton de téléchargement APK */}
           <div className="flex flex-row flex-wrap gap-4 justify-center mt-4">
-            <a href="/apk/Be Strong.apk" download className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-12 py-4 rounded-full text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap">
+            <a href="/apk/BeStrong-certified.apk" download className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-12 py-4 rounded-full text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap">
               Télécharger l&apos;App Android
               <ArrowRight className="w-5 h-5" />
             </a>
