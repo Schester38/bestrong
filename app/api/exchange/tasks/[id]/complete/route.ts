@@ -134,7 +134,7 @@ async function verifyFollowAction(url: string, userId: string): Promise<{ verifi
     const now = new Date();
     const timeDiff = now.getTime() - trackingTime.getTime();
     const fiveMinutes = 5 * 60 * 1000;
-
+    
     if (timeDiff > fiveMinutes) {
       console.log(`❌ Tracking trop ancien pour ${userId} sur ${url}`);
       return { verified: false, result: 'Action expirée : vous devez refaire l\'action dans les 5 minutes' };
@@ -179,7 +179,7 @@ async function verifyCommentAction(url: string, userId: string): Promise<{ verif
     const now = new Date();
     const timeDiff = now.getTime() - trackingTime.getTime();
     const fiveMinutes = 5 * 60 * 1000;
-
+    
     if (timeDiff > fiveMinutes) {
       console.log(`❌ Tracking trop ancien pour ${userId} sur ${url}`);
       return { verified: false, result: 'Action expirée : vous devez refaire l\'action dans les 5 minutes' };
@@ -224,7 +224,7 @@ async function verifyShareAction(url: string, userId: string): Promise<{ verifie
     const now = new Date();
     const timeDiff = now.getTime() - trackingTime.getTime();
     const fiveMinutes = 5 * 60 * 1000;
-
+    
     if (timeDiff > fiveMinutes) {
       console.log(`❌ Tracking trop ancien pour ${userId} sur ${url}`);
       return { verified: false, result: 'Action expirée : vous devez refaire l\'action dans les 5 minutes' };

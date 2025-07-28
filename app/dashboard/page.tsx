@@ -1990,6 +1990,26 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
     }
 
     try {
+      // Vérifier d'abord si la table task_tracking existe
+      const tableCheck = await fetch('/api/tracking/init-table');
+      const tableStatus = await tableCheck.json();
+      
+      if (!tableStatus.exists) {
+        console.warn('Table task_tracking non disponible, ouverture directe du lien');
+        // Ouvrir le lien directement sans tracking
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        if (isAndroid) {
+          const intentUrl = `intent://${url.replace(/^https?:\/\//, '')}#Intent;package=com.zhiliaoapp.musically;scheme=https;end`;
+          window.location.href = intentUrl;
+          setTimeout(() => {
+            window.open(url, '_blank', 'noopener,noreferrer');
+          }, 1000);
+        } else {
+          window.open(url, '_blank', 'noopener,noreferrer');
+        }
+        return;
+      }
+
       // Démarrer le tracking
       const trackingResponse = await fetch('/api/tracking/task-action', {
         method: 'POST',
@@ -2132,27 +2152,92 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
     }
   }
 
-  // Fonction pour vérifier si l'utilisateur a déjà complété une tâche
-  const hasUserCompletedTask = (task: ExchangeTask) => {
+
+
+  // État pour stocker les tâches complétées
+  const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
+
+  // Fonction pour vérifier toutes les tâches complétées (optimisée)
+  const checkCompletedTasks = async () => {
     const currentUser = getCurrentUser();
-    if (!currentUser || !task.completions) return false;
-    
-    return task.completions.some(completion => 
-      completion.userId === currentUser.phone || 
-      completion.userId === currentUser.id
-    );
+    if (!currentUser) return;
+
+    try {
+      // Vérifier d'abord si la table task_tracking existe
+      const tableCheck = await fetch('/api/tracking/init-table');
+      const tableStatus = await tableCheck.json();
+      
+      if (!tableStatus.exists) {
+        console.warn('Table task_tracking non disponible, désactivation du tracking');
+        return;
+      }
+
+      // Récupérer tous les trackings complétés en une seule requête
+      const response = await fetch(`/api/tracking/user-completions?userId=${currentUser.id}`);
+      if (!response.ok) {
+        console.error('Erreur API user-completions:', response.status);
+        return;
+      }
+      
+      const data = await response.json();
+      if (!data.success) {
+        console.error('Erreur données user-completions:', data.error);
+        return;
+      }
+      
+      // Créer un set des tâches complétées basé sur les URLs
+      const completedSet = new Set<string>();
+      const completedTasks = data.completedTasks || {};
+      
+      // Vérifier quelles tâches actuelles correspondent aux trackings complétés
+      for (const task of tasks) {
+        if (completedTasks[task.url]) {
+          completedSet.add(task.id);
+        }
+      }
+      
+      setCompletedTasks(completedSet);
+    } catch (error) {
+      console.error('Erreur lors de la vérification des complétions:', error);
+    }
   };
 
-  // Fonction pour rendre le message de complétion à côté du bouton
-  const renderCompletionStatus = (task: ExchangeTask) => {
-    if (hasUserCompletedTask(task)) {
+  // Vérifier les tâches complétées au chargement et après chaque rafraîchissement
+  useEffect(() => {
+    if (tasks.length > 0) {
+      checkCompletedTasks();
+    }
+  }, [tasks]);
+
+  // Rafraîchir les complétions toutes les 30 secondes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (tasks.length > 0) {
+        checkCompletedTasks();
+      }
+    }, 30000); // 30 secondes
+
+    return () => clearInterval(interval);
+  }, [tasks]);
+
+  // Fonction pour rendre le bouton ou le statut de complétion
+  const renderCompletionButtonOrStatus = (task: ExchangeTask) => {
+    if (completedTasks.has(task.id)) {
       return (
-        <span className="inline-block bg-orange-100 text-orange-800 text-xs px-3 py-1 rounded-full border border-orange-200 ml-2">
+        <span className="inline-block bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full border border-green-200">
           ✅ Tâche déjà effectuée
         </span>
       );
     }
-    return null;
+    
+    return (
+      <button 
+        onClick={() => handleComplete(task.id)} 
+        className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+      >
+        J'ai fait l'action
+      </button>
+    );
   };
 
   async function handleComplete(taskId: string) {
@@ -2292,8 +2377,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
                 <td className="px-4 py-2">{task.actionsRestantes}</td>
                 <td className="px-4 py-2">{task.createur?.slice(0, 7)}</td>
                 <td className="px-4 py-2 space-x-2">
-                  <button onClick={() => handleComplete(task.id)} className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">J&apos;ai fait l&apos;action</button>
-                  {renderCompletionStatus(task)}
+                  {renderCompletionButtonOrStatus(task)}
                   <button onClick={() => handleDelete(task.id)} className="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-600">Supprimer</button>
                 </td>
               </tr>
@@ -2311,8 +2395,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
                 <td className="px-4 py-2">{task.actionsRestantes}</td>
                 <td className="px-4 py-2">{task.createur?.slice(0, 7)}</td>
                 <td className="px-4 py-2 space-x-2">
-                  <button onClick={() => handleComplete(task.id)} className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">J&apos;ai fait l&apos;action</button>
-                  {renderCompletionStatus(task)}
+                  {renderCompletionButtonOrStatus(task)}
                 </td>
               </tr>
             ))}
@@ -2341,8 +2424,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
                   </span>
                 </td>
                 <td className="px-4 py-2 space-x-2">
-                  <button onClick={() => handleComplete(task.id)} className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">J&apos;ai fait l&apos;action</button>
-                  {renderCompletionStatus(task)}
+                  {renderCompletionButtonOrStatus(task)}
                   <button onClick={() => handleDelete(task.id)} className="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-600">Supprimer</button>
                 </td>
               </tr>
@@ -2362,8 +2444,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
                 <td className="px-4 py-2">{task.actionsRestantes}</td>
                 <td className="px-4 py-2">{task.createur?.slice(0, 7)}</td>
                 <td className="px-4 py-2 space-x-2">
-                  <button onClick={() => handleComplete(task.id)} className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">J&apos;ai fait l&apos;action</button>
-                  {renderCompletionStatus(task)}
+                  {renderCompletionButtonOrStatus(task)}
                 </td>
               </tr>
             ))}
