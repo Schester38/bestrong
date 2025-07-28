@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">BE STRONG</string>
-    <string name="share_title">Partager BE STRONG</string>
-    <string name="share_text">Decouvre BE STRONG : la plateforme ethique qui booste ta visibilite TikTok</string>
-    <string name="share_url">https://mybestrong.netlify.app</string>
-    <string name="splash_title">BE STRONG</string>
-    <string name="splash_subtitle">Augmentez votre visibilite TikTok</string>
-</resources>

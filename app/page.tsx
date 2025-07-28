@@ -92,6 +92,15 @@ export default function Home() {
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
     }
+
+    // Détecter Android et cacher l'icône
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    if (isAndroid) {
+      const logo = document.querySelector('.android-hide-logo') as HTMLElement;
+      if (logo) {
+        logo.style.display = 'none';
+      }
+    }
   }, []);
 
   return (
@@ -106,7 +115,7 @@ export default function Home() {
               <img 
                 src="/icon-512.png" 
                 alt="BE STRONG Logo" 
-                className="w-8 h-8 sm:w-10 sm:h-10 mr-2"
+                className="w-8 h-8 sm:w-10 sm:h-10 mr-2 android-hide-logo"
               />
               <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
                 BE STRONG
