@@ -1982,8 +1982,11 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
   const [completerPseudo, setCompleterPseudo] = useState<string>("");
 
   // Fonction pour ouvrir les liens TikTok avec tracking
-  const openTikTokLink = async (url: string, taskType: string) => {
-    // Ouvrir le lien directement sans tracking complexe
+  const openTikTokLink = async (url: string, taskType: string, taskId: string) => {
+    // Marquer la tâche comme "vue" par l'utilisateur
+    setViewedTasks(prev => new Set([...prev, taskId]));
+    
+    // Détecter si on est sur Android
     const isAndroid = /Android/i.test(navigator.userAgent);
     
     if (isAndroid) {
@@ -2058,6 +2061,9 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
 
   // État pour stocker les tâches complétées
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
+  
+  // État pour stocker les liens "Voir" cliqués par utilisateur
+  const [viewedTasks, setViewedTasks] = useState<Set<string>>(new Set());
 
   // Fonction pour vérifier toutes les tâches complétées (optimisée)
   const checkCompletedTasks = useCallback(async () => {
@@ -2092,6 +2098,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
     // Vérification rapide : d'abord l'état local, puis les données de la tâche
     const hasCompleted = completedTasks.has(task.id) || 
       (task.completions && task.completions.some(comp => comp.userId === currentUser?.id));
+    const hasViewed = viewedTasks.has(task.id);
 
     if (hasCompleted) {
       return (
@@ -2101,17 +2108,36 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
       );
     }
 
+    if (hasViewed) {
+      return (
+        <button 
+          onClick={() => handleComplete(task.id)} 
+          className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors"
+        >
+          J'ai fait l'action
+        </button>
+      );
+    }
+
     return (
       <button 
         onClick={() => handleComplete(task.id)} 
-        className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
+        className="bg-gray-400 text-white px-3 py-1 rounded cursor-not-allowed"
+        disabled
+        title="Cliquez d'abord sur 'Voir' pour effectuer la tâche"
       >
         J'ai fait l'action
       </button>
     );
-  }, [completedTasks]);
+  }, [completedTasks, viewedTasks]);
 
   async function handleComplete(taskId: string) {
+    // Vérifier si l'utilisateur a d'abord cliqué sur "Voir"
+    if (!viewedTasks.has(taskId)) {
+      alert("⚠️ Vous devez d'abord effectuer la tâche. Merci !");
+      return;
+    }
+
     // Utiliser l'ID de l'utilisateur connecté automatiquement
     const currentUser = getCurrentUser();
     let userId = currentUser?.id;
@@ -2245,7 +2271,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
             {showOnlyMine && myTasks.map(task => (
               <tr key={task.id} className="border-b border-gray-100 dark:border-gray-700">
                 <td className="px-4 py-2">{task.type}</td>
-                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-pink-500 underline" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url, task.type); }}>Voir</a></td>
+                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-pink-500 underline" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url, task.type, task.id); }}>Voir</a></td>
                 <td className="px-4 py-2">{task.credits}</td>
                 <td className="px-4 py-2">{task.actionsRestantes}</td>
                 <td className="px-4 py-2">{task.createur?.slice(0, 7)}</td>
@@ -2263,7 +2289,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
             {showOnlyMine && otherTasks.map(task => (
               <tr key={task.id} className="border-b border-gray-100 dark:border-gray-700">
                 <td className="px-4 py-2">{task.type}</td>
-                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-pink-500 underline" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url, task.type); }}>Voir</a></td>
+                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-pink-500 underline" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url, task.type, task.id); }}>Voir</a></td>
                 <td className="px-4 py-2">{task.credits}</td>
                 <td className="px-4 py-2">{task.actionsRestantes}</td>
                 <td className="px-4 py-2">{task.createur?.slice(0, 7)}</td>
@@ -2288,7 +2314,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
                     {task.type}
                   </span>
                 </td>
-                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-pink-500 underline" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url, task.type); }}>Voir</a></td>
+                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-pink-500 underline" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url, task.type, task.id); }}>Voir</a></td>
                 <td className="px-4 py-2">{task.credits}</td>
                 <td className="px-4 py-2">{task.actionsRestantes}</td>
                 <td className="px-4 py-2">
@@ -2312,7 +2338,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
             {!showOnlyMine && otherTasks.map(task => (
               <tr key={task.id} className="border-b border-gray-100 dark:border-gray-700">
                 <td className="px-4 py-2">{task.type}</td>
-                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-pink-500 underline" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url, task.type); }}>Voir</a></td>
+                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-pink-500 underline" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url, task.type, task.id); }}>Voir</a></td>
                 <td className="px-4 py-2">{task.credits}</td>
                 <td className="px-4 py-2">{task.actionsRestantes}</td>
                 <td className="px-4 py-2">{task.createur?.slice(0, 7)}</td>
