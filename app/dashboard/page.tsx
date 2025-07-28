@@ -23,6 +23,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getCurrentUser, logout } from "../utils/auth";
 import Script from "next/script";
+import { useTheme } from "../hooks/useTheme";
 
 // Type global pour les tâches d'échange
 type ExchangeTask = {
@@ -56,6 +57,7 @@ type User = {
 };
 
 export default function Dashboard() {
+  const { isDark } = useTheme();
   const [activeTab, setActiveTab] = useState("exchange");
   const [credits, setCredits] = useState(150);
   const [tasks, setTasks] = useState<ExchangeTask[]>([]);
@@ -95,6 +97,16 @@ export default function Dashboard() {
     }
   }, [user]);
 
+  // Appliquer le thème au chargement
+  useEffect(() => {
+    // Appliquer les variables CSS du thème
+    document.documentElement.style.setProperty('--background', isDark ? '#0a0a0a' : '#ffffff');
+    document.documentElement.style.setProperty('--foreground', isDark ? '#ededed' : '#171717');
+    document.documentElement.style.setProperty('--card', isDark ? '#1a1a1a' : '#ffffff');
+    document.documentElement.style.setProperty('--border', isDark ? '#404040' : '#e5e7eb');
+    document.documentElement.style.setProperty('--input', isDark ? '#262626' : '#ffffff');
+  }, [isDark]);
+
   // Notifications utilisateur
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -105,7 +117,6 @@ export default function Dashboard() {
 
   // Paramètres utilisateur
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
   const [pwdNew, setPwdNew] = useState("");
   const [pwdResult, setPwdResult] = useState("");
   const [pwdLoading, setPwdLoading] = useState(false);
@@ -588,64 +599,7 @@ export default function Dashboard() {
     setSelectedNotification(null);
   };
 
-  // (Fonction inutilisée supprimée)
 
-  // Initialiser le mode sombre selon localStorage ou la classe html
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      // Vérifier d'abord localStorage
-      const savedMode = localStorage.getItem('darkMode');
-      if (savedMode !== null) {
-        const isDark = savedMode === 'true';
-        setDarkMode(isDark);
-        // Appliquer immédiatement la classe
-        if (isDark) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-      } else {
-        // Sinon, utiliser la classe HTML comme avant
-        const isDark = document.documentElement.classList.contains('dark');
-        setDarkMode(isDark);
-      }
-    }
-  }, []);
-
-  // Toggle dark mode
-  const toggleDarkMode = (e: React.MouseEvent) => {
-    // Empêcher le comportement par défaut du bouton
-    e.preventDefault();
-    
-    // Inverser l'état
-    const newDarkMode = !darkMode;
-    
-    // Mettre à jour l'état React
-    setDarkMode(newDarkMode);
-    
-    // Appliquer le changement au DOM
-    if (typeof window !== 'undefined') {
-      if (newDarkMode) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-      
-      // Sauvegarder la préférence dans localStorage
-      localStorage.setItem('darkMode', String(newDarkMode));
-    }
-  };
-
-  // Appliquer le mode sombre au document HTML
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      if (darkMode) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    }
-  }, [darkMode]);
 
   // Changement de mot de passe
   const handlePwdChange = async (e: React.FormEvent) => {
@@ -902,10 +856,30 @@ export default function Dashboard() {
         @keyframes blinker {
           50% { opacity: 0.2; }
         }
+        
+        /* Styles pour le thème sombre dans le dashboard */
+        .dashboard-container {
+          background-color: var(--background);
+          color: var(--foreground);
+          transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        .dashboard-card {
+          background-color: var(--card);
+          border-color: var(--border);
+          transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        
+        .dashboard-input {
+          background-color: var(--input);
+          border-color: var(--border);
+          color: var(--foreground);
+          transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
       `}</style>
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen dashboard-container">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 w-full overflow-x-hidden py-2 sm:py-0">
+      <header className="border-b w-full overflow-x-hidden py-2 sm:py-0 dashboard-card">
         <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 w-full overflow-x-auto">
           <div className="flex flex-wrap justify-between items-center h-auto min-h-[44px] gap-1 sm:gap-0">
             <div className="flex items-center min-w-0">
@@ -1612,15 +1586,7 @@ export default function Dashboard() {
               {pwdResult && <div className={`mt-2 text-sm ${pwdResult.includes('succès') ? 'text-green-600' : 'text-red-500'}`}>{pwdResult}</div>}
             </form>
             <hr className="my-4 border-gray-200 dark:border-gray-700" />
-            <div className="flex items-center justify-between mb-4">
-              <span className="font-semibold text-gray-900 dark:text-white">Mode sombre</span>
-              <button
-                onClick={toggleDarkMode}
-                className={`ml-4 px-4 py-2 rounded-full font-semibold transition-colors ${darkMode ? 'bg-pink-600 text-white' : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-white'}`}
-              >
-                {darkMode ? 'Désactiver' : 'Activer'}
-              </button>
-            </div>
+
            
             <button
               onClick={logoutAndClearAccess}

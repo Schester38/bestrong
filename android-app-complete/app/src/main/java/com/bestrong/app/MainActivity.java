@@ -158,6 +158,9 @@ public class MainActivity extends AppCompatActivity {
                 
                 // Injecter le thème dans le WebView
                 injectThemeScript();
+                
+                // Modifier le header pour supprimer l'icône et déplacer BE STRONG vers la gauche
+                injectHeaderModificationScript();
             }
         });
         
@@ -185,6 +188,37 @@ public class MainActivity extends AppCompatActivity {
             "document.body.classList.toggle('dark-mode', " + isDark + ");";
         
         webView.evaluateJavascript(themeScript, null);
+    }
+    
+    private void injectHeaderModificationScript() {
+        String headerScript = "javascript:" +
+            "setTimeout(function() {" +
+            "   // Supprimer l'icône du header" +
+            "   var header = document.querySelector('header');" +
+            "   if (header) {" +
+            "       var logoImg = header.querySelector('img[src*=\"icon-512\"]');" +
+            "       if (logoImg) {" +
+            "           logoImg.style.display = 'none';" +
+            "       }" +
+            "       " +
+            "       // Déplacer BE STRONG vers la gauche" +
+            "       var titleElement = header.querySelector('h1');" +
+            "       if (titleElement) {" +
+            "           titleElement.style.marginLeft = '0';" +
+            "           titleElement.style.textAlign = 'left';" +
+            "           titleElement.style.justifyContent = 'flex-start';" +
+            "       }" +
+            "       " +
+            "       // Ajuster le conteneur du titre" +
+            "       var titleContainer = header.querySelector('.flex.items-center');" +
+            "       if (titleContainer) {" +
+            "           titleContainer.style.justifyContent = 'flex-start';" +
+            "           titleContainer.style.marginLeft = '0';" +
+            "       }" +
+            "   }" +
+            "}, 1000);";
+        
+        webView.evaluateJavascript(headerScript, null);
     }
     
     private void initializeShareHelper() {
