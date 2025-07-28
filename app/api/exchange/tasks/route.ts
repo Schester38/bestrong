@@ -340,7 +340,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const creditsEarned = 5; // Gain fixe de 5 crédits pour toute tâche effectuée
-    
+
     if (!user) {
       // Créer un nouvel utilisateur
       const newUser = {

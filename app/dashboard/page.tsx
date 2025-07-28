@@ -1981,21 +1981,100 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
   const [filterType, setFilterType] = useState<string>("ALL");
   const [completerPseudo, setCompleterPseudo] = useState<string>("");
 
-  // Fonction pour ouvrir les liens TikTok dans l'app native
-  const openTikTokLink = (url: string) => {
-    // Détecter si c'est un appareil Android
-    const isAndroid = /Android/i.test(navigator.userAgent);
-    if (isAndroid) {
-      // Ouvre le lien dans l'app TikTok si installée, sinon dans le navigateur
-      // Utilise intent:// pour Android
-      const intentUrl = `intent://${url.replace(/^https?:\/\//, '')}#Intent;package=com.zhiliaoapp.musically;scheme=https;end`;
-      window.location.href = intentUrl;
-      // Fallback navigateur après 1s si l'app n'est pas installée
-      setTimeout(() => {
+  // Fonction pour ouvrir les liens TikTok avec tracking
+  const openTikTokLink = async (url: string, taskType: string) => {
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+      alert("Vous devez être connecté pour effectuer cette action.");
+      return;
+    }
+
+    try {
+      // Démarrer le tracking
+      const trackingResponse = await fetch('/api/tracking/task-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: currentUser.id,
+          taskUrl: url,
+          actionType: taskType
+        })
+      });
+
+      if (!trackingResponse.ok) {
+        console.error('Erreur lors du démarrage du tracking');
+      }
+
+      const trackingData = await trackingResponse.json();
+      const trackingId = trackingData.trackingId;
+
+      // Marquer le clic sur "voir"
+      await fetch('/api/tracking/task-action', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trackingId,
+          action: 'clicked_view',
+          userId: currentUser.id
+        })
+      });
+
+      // Marquer que l'utilisateur quitte l'app
+      await fetch('/api/tracking/task-action', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trackingId,
+          action: 'left_app',
+          userId: currentUser.id
+        })
+      });
+
+      // Détecter si c'est un appareil Android
+      const isAndroid = /Android/i.test(navigator.userAgent);
+      if (isAndroid) {
+        // Ouvre le lien dans l'app TikTok si installée, sinon dans le navigateur
+        const intentUrl = `intent://${url.replace(/^https?:\/\//, '')}#Intent;package=com.zhiliaoapp.musically;scheme=https;end`;
+        window.location.href = intentUrl;
+        
+        // Fallback navigateur après 1s si l'app n'est pas installée
+        setTimeout(() => {
+          window.open(url, '_blank', 'noopener,noreferrer');
+        }, 1000);
+      } else {
+        // Sur iOS ou PC, ouvrir dans un nouvel onglet
         window.open(url, '_blank', 'noopener,noreferrer');
-      }, 1000);
-    } else {
-      // Sur iOS ou PC, ouvrir dans un nouvel onglet
+      }
+
+      // Détecter le retour à l'application
+      const handleVisibilityChange = async () => {
+        if (!document.hidden) {
+          // L'utilisateur est revenu à l'application
+          try {
+            await fetch('/api/tracking/task-action', {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                trackingId,
+                action: 'returned_to_app',
+                userId: currentUser.id
+              })
+            });
+
+            // Supprimer l'écouteur d'événement
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+          } catch (error) {
+            console.error('Erreur lors du marquage du retour:', error);
+          }
+        }
+      };
+
+      // Ajouter l'écouteur d'événement pour détecter le retour
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    } catch (error) {
+      console.error('Erreur lors du tracking:', error);
+      // En cas d'erreur, ouvrir le lien normalement
       window.open(url, '_blank', 'noopener,noreferrer');
     }
   };
@@ -2208,7 +2287,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
             {showOnlyMine && myTasks.map(task => (
               <tr key={task.id} className="border-b border-gray-100 dark:border-gray-700">
                 <td className="px-4 py-2">{task.type}</td>
-                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-pink-500 underline" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url); }}>Voir</a></td>
+                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-pink-500 underline" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url, task.type); }}>Voir</a></td>
                 <td className="px-4 py-2">{task.credits}</td>
                 <td className="px-4 py-2">{task.actionsRestantes}</td>
                 <td className="px-4 py-2">{task.createur?.slice(0, 7)}</td>
@@ -2227,7 +2306,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
             {showOnlyMine && otherTasks.map(task => (
               <tr key={task.id} className="border-b border-gray-100 dark:border-gray-700">
                 <td className="px-4 py-2">{task.type}</td>
-                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-pink-500 underline" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url); }}>Voir</a></td>
+                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-pink-500 underline" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url, task.type); }}>Voir</a></td>
                 <td className="px-4 py-2">{task.credits}</td>
                 <td className="px-4 py-2">{task.actionsRestantes}</td>
                 <td className="px-4 py-2">{task.createur?.slice(0, 7)}</td>
@@ -2253,7 +2332,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
                     {task.type}
                   </span>
                 </td>
-                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-pink-500 underline" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url); }}>Voir</a></td>
+                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-pink-500 underline" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url, task.type); }}>Voir</a></td>
                 <td className="px-4 py-2">{task.credits}</td>
                 <td className="px-4 py-2">{task.actionsRestantes}</td>
                 <td className="px-4 py-2">
@@ -2278,7 +2357,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
             {!showOnlyMine && otherTasks.map(task => (
               <tr key={task.id} className="border-b border-gray-100 dark:border-gray-700">
                 <td className="px-4 py-2">{task.type}</td>
-                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-pink-500 underline" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url); }}>Voir</a></td>
+                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-pink-500 underline" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url, task.type); }}>Voir</a></td>
                 <td className="px-4 py-2">{task.credits}</td>
                 <td className="px-4 py-2">{task.actionsRestantes}</td>
                 <td className="px-4 py-2">{task.createur?.slice(0, 7)}</td>

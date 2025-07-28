@@ -64,87 +64,182 @@ async function verifyTaskAction(task: ExchangeTask, userId: string): Promise<{ v
   }
 }
 
-// Vérification d'un like
+// Vérification d'un like avec tracking du clic "voir"
 async function verifyLikeAction(url: string, userId: string): Promise<{ verified: boolean; result: string }> {
   try {
-    // Ici tu peux brancher une vraie API TikTok pour vérifier le like
-    // Pour l'instant, simulation avec délai
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Simulation : 80% de chance que la vérification soit positive
-    const isVerified = Math.random() > 0.2;
-    
-    if (isVerified) {
-      console.log(`✅ Like vérifié pour ${userId} sur ${url}`);
-      return { verified: true, result: 'Like vérifié avec succès' };
-    } else {
-      console.log(`❌ Like non trouvé pour ${userId} sur ${url}`);
-      return { verified: false, result: 'Like non détecté sur la vidéo' };
+    // Vérifier si l'utilisateur a cliqué sur "voir" et est revenu
+    const { data: trackingData, error: trackingError } = await supabase
+      .from('task_tracking')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('task_url', url)
+      .eq('action_type', 'LIKE')
+      .eq('status', 'completed')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (trackingError || !trackingData) {
+      console.log(`❌ Aucun tracking trouvé pour ${userId} sur ${url}`);
+      return { verified: false, result: 'Action non détectée : vous devez cliquer sur "voir" et revenir à l\'application' };
     }
-  } catch {
+
+    // Vérifier que le tracking a été fait récemment (dans les 5 dernières minutes)
+    const trackingTime = new Date(trackingData.created_at);
+    const now = new Date();
+    const timeDiff = now.getTime() - trackingTime.getTime();
+    const fiveMinutes = 5 * 60 * 1000;
+
+    if (timeDiff > fiveMinutes) {
+      console.log(`❌ Tracking trop ancien pour ${userId} sur ${url}`);
+      return { verified: false, result: 'Action expirée : vous devez refaire l\'action dans les 5 minutes' };
+    }
+
+    // Vérifier que l'utilisateur a bien suivi le processus complet
+    if (!trackingData.clicked_view || !trackingData.left_app || !trackingData.returned_to_app) {
+      console.log(`❌ Processus incomplet pour ${userId} sur ${url}`);
+      return { verified: false, result: 'Processus incomplet : vous devez cliquer sur "voir", sortir de l\'app et revenir' };
+    }
+
+    console.log(`✅ Like vérifié avec tracking complet pour ${userId} sur ${url}`);
+    return { verified: true, result: 'Like vérifié avec succès - Processus complet détecté' };
+  } catch (error) {
+    console.error('Erreur lors de la vérification du like:', error);
     return { verified: false, result: 'Erreur lors de la vérification du like' };
   }
 }
 
-// Vérification d'un follow
+// Vérification d'un follow avec tracking du clic "voir"
 async function verifyFollowAction(url: string, userId: string): Promise<{ verified: boolean; result: string }> {
   try {
-    // Simulation avec délai
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Simulation : 85% de chance que la vérification soit positive
-    const isVerified = Math.random() > 0.15;
-    
-    if (isVerified) {
-      console.log(`✅ Follow vérifié pour ${userId} sur ${url}`);
-      return { verified: true, result: 'Follow vérifié avec succès' };
-    } else {
-      console.log(`❌ Follow non trouvé pour ${userId} sur ${url}`);
-      return { verified: false, result: 'Follow non détecté sur le compte' };
+    // Vérifier si l'utilisateur a cliqué sur "voir" et est revenu
+    const { data: trackingData, error: trackingError } = await supabase
+      .from('task_tracking')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('task_url', url)
+      .eq('action_type', 'FOLLOW')
+      .eq('status', 'completed')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (trackingError || !trackingData) {
+      console.log(`❌ Aucun tracking trouvé pour ${userId} sur ${url}`);
+      return { verified: false, result: 'Action non détectée : vous devez cliquer sur "voir" et revenir à l\'application' };
     }
-  } catch {
+
+    // Vérifier que le tracking a été fait récemment (dans les 5 dernières minutes)
+    const trackingTime = new Date(trackingData.created_at);
+    const now = new Date();
+    const timeDiff = now.getTime() - trackingTime.getTime();
+    const fiveMinutes = 5 * 60 * 1000;
+
+    if (timeDiff > fiveMinutes) {
+      console.log(`❌ Tracking trop ancien pour ${userId} sur ${url}`);
+      return { verified: false, result: 'Action expirée : vous devez refaire l\'action dans les 5 minutes' };
+    }
+
+    // Vérifier que l'utilisateur a bien suivi le processus complet
+    if (!trackingData.clicked_view || !trackingData.left_app || !trackingData.returned_to_app) {
+      console.log(`❌ Processus incomplet pour ${userId} sur ${url}`);
+      return { verified: false, result: 'Processus incomplet : vous devez cliquer sur "voir", sortir de l\'app et revenir' };
+    }
+
+    console.log(`✅ Follow vérifié avec tracking complet pour ${userId} sur ${url}`);
+    return { verified: true, result: 'Follow vérifié avec succès - Processus complet détecté' };
+  } catch (error) {
+    console.error('Erreur lors de la vérification du follow:', error);
     return { verified: false, result: 'Erreur lors de la vérification du follow' };
   }
 }
 
-// Vérification d'un commentaire
+// Vérification d'un commentaire avec tracking du clic "voir"
 async function verifyCommentAction(url: string, userId: string): Promise<{ verified: boolean; result: string }> {
   try {
-    // Simulation avec délai
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Simulation : 70% de chance que la vérification soit positive
-    const isVerified = Math.random() > 0.3;
-    
-    if (isVerified) {
-      console.log(`✅ Commentaire vérifié pour ${userId} sur ${url}`);
-      return { verified: true, result: 'Commentaire vérifié avec succès' };
-    } else {
-      console.log(`❌ Commentaire non trouvé pour ${userId} sur ${url}`);
-      return { verified: false, result: 'Commentaire non détecté sur la vidéo' };
+    // Vérifier si l'utilisateur a cliqué sur "voir" et est revenu
+    const { data: trackingData, error: trackingError } = await supabase
+      .from('task_tracking')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('task_url', url)
+      .eq('action_type', 'COMMENT')
+      .eq('status', 'completed')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (trackingError || !trackingData) {
+      console.log(`❌ Aucun tracking trouvé pour ${userId} sur ${url}`);
+      return { verified: false, result: 'Action non détectée : vous devez cliquer sur "voir" et revenir à l\'application' };
     }
-  } catch {
+
+    // Vérifier que le tracking a été fait récemment (dans les 5 dernières minutes)
+    const trackingTime = new Date(trackingData.created_at);
+    const now = new Date();
+    const timeDiff = now.getTime() - trackingTime.getTime();
+    const fiveMinutes = 5 * 60 * 1000;
+
+    if (timeDiff > fiveMinutes) {
+      console.log(`❌ Tracking trop ancien pour ${userId} sur ${url}`);
+      return { verified: false, result: 'Action expirée : vous devez refaire l\'action dans les 5 minutes' };
+    }
+
+    // Vérifier que l'utilisateur a bien suivi le processus complet
+    if (!trackingData.clicked_view || !trackingData.left_app || !trackingData.returned_to_app) {
+      console.log(`❌ Processus incomplet pour ${userId} sur ${url}`);
+      return { verified: false, result: 'Processus incomplet : vous devez cliquer sur "voir", sortir de l\'app et revenir' };
+    }
+
+    console.log(`✅ Commentaire vérifié avec tracking complet pour ${userId} sur ${url}`);
+    return { verified: true, result: 'Commentaire vérifié avec succès - Processus complet détecté' };
+  } catch (error) {
+    console.error('Erreur lors de la vérification du commentaire:', error);
     return { verified: false, result: 'Erreur lors de la vérification du commentaire' };
   }
 }
 
-// Vérification d'un partage
+// Vérification d'un partage avec tracking du clic "voir"
 async function verifyShareAction(url: string, userId: string): Promise<{ verified: boolean; result: string }> {
   try {
-    // Simulation avec délai
-    await new Promise(resolve => setTimeout(resolve, 1200));
-    
-    // Simulation : 75% de chance que la vérification soit positive
-    const isVerified = Math.random() > 0.25;
-    
-    if (isVerified) {
-      console.log(`✅ Partage vérifié pour ${userId} sur ${url}`);
-      return { verified: true, result: 'Partage vérifié avec succès' };
-    } else {
-      console.log(`❌ Partage non trouvé pour ${userId} sur ${url}`);
-      return { verified: false, result: 'Partage non détecté' };
+    // Vérifier si l'utilisateur a cliqué sur "voir" et est revenu
+    const { data: trackingData, error: trackingError } = await supabase
+      .from('task_tracking')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('task_url', url)
+      .eq('action_type', 'SHARE')
+      .eq('status', 'completed')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (trackingError || !trackingData) {
+      console.log(`❌ Aucun tracking trouvé pour ${userId} sur ${url}`);
+      return { verified: false, result: 'Action non détectée : vous devez cliquer sur "voir" et revenir à l\'application' };
     }
-  } catch {
+
+    // Vérifier que le tracking a été fait récemment (dans les 5 dernières minutes)
+    const trackingTime = new Date(trackingData.created_at);
+    const now = new Date();
+    const timeDiff = now.getTime() - trackingTime.getTime();
+    const fiveMinutes = 5 * 60 * 1000;
+
+    if (timeDiff > fiveMinutes) {
+      console.log(`❌ Tracking trop ancien pour ${userId} sur ${url}`);
+      return { verified: false, result: 'Action expirée : vous devez refaire l\'action dans les 5 minutes' };
+    }
+
+    // Vérifier que l'utilisateur a bien suivi le processus complet
+    if (!trackingData.clicked_view || !trackingData.left_app || !trackingData.returned_to_app) {
+      console.log(`❌ Processus incomplet pour ${userId} sur ${url}`);
+      return { verified: false, result: 'Processus incomplet : vous devez cliquer sur "voir", sortir de l\'app et revenir' };
+    }
+
+    console.log(`✅ Partage vérifié avec tracking complet pour ${userId} sur ${url}`);
+    return { verified: true, result: 'Partage vérifié avec succès - Processus complet détecté' };
+  } catch (error) {
+    console.error('Erreur lors de la vérification du partage:', error);
     return { verified: false, result: 'Erreur lors de la vérification du partage' };
   }
 }
