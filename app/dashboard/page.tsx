@@ -1983,75 +1983,9 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
 
   // Fonction pour ouvrir les liens TikTok avec tracking
   const openTikTokLink = async (url: string, taskType: string) => {
-    const currentUser = getCurrentUser();
-    if (!currentUser) {
-      alert("Vous devez être connecté pour effectuer cette action.");
-      return;
-    }
-
-    try {
-      // Vérifier d'abord si la table task_tracking existe
-      const tableCheck = await fetch('/api/tracking/init-table');
-      const tableStatus = await tableCheck.json();
-      
-      if (!tableStatus.exists) {
-        console.warn('Table task_tracking non disponible, ouverture directe du lien');
-        // Ouvrir le lien directement sans tracking
-        const isAndroid = /Android/i.test(navigator.userAgent);
-        if (isAndroid) {
-          const intentUrl = `intent://${url.replace(/^https?:\/\//, '')}#Intent;package=com.zhiliaoapp.musically;scheme=https;end`;
-          window.location.href = intentUrl;
-          setTimeout(() => {
-            window.open(url, '_blank', 'noopener,noreferrer');
-          }, 1000);
-        } else {
-          window.open(url, '_blank', 'noopener,noreferrer');
-        }
-        return;
-      }
-
-      // Démarrer le tracking
-      const trackingResponse = await fetch('/api/tracking/task-action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: currentUser.id,
-          taskUrl: url,
-          actionType: taskType
-        })
-      });
-
-      if (!trackingResponse.ok) {
-        console.error('Erreur lors du démarrage du tracking');
-      }
-
-      const trackingData = await trackingResponse.json();
-      const trackingId = trackingData.trackingId;
-
-      // Marquer le clic sur "voir"
-      await fetch('/api/tracking/task-action', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          trackingId,
-          action: 'clicked_view',
-          userId: currentUser.id
-        })
-      });
-
-      // Marquer que l'utilisateur quitte l'app
-      await fetch('/api/tracking/task-action', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          trackingId,
-          action: 'left_app',
-          userId: currentUser.id
-        })
-      });
-
-    // Détecter si c'est un appareil Android
+    // Ouvrir le lien directement sans tracking complexe
     const isAndroid = /Android/i.test(navigator.userAgent);
+    
     if (isAndroid) {
       // Ouvre le lien dans l'app TikTok si installée, sinon dans le navigateur
       const intentUrl = `intent://${url.replace(/^https?:\/\//, '')}#Intent;package=com.zhiliaoapp.musically;scheme=https;end`;
@@ -2063,55 +1997,6 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
       }, 1000);
     } else {
       // Sur iOS ou PC, ouvrir dans un nouvel onglet
-        window.open(url, '_blank', 'noopener,noreferrer');
-      }
-
-      // Détecter les changements de visibilité de l'application
-      const handleVisibilityChange = async () => {
-        if (document.hidden) {
-          // L'utilisateur a quitté l'application ou l'a mise en arrière-plan
-          console.log('🚪 Utilisateur a quitté l\'application ou l\'a mise en arrière-plan');
-          try {
-            await fetch('/api/tracking/task-action', {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                trackingId,
-                action: 'left_app',
-                userId: currentUser.id
-              })
-            });
-          } catch (error) {
-            console.error('Erreur lors du marquage de la sortie:', error);
-          }
-        } else {
-          // L'utilisateur est revenu à l'application
-          console.log('🏠 Utilisateur est revenu dans l\'application');
-          try {
-            await fetch('/api/tracking/task-action', {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                trackingId,
-                action: 'returned_to_app',
-                userId: currentUser.id
-              })
-            });
-
-            // Supprimer l'écouteur d'événement après le retour
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
-          } catch (error) {
-            console.error('Erreur lors du marquage du retour:', error);
-          }
-        }
-      };
-
-      // Ajouter l'écouteur d'événement pour détecter le retour
-      document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    } catch (error) {
-      console.error('Erreur lors du tracking:', error);
-      // En cas d'erreur, ouvrir le lien normalement
       window.open(url, '_blank', 'noopener,noreferrer');
     }
   };
@@ -2174,79 +2059,17 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
   // État pour stocker les tâches complétées
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
 
-  // Fonction pour vérifier toutes les tâches complétées (optimisée)
+  // Fonction pour vérifier toutes les tâches complétées (simplifiée)
   const checkCompletedTasks = async () => {
-    const currentUser = getCurrentUser();
-    if (!currentUser) return;
-
-    try {
-      // Vérifier d'abord si la table task_tracking existe
-      const tableCheck = await fetch('/api/tracking/init-table');
-      const tableStatus = await tableCheck.json();
-      
-      if (!tableStatus.exists) {
-        console.warn('Table task_tracking non disponible, désactivation du tracking');
-        return;
-      }
-
-      // Récupérer tous les trackings complétés en une seule requête
-      const response = await fetch(`/api/tracking/user-completions?userId=${currentUser.id}`);
-      if (!response.ok) {
-        console.error('Erreur API user-completions:', response.status);
-        return;
-      }
-      
-      const data = await response.json();
-      if (!data.success) {
-        console.error('Erreur données user-completions:', data.error);
-        return;
-      }
-      
-      // Créer un set des tâches complétées basé sur les URLs
-      const completedSet = new Set<string>();
-      const completedTasks = data.completedTasks || {};
-
-      // Vérifier quelles tâches actuelles correspondent aux trackings complétés
-      for (const task of tasks) {
-        if (completedTasks[task.url]) {
-          completedSet.add(task.id);
-        }
-      }
-      
-      setCompletedTasks(completedSet);
-    } catch (error) {
-      console.error('Erreur lors de la vérification des complétions:', error);
-    }
+    // Pour l'instant, pas de vérification complexe
+    // On reviendra à un système simple plus tard
+    console.log('Vérification des tâches complétées désactivée');
   };
 
-  // Vérifier les tâches complétées au chargement et après chaque rafraîchissement
-  useEffect(() => {
-    if (tasks.length > 0) {
-      checkCompletedTasks();
-    }
-  }, [tasks]);
 
-  // Rafraîchir les complétions toutes les 30 secondes
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (tasks.length > 0) {
-        checkCompletedTasks();
-      }
-    }, 30000); // 30 secondes
 
-    return () => clearInterval(interval);
-  }, [tasks]);
-
-  // Fonction pour rendre le bouton ou le statut de complétion
+  // Fonction pour rendre le bouton de complétion
   const renderCompletionButtonOrStatus = (task: ExchangeTask) => {
-    if (completedTasks.has(task.id)) {
-      return (
-        <span className="inline-block bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full border border-green-200">
-          ✅ Tâche déjà effectuée
-        </span>
-      );
-    }
-    
     return (
       <button 
         onClick={() => handleComplete(task.id)} 
