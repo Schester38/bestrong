@@ -2059,26 +2059,57 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
   // État pour stocker les tâches complétées
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
 
-  // Fonction pour vérifier toutes les tâches complétées (simplifiée)
-  const checkCompletedTasks = async () => {
-    // Pour l'instant, pas de vérification complexe
-    // On reviendra à un système simple plus tard
-    console.log('Vérification des tâches complétées désactivée');
-  };
+  // Fonction pour vérifier toutes les tâches complétées (optimisée)
+  const checkCompletedTasks = useCallback(async () => {
+    const currentUser = getCurrentUser();
+    if (!currentUser?.id) return;
+
+    // Utiliser directement les données des tâches déjà chargées
+    const userCompletions = new Set<string>();
+    
+    tasks.forEach((task: ExchangeTask) => {
+      if (task.completions && task.completions.length > 0) {
+        const hasCompleted = task.completions.some(comp => comp.userId === currentUser.id);
+        if (hasCompleted) {
+          userCompletions.add(task.id);
+        }
+      }
+    });
+    
+    setCompletedTasks(userCompletions);
+  }, [tasks]);
+
+  // Vérifier les tâches complétées quand les tâches changent
+  useEffect(() => {
+    checkCompletedTasks();
+  }, [checkCompletedTasks]);
 
 
 
-  // Fonction pour rendre le bouton de complétion
-  const renderCompletionButtonOrStatus = (task: ExchangeTask) => {
+  // Fonction pour rendre le bouton de complétion ou le statut (optimisée)
+  const renderCompletionButtonOrStatus = useCallback((task: ExchangeTask) => {
+    const currentUser = getCurrentUser();
+    // Vérification rapide : d'abord l'état local, puis les données de la tâche
+    const hasCompleted = completedTasks.has(task.id) || 
+      (task.completions && task.completions.some(comp => comp.userId === currentUser?.id));
+
+    if (hasCompleted) {
+      return (
+        <span className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 px-3 py-1 rounded font-medium">
+          ✅ Tâche effectuée
+        </span>
+      );
+    }
+
     return (
       <button 
         onClick={() => handleComplete(task.id)} 
-        className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+        className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
       >
         J'ai fait l'action
       </button>
     );
-  };
+  }, [completedTasks]);
 
   async function handleComplete(taskId: string) {
     // Utiliser l'ID de l'utilisateur connecté automatiquement
@@ -2103,7 +2134,9 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
         alert(data.error);
       } else if (data.verified) {
         alert(`✅ ${data.message}\n💰 Vous avez gagné ${data.creditsEarned} crédits !`);
-    onRefresh();
+        // Ajouter la tâche à la liste des tâches complétées
+        setCompletedTasks(prev => new Set([...prev, taskId]));
+        onRefresh();
         refreshDashboardCredits(userId);
       } else {
         alert(`❌ ${data.message}\n⚠️ L'action n'a pas pu être vérifiée automatiquement.`);
