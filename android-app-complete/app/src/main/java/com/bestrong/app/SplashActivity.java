@@ -8,76 +8,31 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.graphics.Color;
+import android.widget.ProgressBar;
 import android.view.View;
-import android.widget.RelativeLayout;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
+import android.view.animation.AccelerateDecelerateInterpolator;
 
 public class SplashActivity extends Activity {
-    private static final int SPLASH_DURATION = 3000; // 3 secondes
+    private static final int SPLASH_DURATION = 4000; // 4 secondes
+    
+    private ImageView logoMain;
+    private TextView titleMain;
+    private TextView subtitleMain;
+    private ProgressBar loadingIndicator;
+    private View particle1, particle2, particle3;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_splash);
         
-        // Créer le layout du splash screen
-        RelativeLayout splashLayout = new RelativeLayout(this);
-        splashLayout.setBackgroundColor(Color.parseColor("#1F2937")); // Gris foncé
+        // Initialiser les vues
+        initializeViews();
         
-        // Logo animé
-        ImageView logoView = new ImageView(this);
-        logoView.setImageResource(R.drawable.ic_launcher_foreground);
-        logoView.setScaleType(android.widget.ImageView.ScaleType.CENTER_INSIDE);
-        
-        RelativeLayout.LayoutParams logoParams = new RelativeLayout.LayoutParams(
-            200, 200
-        );
-        logoParams.addRule(RelativeLayout.CENTER_IN_PARENT);
-        logoParams.addRule(RelativeLayout.ABOVE, android.R.id.text1);
-        
-        // Texte animé
-        TextView titleText = new TextView(this);
-        titleText.setText("BE STRONG");
-        titleText.setTextSize(32);
-        titleText.setTextColor(Color.parseColor("#EC4899")); // Rose
-        titleText.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
-        
-        RelativeLayout.LayoutParams titleParams = new RelativeLayout.LayoutParams(
-            RelativeLayout.LayoutParams.WRAP_CONTENT,
-            RelativeLayout.LayoutParams.WRAP_CONTENT
-        );
-        titleParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
-        titleParams.addRule(RelativeLayout.CENTER_IN_PARENT);
-        titleParams.topMargin = 50;
-        
-        // Sous-titre
-        TextView subtitleText = new TextView(this);
-        subtitleText.setText("Augmentez votre visibilité TikTok");
-        subtitleText.setTextSize(16);
-        subtitleText.setTextColor(Color.parseColor("#9CA3AF")); // Gris clair
-        subtitleText.setTypeface(android.graphics.Typeface.DEFAULT);
-        
-        RelativeLayout.LayoutParams subtitleParams = new RelativeLayout.LayoutParams(
-            RelativeLayout.LayoutParams.WRAP_CONTENT,
-            RelativeLayout.LayoutParams.WRAP_CONTENT
-        );
-        subtitleParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
-        subtitleParams.addRule(RelativeLayout.BELOW, android.R.id.text1);
-        subtitleParams.topMargin = 20;
-        
-        // Ajouter les vues
-        splashLayout.addView(logoView, logoParams);
-        splashLayout.addView(titleText, titleParams);
-        splashLayout.addView(subtitleText, subtitleParams);
-        
-        setContentView(splashLayout);
-        
-        // Animations
-        Animation fadeIn = AnimationUtils.loadAnimation(this, android.R.anim.fade_in);
-        Animation scaleIn = AnimationUtils.loadAnimation(this, android.R.anim.fade_in);
-        
-        logoView.startAnimation(fadeIn);
-        titleText.startAnimation(scaleIn);
-        subtitleText.startAnimation(fadeIn);
+        // Démarrer les animations
+        startAnimations();
         
         // Délai avant de passer à MainActivity
         new Handler().postDelayed(new Runnable() {
@@ -86,7 +41,78 @@ public class SplashActivity extends Activity {
                 Intent intent = new Intent(SplashActivity.this, MainActivity.class);
                 startActivity(intent);
                 finish();
+                // Animation de transition
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             }
         }, SPLASH_DURATION);
+    }
+    
+    private void initializeViews() {
+        logoMain = findViewById(R.id.logo_main);
+        titleMain = findViewById(R.id.title_main);
+        subtitleMain = findViewById(R.id.subtitle_main);
+        loadingIndicator = findViewById(R.id.loading_indicator);
+        particle1 = findViewById(R.id.particle_1);
+        particle2 = findViewById(R.id.particle_2);
+        particle3 = findViewById(R.id.particle_3);
+    }
+    
+    private void startAnimations() {
+        // Animation du logo avec pulsation
+        Animation pulseAnimation = AnimationUtils.loadAnimation(this, R.anim.pulse);
+        logoMain.startAnimation(pulseAnimation);
+        
+        // Animation du titre avec fade-in
+        ObjectAnimator titleFadeIn = ObjectAnimator.ofFloat(titleMain, "alpha", 0f, 1f);
+        titleFadeIn.setDuration(1500);
+        titleFadeIn.setStartDelay(500);
+        titleFadeIn.start();
+        
+        // Animation du sous-titre avec slide-up
+        Animation slideUpAnimation = AnimationUtils.loadAnimation(this, R.anim.slide_up);
+        subtitleMain.startAnimation(slideUpAnimation);
+        subtitleMain.setVisibility(View.VISIBLE);
+        
+        // Animation de l'indicateur de chargement
+        ObjectAnimator loadingFadeIn = ObjectAnimator.ofFloat(loadingIndicator, "alpha", 0f, 1f);
+        loadingFadeIn.setDuration(1000);
+        loadingFadeIn.setStartDelay(1000);
+        loadingFadeIn.start();
+        
+        // Animations des particules
+        startParticleAnimations();
+    }
+    
+    private void startParticleAnimations() {
+        // Animation de la particule 1
+        Animation particle1Anim = AnimationUtils.loadAnimation(this, R.anim.particle_float);
+        particle1Anim.setStartOffset(200);
+        particle1.startAnimation(particle1Anim);
+        
+        // Animation de la particule 2
+        Animation particle2Anim = AnimationUtils.loadAnimation(this, R.anim.particle_float);
+        particle2Anim.setStartOffset(400);
+        particle2.startAnimation(particle2Anim);
+        
+        // Animation de la particule 3
+        Animation particle3Anim = AnimationUtils.loadAnimation(this, R.anim.particle_float);
+        particle3Anim.setStartOffset(600);
+        particle3.startAnimation(particle3Anim);
+        
+        // Fade-in des particules
+        ObjectAnimator particle1Fade = ObjectAnimator.ofFloat(particle1, "alpha", 0f, 1f);
+        particle1Fade.setDuration(1000);
+        particle1Fade.setStartDelay(200);
+        particle1Fade.start();
+        
+        ObjectAnimator particle2Fade = ObjectAnimator.ofFloat(particle2, "alpha", 0f, 1f);
+        particle2Fade.setDuration(1000);
+        particle2Fade.setStartDelay(400);
+        particle2Fade.start();
+        
+        ObjectAnimator particle3Fade = ObjectAnimator.ofFloat(particle3, "alpha", 0f, 1f);
+        particle3Fade.setDuration(1000);
+        particle3Fade.setStartDelay(600);
+        particle3Fade.start();
     }
 }

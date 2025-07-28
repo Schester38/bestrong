@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="motivational_messages">
+        <!-- Messages de base -->
+        <item>🔥 Tu es plus fort que tes excuses !</item>
+        <item>💪 Chaque jour est une nouvelle opportunité de briller !</item>
+        <item>🚀 Ta visibilité TikTok va exploser aujourd'hui !</item>
+        <item>⭐ Tu as le pouvoir de devenir une légende !</item>
+        <item>🎯 Concentre-toi sur tes objectifs, pas sur tes obstacles !</item>
+        <item>🌟 La persévérance transforme les rêves en réalité !</item>
+        <item>⚡ Tu es né pour briller, pas pour te cacher !</item>
+        <item>🏆 Chaque follower est un pas vers le succès !</item>
+        <item>💎 Tu es unique, ton contenu aussi !</item>
+        <item>🎪 Le monde attend de voir ton talent !</item>
+        
+        <!-- Messages de motivation avancés -->
+        <item>🔥 Aujourd'hui, tu vas créer quelque chose d'incroyable !</item>
+        <item>💪 La confiance en soi est ta meilleure arme !</item>
+        <item>🚀 Prêt à conquérir TikTok ?</item>
+        <item>⭐ Ta créativité n'a pas de limites !</item>
+        <item>🎯 Le succès est à portée de main !</item>
+        <item>🌟 Crois en toi, les autres suivront !</item>
+        <item>⚡ Tu es le héros de ta propre histoire !</item>
+        <item>🏆 Chaque vidéo te rapproche de tes rêves !</item>
+        <item>💎 Ton authenticité est ta force !</item>
+        <item>🎪 Le monde a besoin de ta voix !</item>
+        
+        <!-- Messages de transformation -->
+        <item>🔥 Transforme tes défis en opportunités !</item>
+        <item>💪 Tu as tout ce qu'il faut pour réussir !</item>
+        <item>🚀 Prépare-toi à devenir viral !</item>
+        <item>⭐ Ta passion va inspirer des millions !</item>
+        <item>🎯 Aujourd'hui, tu vas faire la différence !</item>
+        <item>🌟 Tu es plus fort que tu ne le penses !</item>
+        <item>⚡ Le moment est venu de briller !</item>
+        <item>🏆 Chaque like est une validation de ton talent !</item>
+        <item>💎 Tu es une étoile qui s'ignore !</item>
+        <item>🎪 Le monde a besoin de ton énergie !</item>
+        
+        <!-- Messages de puissance -->
+        <item>🔥 Tu es une force de la nature !</item>
+        <item>💪 Rien ne peut t'arrêter maintenant !</item>
+        <item>🚀 Tu vas créer un tsunami de followers !</item>
+        <item>⭐ Ton potentiel est infini !</item>
+        <item>🎯 Tu es né pour être viral !</item>
+        <item>🌟 Ta lumière va éclairer le monde !</item>
+        <item>⚡ Tu es électrisant !</item>
+        <item>🏆 Tu vas devenir une icône !</item>
+        <item>💎 Tu es un diamant brut !</item>
+        <item>🎪 Prépare-toi à la célébrité !</item>
+        
+        <!-- Messages de dépassement -->
+        <item>🔥 Défie tes limites, dépasse tes attentes !</item>
+        <item>💪 Tu es capable de l'impossible !</item>
+        <item>🚀 Ton ascension commence maintenant !</item>
+        <item>⭐ Tu vas surprendre tout le monde !</item>
+        <item>🎯 Tes rêves deviennent réalité !</item>
+        <item>🌟 Tu es en train de créer ta légende !</item>
+        <item>⚡ Tu es une tempête de créativité !</item>
+        <item>🏆 Tu vas conquérir le monde !</item>
+        <item>💎 Tu es un phénomène !</item>
+        <item>🎪 Le monde va te découvrir !</item>
+        
+        <!-- Messages d'énergie positive -->
+        <item>🔥 Ton énergie positive est contagieuse !</item>
+        <item>💪 Tu inspires les autres à être meilleurs !</item>
+        <item>🚀 Tu vas créer un mouvement !</item>
+        <item>⭐ Tu es un catalyseur de changement !</item>
+        <item>🎯 Tu vas révolutionner TikTok !</item>
+        <item>🌟 Tu es un leader né !</item>
+        <item>⚡ Tu électrises ton audience !</item>
+        <item>🏆 Tu vas créer une communauté !</item>
+        <item>💎 Tu es un influenceur naturel !</item>
+        <item>🎪 Tu vas devenir une référence !</item>
+        
+        <!-- Messages de succès -->
+        <item>🔥 Le succès est ton destin !</item>
+        <item>💪 Tu vas atteindre les sommets !</item>
+        <item>🚀 Tu vas devenir une star !</item>
+        <item>⭐ Tu es fait pour briller !</item>
+        <item>🎯 Tu vas réaliser tes rêves !</item>
+        <item>🌟 Tu es sur la voie du succès !</item>
+        <item>⚡ Tu vas exploser en popularité !</item>
+        <item>🏆 Tu vas gagner la partie !</item>
+        <item>💎 Tu vas devenir célèbre !</item>
+        <item>🎪 Tu vas conquérir les réseaux !</item>
+        
+        <!-- Messages de motivation extrême -->
+        <item>🔥 TU ES UNE MACHINE DE GUERRE !</item>
+        <item>💪 PERSONNE NE PEUT T'ARRÊTER !</item>
+        <item>🚀 TU VAS DEVENIR UNE LÉGENDE !</item>
+        <item>⭐ TU ES LE ROI/LA REINE DE TIKTOK !</item>
+        <item>🎯 TU VAS DOMINER LE MONDE !</item>
+        <item>🌟 TU ES UN PHÉNOMÈNE !</item>
+        <item>⚡ TU ES ÉLECTRIQUE !</item>
+        <item>🏆 TU VAS TOUT DÉTRUIRE !</item>
+        <item>💎 TU ES UN DIAMANT !</item>
+        <item>🎪 TU VAS DEVENIR UNE ICÔNE !</item>
+        
+        <!-- Messages de motivation quotidienne -->
+        <item>🔥 Aujourd'hui, tu vas tout changer !</item>
+        <item>💪 Ce jour est ton jour de gloire !</item>
+        <item>🚀 Tu vas créer l'histoire !</item>
+        <item>⭐ Tu vas impressionner le monde !</item>
+        <item>🎯 Tu vas réaliser l'impossible !</item>
+        <item>🌟 Tu vas éblouir ton audience !</item>
+        <item>⚡ Tu vas créer un buzz !</item>
+        <item>🏆 Tu vas gagner la bataille !</item>
+        <item>💎 Tu vas briller comme jamais !</item>
+        <item>🎪 Tu vas devenir une star !</item>
+        
+        <!-- Messages de motivation finale -->
+        <item>🔥 TU ES PRÊT À CONQUÉRIR LE MONDE !</item>
+        <item>💪 RIEN NE PEUT T'ARRÊTER MAINTENANT !</item>
+        <item>🚀 TU VAS DEVENIR UNE LÉGENDE VIVANTE !</item>
+        <item>⭐ TU ES LE FUTUR DE TIKTOK !</item>
+        <item>🎯 TU VAS RÉVOLUTIONNER L'INFLUENCE !</item>
+        <item>🌟 TU ES UN PHÉNOMÈNE MONDIAL !</item>
+        <item>⚡ TU VAS ÉLECTRISER LE MONDE !</item>
+        <item>🏆 TU VAS DEVENIR UNE ICÔNE !</item>
+        <item>💎 TU ES UN TRÉSOR NATIONAL !</item>
+        <item>🎪 TU VAS CONQUÉRIR L'UNIVERS !</item>
+    </string-array>
+</resources> 

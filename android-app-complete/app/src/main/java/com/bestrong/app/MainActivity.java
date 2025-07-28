@@ -1,64 +1,85 @@
 package com.bestrong.app;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.view.View;
+import android.webkit.JavascriptInterface;
+import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.webkit.WebSettings;
-import android.webkit.WebChromeClient;
-import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
-import android.webkit.ValueCallback;
-import android.webkit.WebResourceRequest;
-import android.webkit.WebResourceError;
-import android.util.Log;
 import android.widget.Toast;
+import androidx.appcompat.app.AppCompatActivity;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
+    
     private WebView webView;
     private ProgressBar progressBar;
-    private RelativeLayout container;
+    private LinearLayout loadingLayout;
     private ShareHelper shareHelper;
-    private static final String TAG = "MainActivity";
-
+    private ThemeManager themeManager;
+    
+    // Interface JavaScript pour communiquer avec le WebView
+    public class WebAppInterface {
+        MainActivity mContext;
+        
+        WebAppInterface(MainActivity context) {
+            mContext = context;
+        }
+        
+        @JavascriptInterface
+        public void shareContent(String title, String text, String url) {
+            mContext.shareContent(title, text, url);
+        }
+        
+        @JavascriptInterface
+        public void toggleTheme() {
+            mContext.toggleTheme();
+        }
+        
+        @JavascriptInterface
+        public boolean isDarkMode() {
+            return mContext.themeManager.isDarkMode(mContext);
+        }
+    }
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        // Appliquer le thème avant de créer l'activité
+        themeManager = new ThemeManager(this);
+        themeManager.applyCurrentTheme();
         
-        // Créer le layout
-        container = new RelativeLayout(this);
-        setContentView(container);
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        
+        // Initialiser les vues
+        initializeViews();
         
         // Initialiser le helper de partage
         shareHelper = new ShareHelper(this);
         
-        // Créer la WebView
-        webView = new WebView(this);
-        webView.setId(android.R.id.content);
+        // Initialiser le WebView
+        initializeWebView();
         
-        // Créer la barre de progression
-        progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
-        progressBar.setId(android.R.id.progress);
+        // Initialiser le helper de partage
+        initializeShareHelper();
         
-        // Configuration du layout
-        RelativeLayout.LayoutParams webViewParams = new RelativeLayout.LayoutParams(
-            RelativeLayout.LayoutParams.MATCH_PARENT,
-            RelativeLayout.LayoutParams.MATCH_PARENT
-        );
-        
-        RelativeLayout.LayoutParams progressParams = new RelativeLayout.LayoutParams(
-            RelativeLayout.LayoutParams.MATCH_PARENT,
-            8
-        );
-        progressParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-        
-        container.addView(webView, webViewParams);
-        container.addView(progressBar, progressParams);
-        
-        // Configuration WebView
+        // Afficher le dialog de motivation après un délai
+        showMotivationalDialog();
+    }
+    
+    private void initializeViews() {
+        webView = findViewById(R.id.webview);
+        progressBar = findViewById(R.id.progressBar);
+        loadingLayout = findViewById(R.id.loadingLayout);
+    }
+    
+    private void initializeWebView() {
+        // Configuration du WebView
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
@@ -68,105 +89,79 @@ public class MainActivity extends Activity {
         webSettings.setUseWideViewPort(true);
         webSettings.setBuiltInZoomControls(true);
         webSettings.setDisplayZoomControls(false);
-        webSettings.setSupportZoom(true);
         webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
-        webSettings.setAllowUniversalAccessFromFileURLs(true);
-        webSettings.setAllowFileAccessFromFileURLs(true);
         webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-        webSettings.setMediaPlaybackRequiresUserGesture(false);
         
-        // Configuration du client WebView
+        // Ajouter l'interface JavaScript
+        webView.addJavascriptInterface(new WebAppInterface(this), "Android");
+        
+        // Gestion des liens externes
         webView.setWebViewClient(new WebViewClient() {
             @Override
-            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                String url = request.getUrl().toString();
-                Log.d(TAG, "Loading URL: " + url);
-                
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 // URL de base de l'application
                 String baseUrl = "https://mybestrong.netlify.app";
                 
-                // Gérer les liens externes
-                if (url.startsWith("tel:") || url.startsWith("mailto:") || url.startsWith("sms:")) {
-                    // Liens de communication - ouvrir dans les apps natives
-                    try {
-                        Intent intent = new Intent(Intent.ACTION_VIEW, request.getUrl());
-                        startActivity(intent);
-                        return true;
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error opening external link", e);
-                    }
-                } else if (url.startsWith("http://") || url.startsWith("https://")) {
-                    // Liens web
-                    if (url.startsWith(baseUrl)) {
-                        // Liens internes - charger dans le WebView
-                        Log.d(TAG, "Internal link: " + url);
-                        view.loadUrl(url);
-                        return true;
-                    } else {
-                        // Liens externes - ouvrir dans le navigateur
-                        Log.d(TAG, "External link: " + url);
-                        try {
-                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity(intent);
-                            return true;
-                        } catch (Exception e) {
-                            Log.e(TAG, "Error opening external web link", e);
-                            // Fallback: ouvrir dans le navigateur par défaut
-                            try {
-                                Intent intent = new Intent(Intent.ACTION_VIEW);
-                                intent.setData(Uri.parse(url));
-                                startActivity(intent);
-                                return true;
-                            } catch (Exception e2) {
-                                Log.e(TAG, "Error with fallback browser", e2);
-                            }
-                        }
-                    }
-                } else if (url.startsWith("intent://")) {
-                    // Liens intent Android - ouvrir directement
-                    try {
-                        Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
-                        startActivity(intent);
-                        return true;
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error opening intent link", e);
-                    }
-                } else if (url.startsWith("market://")) {
-                    // Liens Google Play - ouvrir dans Play Store
+                // Gérer les liens de communication
+                if (url.startsWith("tel:") || url.startsWith("mailto:") || 
+                    url.startsWith("whatsapp:") || url.startsWith("sms:")) {
                     try {
                         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                         startActivity(intent);
                         return true;
                     } catch (Exception e) {
-                        Log.e(TAG, "Error opening Play Store link", e);
+                        Toast.makeText(MainActivity.this, "Impossible d'ouvrir cette application", Toast.LENGTH_SHORT).show();
+                        return true;
                     }
                 }
                 
-                // Par défaut, charger dans le WebView (liens internes)
-                Log.d(TAG, "Loading in WebView: " + url);
-                view.loadUrl(url);
-                return true;
+                // Gérer les liens web externes
+                if (url.startsWith("http://") || url.startsWith("https://")) {
+                    if (url.startsWith(baseUrl)) {
+                        // Liens internes - charger dans le WebView
+                        view.loadUrl(url);
+                        return true;
+                    } else {
+                        // Liens externes - ouvrir dans le navigateur
+                        try {
+                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                            startActivity(intent);
+                            return true;
+                        } catch (Exception e) {
+                            Toast.makeText(MainActivity.this, "Impossible d'ouvrir ce lien", Toast.LENGTH_SHORT).show();
+                            return true;
+                        }
+                    }
+                }
+                
+                // Gérer les liens intent Android
+                if (url.startsWith("intent://")) {
+                    try {
+                        Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
+                        startActivity(intent);
+                        return true;
+                    } catch (Exception e) {
+                        Toast.makeText(MainActivity.this, "Impossible d'ouvrir cette application", Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                }
+                
+                return false;
             }
             
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
+                // Masquer l'indicateur de chargement
+                loadingLayout.setVisibility(View.GONE);
                 progressBar.setVisibility(View.GONE);
-                Log.d(TAG, "Page loaded: " + url);
                 
-                // Injecter le JavaScript pour le partage natif
-                injectShareJavaScript();
-            }
-            
-            @Override
-            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                super.onReceivedError(view, request, error);
-                Log.e(TAG, "WebView error: " + error.getDescription());
+                // Injecter le thème dans le WebView
+                injectThemeScript();
             }
         });
         
-        // Configuration du Chrome Client
+        // Gestion des alertes JavaScript et de la progression
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
@@ -183,55 +178,95 @@ public class MainActivity extends Activity {
         webView.loadUrl("https://mybestrong.netlify.app");
     }
     
-    private void injectShareJavaScript() {
-        String js = "// API de partage natif pour Android\n" +
-            "window.AndroidShare = {\n" +
-            "    share: function(title, text, url) {\n" +
-            "        Android.shareContent(title, text, url);\n" +
-            "    }\n" +
-            "};\n" +
-            "\n" +
-            "// Override du bouton de partage\n" +
-            "document.addEventListener('click', function(e) {\n" +
-            "    if (e.target && e.target.closest('button') && \n" +
-            "        e.target.closest('button').textContent.includes('Partager BE STRONG')) {\n" +
-            "        e.preventDefault();\n" +
-            "        \n" +
-            "        const shareData = {\n" +
-            "            title: '🚀 Rejoins BE STRONG et deviens une légende !',\n" +
-            "            text: '🔥 Découvre BE STRONG : la plateforme éthique qui booste ta visibilité TikTok avec des échanges organiques, analytics et conseils d\\'optimisation ! Clique ici pour vivre l\\'expérience 👉',\n" +
-            "            url: 'https://mybestrong.netlify.app'\n" +
-            "        };\n" +
-            "        \n" +
-            "        // Utiliser l'API native Android\n" +
-            "        if (window.AndroidShare) {\n" +
-            "            window.AndroidShare.share(shareData.title, shareData.text, shareData.url);\n" +
-            "        } else if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {\n" +
-            "            navigator.share(shareData);\n" +
-            "        } else {\n" +
-            "            // Fallback vers copie\n" +
-            "            const message = shareData.title + '\\n\\n' + shareData.text + ' ' + shareData.url;\n" +
-            "            if (navigator.clipboard) {\n" +
-            "                navigator.clipboard.writeText(message);\n" +
-            "                alert('✅ Lien copié ! Partage-le avec tes amis');\n" +
-            "            } else {\n" +
-            "                alert('📱 Partage BE STRONG:\\n\\n' + message);\n" +
-            "            }\n" +
-            "        }\n" +
-            "    }\n" +
+    private void injectThemeScript() {
+        boolean isDark = themeManager.isDarkMode(this);
+        String themeScript = "javascript:" +
+            "document.documentElement.setAttribute('data-theme', '" + (isDark ? "dark" : "light") + "');" +
+            "document.body.classList.toggle('dark-mode', " + isDark + ");";
+        
+        webView.evaluateJavascript(themeScript, null);
+    }
+    
+    private void initializeShareHelper() {
+        // Injection JavaScript pour le partage natif
+        String shareScript = "javascript:" +
+            "window.AndroidShare = {" +
+            "   share: function(title, text, url) {" +
+            "       Android.shareContent(title, text, url);" +
+            "   }" +
+            "};" +
+            "" +
+            "// Override du bouton de partage" +
+            "document.addEventListener('click', function(e) {" +
+            "   if (e.target && e.target.closest('button') && " +
+            "       e.target.closest('button').textContent.includes('Partager BE STRONG')) {" +
+            "       e.preventDefault();" +
+            "       " +
+            "       var shareData = {" +
+            "           title: 'BE STRONG'," +
+            "           text: 'Decouvre BE STRONG : la plateforme ethique qui booste ta visibilite TikTok'," +
+            "           url: 'https://mybestrong.netlify.app'" +
+            "       };" +
+            "       " +
+            "       if (window.AndroidShare) {" +
+            "           window.AndroidShare.share(shareData.title, shareData.text, shareData.url);" +
+            "       } else if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {" +
+            "           navigator.share(shareData);" +
+            "       } else {" +
+            "           // Fallback vers copie" +
+            "           var message = shareData.title + '\\n\\n' + shareData.text + ' ' + shareData.url;" +
+            "           if (navigator.clipboard) {" +
+            "               navigator.clipboard.writeText(message);" +
+            "               alert('Lien copie ! Partage-le avec tes amis');" +
+            "           } else {" +
+            "               alert('Partage BE STRONG:\\n\\n' + message);" +
+            "           }" +
+            "       }" +
+            "   }" +
             "});";
         
-        webView.evaluateJavascript(js, new ValueCallback<String>() {
-            @Override
-            public void onReceiveValue(String value) {
-                Log.d(TAG, "JavaScript injected successfully");
-            }
-        });
+        webView.evaluateJavascript(shareScript, null);
     }
     
     // Méthode appelée depuis JavaScript
     public void shareContent(String title, String text, String url) {
         shareHelper.shareContent(title, text, url);
+    }
+    
+    public void toggleTheme() {
+        int currentMode = themeManager.getThemeMode();
+        int newMode;
+        
+        switch (currentMode) {
+            case ThemeManager.THEME_LIGHT:
+                newMode = ThemeManager.THEME_DARK;
+                break;
+            case ThemeManager.THEME_DARK:
+                newMode = ThemeManager.THEME_SYSTEM;
+                break;
+            default:
+                newMode = ThemeManager.THEME_LIGHT;
+                break;
+        }
+        
+        themeManager.setThemeMode(newMode);
+        recreate(); // Recréer l'activité pour appliquer le nouveau thème
+    }
+    
+    private void showMotivationalDialog() {
+        // Afficher le dialog après 2 secondes
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    MotivationalDialog dialog = new MotivationalDialog(MainActivity.this);
+                    dialog.show();
+                } catch (Exception e) {
+                    // En cas d'erreur, on continue sans le dialog
+                    Toast.makeText(MainActivity.this, "Erreur lors du chargement du dialog", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }, 2000);
     }
     
     @Override
@@ -240,22 +275,6 @@ public class MainActivity extends Activity {
             webView.goBack();
         } else {
             super.onBackPressed();
-        }
-    }
-    
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (webView != null) {
-            webView.onResume();
-        }
-    }
-    
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (webView != null) {
-            webView.onPause();
         }
     }
 }

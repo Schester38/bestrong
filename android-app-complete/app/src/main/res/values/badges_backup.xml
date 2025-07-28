@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Badges de progression -->
+    <string-array name="badge_names">
+        <item>🌟 Débutant Motivé</item>
+        <item>🔥 Créateur en Herbe</item>
+        <item>🚀 Influenceur Émergent</item>
+        <item>⭐ Star en Devenir</item>
+        <item>💎 Créateur Pro</item>
+        <item>🏆 Légende TikTok</item>
+        <item>⚡ Phénomène Viral</item>
+        <item>🎪 Icône des Réseaux</item>
+        <item>🔥 Maître de l'Influence</item>
+        <item>💫 Légende Vivante</item>
+    </string-array>
+
+    <!-- Descriptions des badges -->
+    <string-array name="badge_descriptions">
+        <item>Tu as fait tes premiers pas vers le succès !</item>
+        <item>Ton potentiel commence à se révéler !</item>
+        <item>Tu es en train de créer ton audience !</item>
+        <item>Tu brilles de plus en plus fort !</item>
+        <item>Tu es devenu un créateur professionnel !</item>
+        <item>Tu es une légende sur TikTok !</item>
+        <item>Tu crées du contenu viral régulièrement !</item>
+        <item>Tu es une icône des réseaux sociaux !</item>
+        <item>Tu maîtrises l'art de l'influence !</item>
+        <item>Tu es une légende vivante du digital !</item>
+    </string-array>
+
+    <!-- Récompenses -->
+    <string-array name="rewards">
+        <item>🎁 +100 points de motivation</item>
+        <item>🎁 +250 points de motivation</item>
+        <item>🎁 +500 points de motivation</item>
+        <item>🎁 +1000 points de motivation</item>
+        <item>🎁 +2000 points de motivation</item>
+        <item>🎁 +5000 points de motivation</item>
+        <item>🎁 +10000 points de motivation</item>
+        <item>🎁 +25000 points de motivation</item>
+        <item>🎁 +50000 points de motivation</item>
+        <item>🎁 +100000 points de motivation</item>
+    </string-array>
+
+    <!-- Messages de félicitations -->
+    <string-array name="congratulation_messages">
+        <item>🎉 FÉLICITATIONS ! Tu as débloqué un nouveau badge !</item>
+        <item>🏆 INCROYABLE ! Tu progresses à vitesse grand V !</item>
+        <item>🌟 FANTASTIQUE ! Tu es en train de devenir une star !</item>
+        <item>🔥 ÉPIQUE ! Tu vas conquérir le monde !</item>
+        <item>💎 LÉGENDAIRE ! Tu es un phénomène !</item>
+        <item>⚡ MYTHIQUE ! Tu es une force de la nature !</item>
+        <item>🎪 DIVIN ! Tu es né pour briller !</item>
+        <item>🚀 COSMIQUE ! Tu vas conquérir l'univers !</item>
+        <item>💫 IMMORTEL ! Tu es une légende vivante !</item>
+        <item>🔥 DIEU ! Tu as atteint la perfection !</item>
+    </string-array>
+</resources> 

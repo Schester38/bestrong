@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Messages pour débutants -->
+    <string-array name="beginner_messages">
+        <item>🌟 Bienvenue dans l'aventure BE STRONG !</item>
+        <item>🚀 Ton voyage vers le succès commence maintenant !</item>
+        <item>💪 Chaque expert était un jour un débutant !</item>
+        <item>⭐ Tu as le potentiel pour devenir une star !</item>
+        <item>🎯 Tes premiers pas vers la célébrité !</item>
+        <item>🔥 Prépare-toi à transformer ta vie !</item>
+        <item>💎 Tu vas découvrir tes talents cachés !</item>
+        <item>⚡ Ton potentiel est illimité !</item>
+        <item>🏆 Tu vas créer ton propre succès !</item>
+        <item>🎪 Le monde va découvrir ton talent !</item>
+    </string-array>
+
+    <!-- Messages pour intermédiaires -->
+    <string-array name="intermediate_messages">
+        <item>🔥 Tu es en train de devenir une force !</item>
+        <item>💪 Ton ascension est en cours !</item>
+        <item>🚀 Tu vas bientôt exploser en popularité !</item>
+        <item>⭐ Tu es sur la bonne voie !</item>
+        <item>🎯 Tu vas atteindre de nouveaux sommets !</item>
+        <item>🌟 Ton audience grandit chaque jour !</item>
+        <item>⚡ Tu électrises de plus en plus de monde !</item>
+        <item>🏆 Tu vas créer un impact majeur !</item>
+        <item>💎 Tu brilles de plus en plus fort !</item>
+        <item>🎪 Tu vas devenir une référence !</item>
+    </string-array>
+
+    <!-- Messages pour experts -->
+    <string-array name="expert_messages">
+        <item>🔥 TU ES UNE LÉGENDE EN TRAIN DE SE CRÉER !</item>
+        <item>💪 TU DOMINES TIKTOK !</item>
+        <item>🚀 TU VAS DEVENIR UN PHÉNOMÈNE MONDIAL !</item>
+        <item>⭐ TU ES UNE ICÔNE !</item>
+        <item>🎯 TU VAS RÉVOLUTIONNER L'INFLUENCE !</item>
+        <item>🌟 TU ÉCLAIRES LE MONDE !</item>
+        <item>⚡ TU ES ÉLECTRIQUE !</item>
+        <item>🏆 TU ES LE ROI/LA REINE DE TIKTOK !</item>
+        <item>💎 TU ES UN DIAMANT !</item>
+        <item>🎪 TU VAS CONQUÉRIR L'UNIVERS !</item>
+    </string-array>
+
+    <!-- Messages du matin -->
+    <string-array name="morning_messages">
+        <item>🌅 Bonjour champion ! Prêt à conquérir la journée ?</item>
+        <item>☀️ Le soleil se lève, et toi aussi tu vas briller !</item>
+        <item>🌞 Nouveau jour, nouvelles opportunités de succès !</item>
+        <item>🌅 Aujourd'hui, tu vas créer quelque chose d'incroyable !</item>
+        <item>☀️ Le monde attend de voir ton talent !</item>
+        <item>🌞 Prépare-toi à éblouir ton audience !</item>
+        <item>🌅 Tu vas faire de cette journée ton chef-d'œuvre !</item>
+        <item>☀️ Le succès t'attend aujourd'hui !</item>
+        <item>🌞 Tu vas impressionner tout le monde !</item>
+        <item>🌅 Prépare-toi à devenir viral !</item>
+    </string-array>
+
+    <!-- Messages du soir -->
+    <string-array name="evening_messages">
+        <item>🌙 Tu as fait un travail incroyable aujourd'hui !</item>
+        <item>🌆 Repose-toi, demain tu vas encore plus loin !</item>
+        <item>🌃 Tes efforts d'aujourd'hui préparent ton succès de demain !</item>
+        <item>🌙 Tu es plus fort qu'hier !</item>
+        <item>🌆 Demain sera encore plus brillant !</item>
+        <item>🌃 Tu progresses chaque jour !</item>
+        <item>🌙 Ton talent grandit avec le temps !</item>
+        <item>🌆 Tu vas devenir une légende !</item>
+        <item>🌃 Continue sur cette voie !</item>
+        <item>🌙 Le monde a besoin de ta lumière !</item>
+    </string-array>
+
+    <!-- Messages de weekend -->
+    <string-array name="weekend_messages">
+        <item>🎉 Weekend = temps pour créer du contenu viral !</item>
+        <item>🎊 Le weekend est parfait pour briller !</item>
+        <item>🎈 Profite du weekend pour te démarquer !</item>
+        <item>🎉 C'est le moment de créer quelque chose d'incroyable !</item>
+        <item>🎊 Le weekend va être ton moment de gloire !</item>
+        <item>🎈 Tu vas faire sensation ce weekend !</item>
+        <item>🎉 Prépare-toi à devenir viral !</item>
+        <item>🎊 Le weekend va changer ta vie !</item>
+        <item>🎈 Tu vas impressionner tout le monde !</item>
+        <item>🎉 Ce weekend va être légendaire !</item>
+    </string-array>
+</resources> 

@@ -3,6 +3,46 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+  --primary: #ec4899;
+  --primary-foreground: #ffffff;
+  --secondary: #f3f4f6;
+  --secondary-foreground: #374151;
+  --muted: #f9fafb;
+  --muted-foreground: #6b7280;
+  --accent: #f3f4f6;
+  --accent-foreground: #374151;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e5e7eb;
+  --input: #ffffff;
+  --ring: #ec4899;
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --card: #1a1a1a;
+  --card-foreground: #ededed;
+  --popover: #1a1a1a;
+  --popover-foreground: #ededed;
+  --primary: #ec4899;
+  --primary-foreground: #ffffff;
+  --secondary: #262626;
+  --secondary-foreground: #d4d4d4;
+  --muted: #262626;
+  --muted-foreground: #a3a3a3;
+  --accent: #262626;
+  --accent-foreground: #d4d4d4;
+  --destructive: #7f1d1d;
+  --destructive-foreground: #fef2f2;
+  --border: #404040;
+  --input: #262626;
+  --ring: #ec4899;
 }
 
 @theme inline {
@@ -12,17 +52,11 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Barre de défilement personnalisée */
@@ -37,13 +71,13 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #f9a8d4;
+  background: var(--primary);
   border-radius: 4px;
   min-height: 20px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #ec4899;
+  background: #be185d;
 }
 
 .custom-scrollbar::-webkit-scrollbar-corner {
@@ -53,7 +87,7 @@ body {
 /* Support Firefox */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #f9a8d4 #f3f4f6;
+  scrollbar-color: var(--primary) var(--secondary);
 }
 
 /* Animations pour les fonctionnalités IA */
@@ -92,10 +126,10 @@ body {
 
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 5px rgba(168, 85, 247, 0.5);
+    box-shadow: 0 0 5px rgba(236, 72, 153, 0.5);
   }
   50% {
-    box-shadow: 0 0 20px rgba(168, 85, 247, 0.8);
+    box-shadow: 0 0 20px rgba(236, 72, 153, 0.8);
   }
 }
 
@@ -130,7 +164,7 @@ body {
 
 /* Styles pour les composants IA */
 .ai-gradient-bg {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
 }
 
 .ai-card {
@@ -139,9 +173,44 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+.dark .ai-card {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 .ai-text-gradient {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Transitions pour le thème */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* Styles pour les éléments de formulaire */
+input, textarea, select {
+  background: var(--input);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+
+/* Styles pour les cartes */
+.card {
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
+}
+
+/* Styles pour les boutons */
+.btn-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.btn-secondary {
+  background: var(--secondary);
+  color: var(--secondary-foreground);
 }

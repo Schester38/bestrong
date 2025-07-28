@@ -16,10 +16,25 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // Configuration de signature pour la certification
+    signingConfigs {
+        release {
+            storeFile file("keystore/release-key.jks")
+            storePassword "votre_mot_de_passe_keystore"
+            keyAlias "bestrong-key"
+            keyPassword "votre_mot_de_passe_cle"
+        }
+    }
+
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+        debug {
+            minifyEnabled false
+            debuggable true
         }
     }
     

@@ -3,6 +3,11 @@
 import Link from "next/link";
 import { ArrowRight, Users, TrendingUp, Shield } from "lucide-react";
 import ScrollToTop from "./components/ScrollToTop";
+import ThemeToggle from "./components/ThemeToggle";
+import MotivationalPopup from "./components/MotivationalPopup";
+import ShareButton from "./components/ShareButton";
+import AnimatedBackground from "./components/AnimatedBackground";
+import LiveStats from "./components/LiveStats";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 
@@ -90,9 +95,11 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative">
+      <AnimatedBackground />
+      
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 dark:bg-gray-900/80 dark:border-gray-700 sticky top-0 z-50">
+      <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 dark:bg-gray-900/80 dark:border-gray-700 sticky top-0 z-50 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-12 sm:h-16">
             <div className="flex items-center -ml-2 sm:ml-0">
@@ -106,6 +113,9 @@ export default function Home() {
               </h1>
             </div>
             <div className="flex items-center space-x-1 sm:space-x-2 ml-2 sm:ml-0">
+              {/* Sélecteur de thème */}
+              <ThemeToggle />
+              
               {currentUser ? (
                 <>
                   <Link
@@ -197,57 +207,15 @@ export default function Home() {
             </a>
           </div>
           <div className="flex justify-center mt-2">
-            <button
-              onClick={() => {
-                const shareData = {
-                  title: "🚀 Rejoins BE STRONG et deviens une légende !",
-                  text: "🔥 Découvre BE STRONG : la plateforme éthique qui booste ta visibilité TikTok avec des échanges organiques, analytics et conseils d'optimisation ! Clique ici pour vivre l'expérience 👉",
-                  url: "https://mybestrong.netlify.app",
-                };
-
-                // Détecter si on est dans l'app Android (median.co)
-                const isAndroidApp = /Android/i.test(navigator.userAgent);
-                const isGoNativeApp = typeof window !== 'undefined' && (window as any).GoNative;
-                
-                console.log('Détection app:', { isAndroidApp, isGoNativeApp, userAgent: navigator.userAgent });
-                
-                // Essayer d'abord l'API GoNative si disponible
-                if (isGoNativeApp && (window as any).GoNative && (window as any).GoNative.share) {
-                  console.log('Utilisation API GoNative');
-                  (window as any).GoNative.share({
-                    title: shareData.title,
-                    text: shareData.text,
-                    url: shareData.url
-                  }).catch((error: any) => {
-                    console.log('Erreur GoNative share:', error);
-                    fallbackShare(shareData);
-                  });
-                }
-                // Sinon essayer l'API native de partage
-                else if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-                  console.log('Utilisation API navigator.share');
-                  navigator.share(shareData)
-                    .then(() => {
-                      console.log('Partage réussi');
-                    })
-                    .catch((error) => {
-                      console.log('Erreur de partage:', error);
-                      fallbackShare(shareData);
-                    });
-                } else {
-                  console.log('Fallback vers copie');
-                  fallbackShare(shareData);
-                }
-              }}
+            <ShareButton 
               className="bg-gradient-to-r from-green-400 to-blue-500 text-white px-12 py-4 rounded-full text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap"
-              title="Partager BE STRONG"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M18 12l3-3m0 0l-3-3m3 3H9" />
               </svg>
               Partager BE STRONG
-            </button>
+            </ShareButton>
           </div>
           <div className="mt-8 flex justify-center">
             <div className="relative px-8 py-5 rounded-2xl shadow-xl bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 flex flex-col items-center border-4 border-white dark:border-gray-900 animate-fade-in-up">
@@ -258,6 +226,21 @@ export default function Home() {
               <div className="text-white text-base font-medium tracking-wide">utilisateurs inscrits</div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Statistiques en temps réel */}
+      <section className="py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-pink-500 to-purple-600 relative">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-white mb-4">
+              Statistiques en temps réel
+            </h2>
+            <p className="text-pink-100">
+              Découvrez l'impact de BE STRONG sur la communauté TikTok
+            </p>
+          </div>
+          <LiveStats userCount={userCount} />
         </div>
       </section>
 
@@ -392,6 +375,7 @@ export default function Home() {
         </div>
       </footer>
       <ScrollToTop />
+      <MotivationalPopup />
     </div>
   );
 }

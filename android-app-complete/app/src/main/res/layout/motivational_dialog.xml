@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="?android:colorSurface"
+    android:padding="24dp"
+    android:gravity="center">
+
+    <!-- Icône de motivation -->
+    <ImageView
+        android:id="@+id/motivation_icon"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_marginBottom="16dp"
+        android:src="@mipmap/ic_launcher"
+        android:scaleType="centerInside"
+        android:contentDescription="Motivation Icon" />
+
+    <!-- Titre -->
+    <TextView
+        android:id="@+id/motivation_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="MOTIVATION DU JOUR"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#EC4899"
+        android:layout_marginBottom="16dp"
+        android:fontFamily="sans-serif-medium" />
+
+    <!-- Message de motivation -->
+    <TextView
+        android:id="@+id/motivation_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Message de motivation"
+        android:textSize="16sp"
+        android:textColor="?android:textColorPrimary"
+        android:gravity="center"
+        android:layout_marginBottom="24dp"
+        android:fontFamily="sans-serif"
+        android:lineSpacingExtra="4dp" />
+
+    <!-- Bouton OK -->
+    <Button
+        android:id="@+id/btn_ok"
+        android:layout_width="120dp"
+        android:layout_height="48dp"
+        android:text="C'EST PARTI !"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/button_gradient"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif-medium" />
+
+</LinearLayout> 
