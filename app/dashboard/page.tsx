@@ -17,6 +17,10 @@ import {
   LogOut,
   RefreshCw,
   Brain,
+  Megaphone,
+  Construction,
+  CheckCircle,
+  Bell,
 } from "lucide-react";
 import AIDashboardWidget from "../components/AIDashboardWidget";
 import Link from "next/link";
@@ -1063,6 +1067,18 @@ export default function Dashboard() {
           </button>
 
           <button
+            onClick={() => setActiveTab("ai")}
+            className={`flex-shrink-0 px-3 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base min-w-[120px] sm:min-w-0 ${
+              activeTab === "ai"
+                ? "bg-pink-500 text-white"
+                : "text-gray-600 dark:text-gray-300 hover:text-pink-500"
+            }`}
+          >
+            <Brain className="w-4 h-4 mr-1" />
+            IA
+          </button>
+
+          <button
             onClick={() => setActiveTab("boost")}
             className={`flex-shrink-0 px-3 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base min-w-[120px] sm:min-w-0 ${
               activeTab === "boost"
@@ -1071,6 +1087,16 @@ export default function Dashboard() {
             }`}
           >
             Boosting
+          </button>
+          <button
+            onClick={() => setActiveTab("advertising")}
+            className={`flex-shrink-0 px-3 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base min-w-[120px] sm:min-w-0 ${
+              activeTab === "advertising"
+                ? "bg-pink-500 text-white"
+                : "text-gray-600 dark:text-gray-300 hover:text-pink-500"
+            }`}
+          >
+            Publicités
           </button>
           <button
             onClick={() => setActiveTab("messages")}
@@ -1086,17 +1112,6 @@ export default function Dashboard() {
                 {Object.values(unreadMessages).reduce((total, count) => total + count, 0)}
               </span>
             )}
-          </button>
-          <button
-            onClick={() => setActiveTab("ai")}
-            className={`flex-shrink-0 px-3 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base min-w-[120px] sm:min-w-0 ${
-              activeTab === "ai"
-                ? "bg-pink-500 text-white"
-                : "text-gray-600 dark:text-gray-300 hover:text-pink-500"
-            }`}
-          >
-            <Brain className="w-4 h-4 mr-1" />
-            IA
           </button>
         </nav>
 
@@ -1336,6 +1351,135 @@ export default function Dashboard() {
                 <button className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-200">
                   Commander
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "advertising" && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Espace Publicités</h2>
+            
+            {/* Message principal pour les promoteurs */}
+            <div className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-8 rounded-xl shadow-lg">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                  <Megaphone className="w-7 h-7" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold">🎯 Espace Promoteurs</h3>
+                  <p className="text-emerald-100 text-lg">Votre plateforme de publicité TikTok</p>
+                </div>
+              </div>
+              
+              <div className="grid md:grid-cols-2 gap-6 mt-6">
+                <div className="bg-white/10 rounded-lg p-6 backdrop-blur-sm">
+                  <h4 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                    <Target className="w-5 h-5" />
+                    Publicité Ciblée
+                  </h4>
+                  <p className="text-emerald-100 leading-relaxed">
+                    Diffusez vos publicités auprès d'une audience TikTok qualifiée et ciblée. 
+                    Atteignez des milliers d'utilisateurs actifs qui correspondent à votre marché.
+                  </p>
+                </div>
+                
+                <div className="bg-white/10 rounded-lg p-6 backdrop-blur-sm">
+                  <h4 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5" />
+                    Résultats Mesurables
+                  </h4>
+                  <p className="text-emerald-100 leading-relaxed">
+                    Suivez en temps réel les performances de vos campagnes publicitaires. 
+                    Analysez les clics, conversions et ROI pour optimiser vos investissements.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Notification de développement */}
+            <div className="bg-gradient-to-r from-amber-500 to-orange-600 text-white p-6 rounded-xl shadow-lg border-l-4 border-yellow-400">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                  <Construction className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold mb-2">🚧 Système en Développement</h3>
+                  <p className="text-amber-100 leading-relaxed mb-4">
+                    Notre plateforme publicitaire est actuellement en cours de développement pour vous offrir 
+                    une expérience exceptionnelle. Notre équipe travaille jour et nuit pour créer un système 
+                    de publicité innovant et performant.
+                  </p>
+                  
+                  <div className="bg-white/10 rounded-lg p-4">
+                    <h4 className="font-semibold mb-2 text-amber-50">✨ Fonctionnalités à venir :</h4>
+                    <ul className="space-y-2 text-amber-100">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-300" />
+                        Création de campagnes publicitaires personnalisées
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-300" />
+                        Ciblage avancé par âge, localisation et intérêts
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-300" />
+                        Tableau de bord analytique en temps réel
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-300" />
+                        Système de paiement sécurisé et flexible
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-300" />
+                        Support dédié pour les promoteurs
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-6 flex items-center justify-between bg-white/10 rounded-lg p-4">
+                <div className="flex items-center gap-3">
+                  <Bell className="w-5 h-5 text-yellow-300" />
+                  <span className="font-semibold">Soyez informé du lancement !</span>
+                </div>
+                <button className="bg-white text-orange-600 px-6 py-2 rounded-lg font-semibold hover:bg-orange-50 transition-colors">
+                  S'inscrire à la liste d'attente
+                </button>
+              </div>
+            </div>
+
+            {/* Avantages pour les promoteurs */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mb-4">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Audience Qualifiée</h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Accédez à une communauté TikTok active et engagée, parfaitement ciblée pour vos produits et services.
+                </p>
+              </div>
+
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center mb-4">
+                  <BarChart3 className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Analytics Avancés</h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Suivez vos performances avec des métriques détaillées et des rapports personnalisés pour optimiser vos campagnes.
+                </p>
+              </div>
+
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-rose-600 rounded-lg flex items-center justify-center mb-4">
+                  <Zap className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">ROI Garanti</h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Maximisez votre retour sur investissement avec des tarifs compétitifs et des résultats mesurables.
+                </p>
               </div>
             </div>
           </div>
@@ -1727,16 +1871,7 @@ interface ExchangeTaskFormProps {
 function ExchangeTaskForm({ onTaskCreated }: ExchangeTaskFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [actionType, setActionType] = useState("LIKE");
-  const [creditsError, setCreditsError] = useState("");
   const [urlError, setUrlError] = useState("");
-
-  // Définition des crédits minimums par type d'action
-  const minCredits = {
-    LIKE: 5,
-    FOLLOW: 10,
-    COMMENT: 15,
-    SHARE: 20
-  };
 
   // Utiliser l'utilisateur connecté
   useEffect(() => {
@@ -1750,9 +1885,8 @@ function ExchangeTaskForm({ onTaskCreated }: ExchangeTaskFormProps) {
     const form = formRef.current;
     if (!form) return;
     const data = Object.fromEntries(new FormData(form));
-    const credits = Number(data.credits);
-    const minRequired = minCredits[actionType as keyof typeof minCredits];
     const url = String(data.url || "");
+    
     // Validation lien TikTok - Accepter tous les formats TikTok
     if (!url.includes("tiktok.com")) {
       setUrlError("Le lien doit contenir tiktok.com");
@@ -1760,30 +1894,26 @@ function ExchangeTaskForm({ onTaskCreated }: ExchangeTaskFormProps) {
     } else {
       setUrlError("");
     }
+    
     // Vérifier que l'utilisateur est connecté
     const currentUser = getCurrentUser();
     if (!currentUser) {
       alert("Vous devez être connecté pour créer une tâche.");
       return;
     }
-    // Validation des crédits minimums
-    if (credits < minRequired) {
-      setCreditsError(`Minimum ${minRequired} crédits requis pour un ${actionType.toLowerCase()}`);
+    
+    // Vérifier les crédits de l'utilisateur (coût fixe de 1 crédit)
+    if (currentUser.credits < 1) {
+      alert(`Crédits insuffisants. Vous avez ${currentUser.credits} crédits, il vous faut 1 crédit pour créer une tâche.`);
       return;
     }
-    // Vérifier les crédits de l'utilisateur
-    if (currentUser.credits < credits) {
-      alert(`Crédits insuffisants. Vous avez ${currentUser.credits} crédits, il vous faut ${credits} crédits.`);
-      return;
-    }
-    setCreditsError(""); // Effacer l'erreur si validation OK
+    
     await fetch("/api/exchange/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         type: data.type,
         url: data.url,
-        credits: credits,
         actionsRestantes: Number(data.actionsRestantes),
         createur: currentUser.phone,
       }),
@@ -1822,26 +1952,17 @@ function ExchangeTaskForm({ onTaskCreated }: ExchangeTaskFormProps) {
           )}
         </div>
         <div>
-          <label htmlFor="credits" className="block text-sm font-medium mb-1">
-            Cr&eacute;dits par action (minimum {minCredits[actionType as keyof typeof minCredits]})
-          </label>
-          <input 
-            id="credits" 
-            name="credits" 
-            type="number" 
-            min={minCredits[actionType as keyof typeof minCredits]} 
-            required 
-            className={`w-full rounded-lg border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 p-2 ${creditsError ? 'border-red-500' : ''}`} 
-            title={`Crédits par action - Minimum ${minCredits[actionType as keyof typeof minCredits]} crédits`}
-            placeholder={`Minimum ${minCredits[actionType as keyof typeof minCredits]} crédits`}
-          />
-          {creditsError && (
-            <p className="text-red-500 text-sm mt-1">{creditsError}</p>
-          )}
-        </div>
-        <div>
           <label htmlFor="actionsRestantes" className="block text-sm font-medium mb-1">Nombre d&apos;actions</label>
           <input id="actionsRestantes" name="actionsRestantes" type="number" min={1} required className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 p-2" title="Nombre d&apos;actions" />
+        </div>
+        <div className="md:col-span-2">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+            <p className="text-sm text-blue-800 dark:text-blue-200">
+              <strong>💡 Nouveau système de crédits :</strong><br/>
+              • Création de tâche : 1 crédit (peu importe le type)<br/>
+              • Tâche effectuée : 5 crédits de gain
+            </p>
+          </div>
         </div>
 
       </div>

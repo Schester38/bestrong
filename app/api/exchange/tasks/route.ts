@@ -44,7 +44,6 @@ const createTaskSchema = z.object({
   url: z.string().min(1, "Lien requis").refine(val => val.includes("tiktok.com"), {
     message: "Le lien doit contenir tiktok.com"
   }),
-  credits: z.number().min(1, "Crédits minimum 1"),
   actionsRestantes: z.number().min(1, "Au moins 1 action"),
   createur: z.string().min(1, "Nom du créateur requis"),
 });
@@ -55,7 +54,8 @@ const ADMIN_PHONE = "+237699486146";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { type, url, credits, actionsRestantes, createur } = createTaskSchema.parse(body);
+    const { type, url, actionsRestantes, createur } = createTaskSchema.parse(body);
+    const credits = 1; // Crédit fixe de 1 pour toutes les tâches
     
     // Bypass admin : accès total
     if (createur === ADMIN_PHONE) {
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
       user = createdUser;
     }
     
-    const totalCost = credits * actionsRestantes;
+    const totalCost = 1; // Coût fixe de 1 crédit pour créer une tâche
     console.log(`Création de tâche: ${createur}, crédits actuels: ${user.credits}, coût total: ${totalCost}`);
     
     if (user.credits < totalCost) {
@@ -339,13 +339,15 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Erreur lors de la recherche de l'utilisateur" }, { status: 500 });
     }
 
+    const creditsEarned = 5; // Gain fixe de 5 crédits pour toute tâche effectuée
+    
     if (!user) {
       // Créer un nouvel utilisateur
       const newUser = {
         id: Date.now().toString(),
         phone: userId,
         password: '',
-        credits: 100 + task.credits,
+        credits: 100 + creditsEarned,
         pseudo: userId,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
@@ -364,7 +366,7 @@ export async function PATCH(request: NextRequest) {
       const { error: updateUserError } = await supabase
         .from('users')
         .update({ 
-          credits: user.credits + task.credits,
+          credits: user.credits + creditsEarned,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);

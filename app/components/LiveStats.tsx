@@ -3,11 +3,8 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp, Users, Eye, Heart } from 'lucide-react';
 
-interface LiveStatsProps {
-  userCount: number | null;
-}
-
-export default function LiveStats({ userCount }: LiveStatsProps) {
+export default function LiveStats() {
+  const [userCount, setUserCount] = useState<number | null>(null);
   const [stats, setStats] = useState({
     followers: 0,
     likes: 0,
@@ -15,9 +12,31 @@ export default function LiveStats({ userCount }: LiveStatsProps) {
     engagement: 0
   });
 
+  // Fonction pour récupérer le nombre d'utilisateurs
+  const fetchUserCount = async () => {
+    try {
+      const response = await fetch('/api/users/count', {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
+      const data = await response.json();
+      setUserCount(data.count);
+    } catch (error) {
+      console.error("Erreur lors de la récupération du nombre d'utilisateurs:", error);
+    }
+  };
+
   useEffect(() => {
+    // Récupérer le nombre d'utilisateurs au chargement
+    fetchUserCount();
+    
+    // Mettre à jour le nombre d'utilisateurs toutes les 30 secondes
+    const userCountInterval = setInterval(fetchUserCount, 30000);
+    
     // Simuler des statistiques en temps réel
-    const interval = setInterval(() => {
+    const statsInterval = setInterval(() => {
       setStats(prev => ({
         followers: prev.followers + Math.floor(Math.random() * 5) + 1,
         likes: prev.likes + Math.floor(Math.random() * 20) + 5,
@@ -26,7 +45,10 @@ export default function LiveStats({ userCount }: LiveStatsProps) {
       }));
     }, 3000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(userCountInterval);
+      clearInterval(statsInterval);
+    };
   }, []);
 
   const formatNumber = (num: number) => {

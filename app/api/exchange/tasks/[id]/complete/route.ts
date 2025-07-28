@@ -284,11 +284,13 @@ export async function POST(
         user = userByPseudo;
       }
       
+      const creditsEarned = 5; // Gain fixe de 5 crédits pour toute tâche effectuée
+      
       // Mettre à jour les crédits
       const { error: updateUserError } = await supabase
         .from('users')
         .update({ 
-          credits: user.credits + task.credits,
+          credits: user.credits + creditsEarned,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -298,7 +300,7 @@ export async function POST(
         return NextResponse.json({ error: "Erreur lors de la mise à jour des crédits" }, { status: 500 });
       }
 
-      console.log(`💰 ${userId} crédité de ${task.credits} crédits pour la tâche ${task.type}`);
+      console.log(`💰 ${userId} crédité de ${creditsEarned} crédits pour la tâche ${task.type}`);
 
       // Enregistrer l'activité de completion de tâche
       await logActivity({
@@ -307,14 +309,14 @@ export async function POST(
         userPseudo: user.pseudo,
         type: 'task_completed',
         description: `Tâche ${task.type} complétée avec succès`,
-        details: { taskId: task.id, taskType: task.type, creditsEarned: task.credits },
-        credits: task.credits
+        details: { taskId: task.id, taskType: task.type, creditsEarned: creditsEarned },
+        credits: creditsEarned
       });
 
       return NextResponse.json({ 
         success: true,
         verified: true,
-        creditsEarned: task.credits,
+        creditsEarned: creditsEarned,
         remainingActions: task.actions_restantes - 1,
         message: verification.result
       });
@@ -425,11 +427,13 @@ export async function PATCH(
         user = userByPseudo;
       }
       
+      const creditsEarned = 5; // Gain fixe de 5 crédits pour toute tâche effectuée
+      
       // Mettre à jour les crédits
       const { error: updateUserError } = await supabase
         .from('users')
         .update({ 
-          credits: user.credits + task.credits,
+          credits: user.credits + creditsEarned,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -442,7 +446,7 @@ export async function PATCH(
       return NextResponse.json({ 
         success: true,
         message: "Complétion approuvée manuellement et crédits attribués",
-        creditsEarned: task.credits
+        creditsEarned: creditsEarned
       });
     } else {
       // Rejeter la complétion

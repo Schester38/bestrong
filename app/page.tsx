@@ -249,7 +249,7 @@ export default function Home() {
               Découvrez l'impact de BE STRONG sur la communauté TikTok
             </p>
           </div>
-          <LiveStats userCount={userCount} />
+                         <LiveStats />
         </div>
       </section>
 
