@@ -123,11 +123,13 @@ export default function Dashboard() {
 
   // Paramètres utilisateur
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [pwdOld, setPwdOld] = useState("");
   const [pwdNew, setPwdNew] = useState("");
   const [pwdResult, setPwdResult] = useState("");
   const [pwdLoading, setPwdLoading] = useState(false);
 
   // ... existing code ...
+  const [showPwdOld, setShowPwdOld] = useState(false);
   const [showPwdNew, setShowPwdNew] = useState(false);
 
   interface Message {
@@ -629,17 +631,21 @@ export default function Dashboard() {
   // Changement de mot de passe
   const handlePwdChange = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pwdNew.trim()) return;
+    if (!pwdOld.trim() || !pwdNew.trim()) {
+      setPwdResult("Tous les champs sont obligatoires");
+      return;
+    }
     
     setPwdLoading(true);
     setPwdResult("");
     
     try {
-      const response = await fetch('/api/admin/password/change', {
+      const response = await fetch('/api/auth/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user?.id,
+          oldPassword: pwdOld,
           newPassword: pwdNew
         })
       });
@@ -648,6 +654,7 @@ export default function Dashboard() {
       
       if (data.success) {
         setPwdResult("Mot de passe changé avec succès !");
+        setPwdOld("");
         setPwdNew("");
       } else {
         setPwdResult(data.error || "Erreur lors du changement de mot de passe");
@@ -1725,6 +1732,24 @@ export default function Dashboard() {
             <hr className="my-4 border-gray-200 dark:border-gray-700" />
             <form onSubmit={handlePwdChange} className="mb-4">
               <div className="font-semibold mb-2 text-gray-900 dark:text-white">Changer le mot de passe</div>
+              <div className="relative mb-2">
+                <input
+                  type={showPwdOld ? "text" : "password"}
+                  className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 p-2 pr-10"
+                  placeholder="Ancien mot de passe"
+                  value={pwdOld}
+                  onChange={e => setPwdOld(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPwdOld(v => !v)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  tabIndex={-1}
+                >
+                  {showPwdOld ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
               <div className="relative mb-2">
                 <input
                   type={showPwdNew ? "text" : "password"}
