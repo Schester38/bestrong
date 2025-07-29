@@ -61,6 +61,7 @@ export default function AdminPage() {
   const [dashboardAccessLoading, setDashboardAccessLoading] = useState<{[userId: string]: boolean}>({});
   const [bulkCreditsLoading, setBulkCreditsLoading] = useState(false);
   const [bulkCreditsAmount, setBulkCreditsAmount] = useState("");
+  const [deleteAllTasksLoading, setDeleteAllTasksLoading] = useState(false);
   // Suggestions admin (toujours en haut !)
   const [showSuggestionsModal, setShowSuggestionsModal] = useState(false);
   const [suggestionsList, setSuggestionsList] = useState([]);
@@ -371,6 +372,34 @@ export default function AdminPage() {
         setError("Erreur lors de la suppression");
       }
     });
+  };
+
+  // Supprimer toutes les tâches
+  const deleteAllTasks = async () => {
+    showConfirm(
+      "⚠️ ATTENTION : Êtes-vous sûr de vouloir supprimer TOUTES les tâches en cours ? Cette action est irréversible !",
+      async () => {
+        setDeleteAllTasksLoading(true);
+        setError("");
+        setSuccess("");
+        try {
+          const res = await fetch(`/api/admin/delete-all-tasks`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" }
+          });
+          const data = await res.json();
+          if (data.success) {
+            setSuccess(data.message || "Toutes les tâches ont été supprimées avec succès");
+          } else {
+            setError(data.error || "Erreur lors de la suppression des tâches");
+          }
+        } catch {
+          setError("Erreur réseau ou serveur");
+        } finally {
+          setDeleteAllTasksLoading(false);
+        }
+      }
+    );
   };
 
   // Ouvrir le modal d'édition
@@ -735,6 +764,27 @@ export default function AdminPage() {
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
           Cette action ajoutera le nombre de crédits spécifié à TOUS les utilisateurs.
         </p>
+      </div>
+
+      {/* Suppression de toutes les tâches */}
+      <div className="max-w-2xl mx-auto mt-8 mb-8 bg-white dark:bg-gray-800 rounded-xl shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
+        <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-900 dark:text-white">Gestion des tâches</h2>
+        <div className="flex flex-col gap-4">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <h3 className="text-red-800 dark:text-red-200 font-semibold mb-2">⚠️ Zone dangereuse</h3>
+            <p className="text-red-700 dark:text-red-300 text-sm mb-4">
+              Cette action supprimera définitivement toutes les tâches en cours et leurs complétions. 
+              Cette opération est irréversible !
+            </p>
+            <button
+              onClick={deleteAllTasks}
+              disabled={deleteAllTasksLoading}
+              className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-200 disabled:opacity-60 text-sm"
+            >
+              {deleteAllTasksLoading ? "Suppression..." : "🗑️ Supprimer toutes les tâches"}
+            </button>
+          </div>
+        </div>
       </div>
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
