@@ -107,10 +107,10 @@ export default function Home() {
         logo.style.display = 'none';
       }
       
-      // Afficher le popup de téléchargement après 3 secondes
+      // Afficher le popup de téléchargement après 30 secondes
       setTimeout(() => {
         setShowAndroidPopup(true);
-      }, 3000);
+      }, 30000);
     }
   }, []);
 
