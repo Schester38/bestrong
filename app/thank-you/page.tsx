@@ -21,6 +21,7 @@ export default function ThankYouPage() {
   const [noteReason, setNoteReason] = useState<'admin' | 'trial' | null>(null);
   const [loading, setLoading] = useState(true);
 
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const script = document.createElement("script");
@@ -127,6 +128,8 @@ export default function ThankYouPage() {
     }
   };
 
+
+
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
@@ -197,6 +200,12 @@ export default function ThankYouPage() {
           onClick={() => window.location.href = "/wave-paiement.html"}
         >
           Payer avec WAVE
+        </button>
+        <button
+          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-lg font-semibold text-lg hover:shadow-lg transition-all duration-200 mb-4"
+          onClick={() => window.location.href = "/payment/noupia"}
+        >
+          Payer avec NOUPIA
         </button>
         <Link href="/" className="text-pink-500 hover:text-pink-600 font-medium">
           Retour à l&apos;accueil

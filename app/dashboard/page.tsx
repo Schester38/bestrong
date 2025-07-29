@@ -2286,14 +2286,14 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask, showAlert
     showConfirm('Supprimer cette tâche ?', () => {
       fetch(`/api/exchange/tasks?id=${taskId}`, { method: 'DELETE' })
         .then(response => {
-          if (response.ok) {
-            onRefresh();
-          } else {
+      if (response.ok) {
+        onRefresh();
+      } else {
             showAlert('Erreur lors de la suppression de la tâche', "error");
-          }
+      }
         })
         .catch(() => {
-          console.error('Erreur lors de la suppression:', Error);
+      console.error('Erreur lors de la suppression:', Error);
           showAlert('Erreur lors de la suppression de la tâche', "error");
         });
     });
