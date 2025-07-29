@@ -11,6 +11,7 @@ import LiveStats from "./components/LiveStats";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useAlert } from "./components/CustomAlert";
+import AndroidDownloadPopup from "./components/AndroidDownloadPopup";
 
 const PhoneAuthModal = dynamic(() => import("./components/PhoneAuthModal"), { 
   ssr: false,
@@ -23,6 +24,8 @@ export default function Home() {
   // Compteur d'utilisateurs inscrits
   const [userCount, setUserCount] = useState<number | null>(null);
   const [currentUser, setCurrentUser] = useState<{ phone: string; pseudo?: string } | null>(null);
+  const [isAndroid, setIsAndroid] = useState(false);
+  const [showAndroidPopup, setShowAndroidPopup] = useState(false);
 
   // Fonction de fallback pour le partage
   const fallbackShare = useCallback((shareData: { title: string; text: string; url: string }) => {
@@ -96,12 +99,18 @@ export default function Home() {
     }
 
     // Détecter Android et cacher l'icône
-    const isAndroid = /Android/i.test(navigator.userAgent);
-    if (isAndroid) {
+    const isAndroidDevice = /Android/i.test(navigator.userAgent);
+    setIsAndroid(isAndroidDevice);
+    if (isAndroidDevice) {
       const logo = document.querySelector('.android-hide-logo') as HTMLElement;
       if (logo) {
         logo.style.display = 'none';
       }
+      
+      // Afficher le popup de téléchargement après 3 secondes
+      setTimeout(() => {
+        setShowAndroidPopup(true);
+      }, 3000);
     }
   }, []);
 
@@ -387,6 +396,16 @@ export default function Home() {
       </footer>
       <ScrollToTop />
       <MotivationalPopup />
+      
+      {/* Popup de téléchargement Android */}
+      <AndroidDownloadPopup
+        isOpen={showAndroidPopup}
+        onClose={() => setShowAndroidPopup(false)}
+        onDownload={() => {
+          // Le téléchargement est géré dans le composant
+          setShowAndroidPopup(false);
+        }}
+      />
     </div>
   );
 }
