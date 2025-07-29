@@ -428,14 +428,14 @@ export default function Dashboard() {
       
       // Afficher une notification d'erreur à l'utilisateur
       if (error instanceof Error) {
-        alert(`Erreur lors du chargement des tâches: ${error.message}`);
+        showAlert(`Erreur lors du chargement des tâches: ${error.message}`, "error");
       } else {
-        alert('Erreur lors du chargement des tâches');
+        showAlert('Erreur lors du chargement des tâches', "error");
       }
       
       setTasks([]);
     }
-  }, []);
+  }, [showAlert]);
 
   // Fonction unifiée pour rafraîchir les crédits
   const refreshCredits = useCallback(async () => {
@@ -1908,6 +1908,7 @@ function ExchangeTaskForm({ onTaskCreated, showAlert }: ExchangeTaskFormProps) {
   }, []);
 
   async function handleSubmit() {
+    console.log('🚀 handleSubmit appelée!');
     const form = formRef.current;
     if (!form) return;
     
@@ -2017,7 +2018,8 @@ function ExchangeTaskForm({ onTaskCreated, showAlert }: ExchangeTaskFormProps) {
 
       </div>
       <button 
-        type="submit" 
+        type="button" 
+        onClick={handleSubmit}
         disabled={isSubmitting}
         className="mt-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-2 rounded-full font-semibold hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
       >
