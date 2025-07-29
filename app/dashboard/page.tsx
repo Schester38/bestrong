@@ -377,41 +377,60 @@ export default function Dashboard() {
   // Fonction centralisée pour rafraîchir la liste enrichie
   const fetchTasks = useCallback(async () => {
     try {
-    const res = await fetch("/api/exchange/tasks");
+      console.log('🔄 Chargement des tâches...');
+      const res = await fetch("/api/exchange/tasks");
+      
       if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
+        const errorText = await res.text();
+        console.error('❌ Erreur HTTP:', res.status, errorText);
+        throw new Error(`Erreur serveur: ${res.status} - ${errorText}`);
       }
-    const data = await res.json();
-    if (Array.isArray(data)) {
-      for (const t of data) {
-        try {
-          // N'appelle l'API que si t.createur est une chaîne non vide et n'est pas un numéro
-          if (t.createur && isNaN(Number(t.createur))) {
-            const userRes = await fetch(`/api/exchange/user-credits?pseudo=${encodeURIComponent(t.createur)}`);
-            if (userRes.ok) {
-              const userData = await userRes.json();
-              t.createurCredits = userData.credits;
-              t.createurPseudo = userData.pseudo;
+      
+      const data = await res.json();
+      
+      if (Array.isArray(data)) {
+        console.log(`✅ ${data.length} tâches récupérées, enrichissement en cours...`);
+        
+        for (const t of data) {
+          try {
+            // N'appelle l'API que si t.createur est une chaîne non vide et n'est pas un numéro
+            if (t.createur && isNaN(Number(t.createur))) {
+              const userRes = await fetch(`/api/exchange/user-credits?pseudo=${encodeURIComponent(t.createur)}`);
+              if (userRes.ok) {
+                const userData = await userRes.json();
+                t.createurCredits = userData.credits;
+                t.createurPseudo = userData.pseudo;
+              } else {
+                t.createurCredits = 0;
+                t.createurPseudo = null;
+              }
             } else {
               t.createurCredits = 0;
               t.createurPseudo = null;
             }
-          } else {
+          } catch (enrichmentError) {
+            console.warn('⚠️ Erreur enrichissement tâche:', t.id, enrichmentError);
             t.createurCredits = 0;
             t.createurPseudo = null;
           }
-        } catch {
-          t.createurCredits = 0;
-          t.createurPseudo = null;
         }
-      }
-      setTasks(data);
-        console.log('Tâches chargées:', data.length);
-    } else {
+        
+        setTasks(data);
+        console.log('✅ Tâches enrichies et mises à jour');
+      } else {
+        console.warn('⚠️ Données reçues ne sont pas un tableau:', data);
         setTasks([]);
       }
     } catch (error) {
-      console.error('Erreur lors du chargement des tâches:', error);
+      console.error('❌ Erreur lors du chargement des tâches:', error);
+      
+      // Afficher une notification d'erreur à l'utilisateur
+      if (error instanceof Error) {
+        alert(`Erreur lors du chargement des tâches: ${error.message}`);
+      } else {
+        alert('Erreur lors du chargement des tâches');
+      }
+      
       setTasks([]);
     }
   }, []);
@@ -2229,6 +2248,15 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
       </div>
       
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Tâches d&apos;échange disponibles</h3>
+      
+      {/* Note spécifique pour Android */}
+      {typeof window !== 'undefined' && /Android/i.test(navigator.userAgent) && (
+        <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+          <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium">
+            📱 <strong>NB:</strong> Veillez effectuer chaque tâche pour gagner vos crédits (click sur <span className="text-blue-600 dark:text-blue-400 font-bold">voir</span>)
+          </p>
+        </div>
+      )}
       {/* Si showOnlyMine, bouton pour lancer une nouvelle tâche */}
       {showOnlyMine && (
         <button
@@ -2271,7 +2299,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
             {showOnlyMine && myTasks.map(task => (
               <tr key={task.id} className="border-b border-gray-100 dark:border-gray-700">
                 <td className="px-4 py-2">{task.type}</td>
-                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-pink-500 underline" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url, task.type, task.id); }}>Voir</a></td>
+                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 font-semibold underline hover:text-blue-800 dark:hover:text-blue-300" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url, task.type, task.id); }}>Voir</a></td>
                 <td className="px-4 py-2">{task.credits}</td>
                 <td className="px-4 py-2">{task.actionsRestantes}</td>
                 <td className="px-4 py-2">{task.createur?.slice(0, 7)}</td>
@@ -2289,7 +2317,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
             {showOnlyMine && otherTasks.map(task => (
               <tr key={task.id} className="border-b border-gray-100 dark:border-gray-700">
                 <td className="px-4 py-2">{task.type}</td>
-                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-pink-500 underline" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url, task.type, task.id); }}>Voir</a></td>
+                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 font-semibold underline hover:text-blue-800 dark:hover:text-blue-300" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url, task.type, task.id); }}>Voir</a></td>
                 <td className="px-4 py-2">{task.credits}</td>
                 <td className="px-4 py-2">{task.actionsRestantes}</td>
                 <td className="px-4 py-2">{task.createur?.slice(0, 7)}</td>
@@ -2314,7 +2342,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
                     {task.type}
                   </span>
                 </td>
-                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-pink-500 underline" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url, task.type, task.id); }}>Voir</a></td>
+                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 font-semibold underline hover:text-blue-800 dark:hover:text-blue-300" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url, task.type, task.id); }}>Voir</a></td>
                 <td className="px-4 py-2">{task.credits}</td>
                 <td className="px-4 py-2">{task.actionsRestantes}</td>
                 <td className="px-4 py-2">
@@ -2338,7 +2366,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
             {!showOnlyMine && otherTasks.map(task => (
               <tr key={task.id} className="border-b border-gray-100 dark:border-gray-700">
                 <td className="px-4 py-2">{task.type}</td>
-                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-pink-500 underline" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url, task.type, task.id); }}>Voir</a></td>
+                <td className="px-4 py-2"><a href={task.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 font-semibold underline hover:text-blue-800 dark:hover:text-blue-300" onClick={(e) => { e.preventDefault(); openTikTokLink(task.url, task.type, task.id); }}>Voir</a></td>
                 <td className="px-4 py-2">{task.credits}</td>
                 <td className="px-4 py-2">{task.actionsRestantes}</td>
                 <td className="px-4 py-2">{task.createur?.slice(0, 7)}</td>

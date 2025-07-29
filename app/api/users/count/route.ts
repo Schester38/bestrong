@@ -9,7 +9,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export async function GET() {
   try {
-    console.log('API users/count appelée');
+    console.log('🔄 API users/count appelée -', new Date().toISOString());
     
     // Lire le compteur depuis la table app_stats
     const { data, error } = await supabase
@@ -19,26 +19,61 @@ export async function GET() {
       .single();
 
     if (error) {
-      console.error('Erreur lecture compteur depuis Supabase:', error);
+      console.error('❌ Erreur lecture compteur depuis Supabase:', error);
       // Si la table n'existe pas ou pas de données, retourner la valeur par défaut
-      return NextResponse.json({ count: 1787 });
+      const defaultCount = 1787;
+      console.log('📊 Utilisation du compteur par défaut:', defaultCount);
+      
+      return NextResponse.json(
+        { count: defaultCount },
+        {
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+          }
+        }
+      );
     }
 
     const count = data?.user_count || 1787;
-    console.log('Nombre d\'utilisateurs depuis Supabase:', count);
-    return NextResponse.json({ count });
+    console.log('✅ Nombre d\'utilisateurs depuis Supabase:', count);
+    
+    return NextResponse.json(
+      { count },
+      {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        }
+      }
+    );
   } catch (error) {
-    console.error("Erreur API /api/users/count:", error);
-    return NextResponse.json({ 
-      error: "Erreur lors du chargement du nombre d'utilisateurs",
-      details: error instanceof Error ? error.message : String(error)
-    }, { status: 500 });
+    console.error("❌ Erreur API /api/users/count:", error);
+    return NextResponse.json(
+      { 
+        error: "Erreur lors du chargement du nombre d'utilisateurs",
+        details: error instanceof Error ? error.message : String(error),
+        count: 1787 // Valeur de fallback
+      },
+      { 
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        }
+      }
+    );
   }
 }
 
 // Fonction pour incrémenter le compteur (exportée pour être utilisée par d'autres APIs)
 export async function incrementUserCount(): Promise<number> {
   try {
+    console.log('🔄 Incrémentation du compteur d\'utilisateurs...');
+    
     // Utiliser une transaction pour incrémenter de manière atomique
     const { data: currentData, error: readError } = await supabase
       .from('app_stats')
@@ -52,6 +87,7 @@ export async function incrementUserCount(): Promise<number> {
     }
 
     const newCount = currentCount + 1;
+    console.log(`📈 Incrémentation: ${currentCount} → ${newCount}`);
 
     // Mettre à jour ou créer l'enregistrement
     const { error: updateError } = await supabase
@@ -63,14 +99,14 @@ export async function incrementUserCount(): Promise<number> {
       });
 
     if (updateError) {
-      console.error('Erreur mise à jour compteur dans Supabase:', updateError);
+      console.error('❌ Erreur mise à jour compteur dans Supabase:', updateError);
       return currentCount;
     }
 
-    console.log('Compteur incrémenté dans Supabase:', newCount);
+    console.log('✅ Compteur incrémenté dans Supabase:', newCount);
     return newCount;
   } catch (error) {
-    console.error('Erreur lors de l\'incrémentation du compteur:', error);
+    console.error('❌ Erreur lors de l\'incrémentation du compteur:', error);
     return 1787; // Valeur de fallback
   }
 } 

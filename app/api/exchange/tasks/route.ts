@@ -50,9 +50,80 @@ const createTaskSchema = z.object({
 
 const ADMIN_PHONE = "+237699486146";
 
+// Fonction pour initialiser les tables si nécessaire
+async function ensureTablesExist() {
+  try {
+    // Vérifier si la table tasks existe
+    const { data: tasksTest, error: tasksError } = await supabase
+      .from('tasks')
+      .select('*')
+      .limit(1);
+    
+    if (tasksError && tasksError.message.includes('relation "tasks" does not exist')) {
+      console.log('🔄 Table tasks manquante, initialisation...');
+      
+      // Créer la table tasks
+      const { error: createTasksError } = await supabase.rpc('exec_sql', {
+        sql_query: `
+          CREATE TABLE IF NOT EXISTS tasks (
+            id TEXT PRIMARY KEY,
+            type TEXT NOT NULL,
+            url TEXT NOT NULL,
+            credits INTEGER NOT NULL DEFAULT 1,
+            actions_restantes INTEGER NOT NULL,
+            createur TEXT NOT NULL,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+          );
+        `
+      });
+      
+      if (createTasksError) {
+        console.error('❌ Erreur création table tasks:', createTasksError);
+        throw new Error('Impossible de créer la table tasks');
+      }
+    }
+    
+    // Vérifier si la table task_completions existe
+    const { data: completionsTest, error: completionsError } = await supabase
+      .from('task_completions')
+      .select('*')
+      .limit(1);
+    
+    if (completionsError && completionsError.message.includes('relation "task_completions" does not exist')) {
+      console.log('🔄 Table task_completions manquante, initialisation...');
+      
+      // Créer la table task_completions
+      const { error: createCompletionsError } = await supabase.rpc('exec_sql', {
+        sql_query: `
+          CREATE TABLE IF NOT EXISTS task_completions (
+            id TEXT PRIMARY KEY,
+            exchange_task_id TEXT NOT NULL,
+            user_id TEXT NOT NULL,
+            completed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+          );
+        `
+      });
+      
+      if (createCompletionsError) {
+        console.error('❌ Erreur création table task_completions:', createCompletionsError);
+        throw new Error('Impossible de créer la table task_completions');
+      }
+    }
+    
+    console.log('✅ Tables vérifiées/initialisées avec succès');
+  } catch (error) {
+    console.error('❌ Erreur lors de l\'initialisation des tables:', error);
+    throw error;
+  }
+}
+
 // Créer une tâche d'échange
 export async function POST(request: NextRequest) {
   try {
+    // S'assurer que les tables existent
+    await ensureTablesExist();
+    
     const body = await request.json();
     const { type, url, actionsRestantes, createur } = createTaskSchema.parse(body);
     const credits = 1; // Crédit fixe de 1 pour toutes les tâches
@@ -178,28 +249,32 @@ export async function POST(request: NextRequest) {
     }
 
     // Enregistrer l'activité de création de tâche
-    await logActivity({
-      userId: user.id,
-      userPhone: user.phone,
-      userPseudo: user.pseudo,
-      type: 'task_created',
-      description: `Création d'une tâche ${type} pour ${actionsRestantes} actions`,
-      details: { taskId: newTask.id, taskType: type, actionsCount: actionsRestantes, creditsPerAction: credits },
-      credits: totalCost
-    });
+    try {
+      await logActivity({
+        userId: user.id,
+        userPhone: user.phone,
+        userPseudo: user.pseudo,
+        type: 'task_created',
+        description: `Création d'une tâche ${type} pour ${actionsRestantes} actions`,
+        details: { taskId: newTask.id, taskType: type, actionsCount: actionsRestantes, creditsPerAction: credits },
+        credits: totalCost
+      });
+    } catch (activityError) {
+      console.warn('Erreur lors de l\'enregistrement de l\'activité:', activityError);
+    }
     
-          // Transformer les données pour correspondre au format attendu par le frontend
-      const transformedTask = {
-        id: newTask.id,
-        type: newTask.type,
-        url: newTask.url,
-        credits: newTask.credits,
-        actionsRestantes: newTask.actions_restantes,
-        createur: newTask.createur,
-        createdAt: newTask.created_at,
-        updatedAt: newTask.updated_at
-      };
-      return NextResponse.json(transformedTask, { status: 201 });
+    // Transformer les données pour correspondre au format attendu par le frontend
+    const transformedTask = {
+      id: newTask.id,
+      type: newTask.type,
+      url: newTask.url,
+      credits: newTask.credits,
+      actionsRestantes: newTask.actions_restantes,
+      createur: newTask.createur,
+      createdAt: newTask.created_at,
+      updatedAt: newTask.updated_at
+    };
+    return NextResponse.json(transformedTask, { status: 201 });
   } catch (error) {
     console.error('Erreur POST /api/exchange/tasks:', error);
     return NextResponse.json({ error: "Erreur lors de la création de la tâche", details: error }, { status: 400 });
@@ -209,47 +284,70 @@ export async function POST(request: NextRequest) {
 // Lister toutes les tâches d'échange
 export async function GET() {
   try {
+    console.log('🔄 Récupération des tâches...');
+    
+    // S'assurer que les tables existent
+    await ensureTablesExist();
+    
     const { data: tasks, error: tasksError } = await supabase
       .from('tasks')
       .select('*')
       .order('created_at', { ascending: false });
 
     if (tasksError) {
-      console.error('Erreur récupération tâches:', tasksError);
+      console.error('❌ Erreur récupération tâches:', tasksError);
       return NextResponse.json({ error: "Erreur lors de la récupération des tâches" }, { status: 500 });
     }
 
+    console.log(`✅ ${tasks?.length || 0} tâches récupérées`);
+
     // Récupérer les complétions pour chaque tâche
-    const tasksWithCompletions = await Promise.all(tasks.map(async (task) => {
-      const { data: completions, error: completionsError } = await supabase
-        .from('task_completions')
-        .select('*')
-        .eq('exchange_task_id', task.id);
+    const tasksWithCompletions = await Promise.all((tasks || []).map(async (task) => {
+      try {
+        const { data: completions, error: completionsError } = await supabase
+          .from('task_completions')
+          .select('*')
+          .eq('exchange_task_id', task.id);
 
-      if (completionsError) {
-        console.error('Erreur récupération complétions pour tâche', task.id, ':', completionsError);
+        if (completionsError) {
+          console.error('⚠️ Erreur récupération complétions pour tâche', task.id, ':', completionsError);
+        }
+
+        return {
+          id: task.id,
+          type: task.type,
+          url: task.url,
+          credits: task.credits,
+          actionsRestantes: task.actions_restantes, // Transformation snake_case vers camelCase
+          createur: task.createur,
+          createdAt: task.created_at,
+          updatedAt: task.updated_at,
+          completions: completions?.map(comp => ({
+            id: comp.id,
+            userId: comp.user_id,
+            completedAt: comp.completed_at
+          })) || []
+        };
+      } catch (error) {
+        console.error('⚠️ Erreur lors du traitement de la tâche', task.id, ':', error);
+        return {
+          id: task.id,
+          type: task.type,
+          url: task.url,
+          credits: task.credits,
+          actionsRestantes: task.actions_restantes,
+          createur: task.createur,
+          createdAt: task.created_at,
+          updatedAt: task.updated_at,
+          completions: []
+        };
       }
-
-      return {
-        id: task.id,
-        type: task.type,
-        url: task.url,
-        credits: task.credits,
-        actionsRestantes: task.actions_restantes, // Transformation snake_case vers camelCase
-        createur: task.createur,
-        createdAt: task.created_at,
-        updatedAt: task.updated_at,
-        completions: completions?.map(comp => ({
-          id: comp.id,
-          userId: comp.user_id,
-          completedAt: comp.completed_at
-        })) || []
-      };
     }));
     
+    console.log('✅ Tâches avec complétions préparées');
     return NextResponse.json(tasksWithCompletions);
   } catch (error) {
-    console.error('Erreur GET /api/exchange/tasks:', error);
+    console.error('❌ Erreur GET /api/exchange/tasks:', error);
     return NextResponse.json({ error: "Erreur lors de la récupération des tâches" }, { status: 500 });
   }
 }
