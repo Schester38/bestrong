@@ -10,6 +10,7 @@ import AnimatedBackground from "./components/AnimatedBackground";
 import LiveStats from "./components/LiveStats";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
+import { useAlert } from "./components/CustomAlert";
 
 const PhoneAuthModal = dynamic(() => import("./components/PhoneAuthModal"), { 
   ssr: false,
@@ -17,6 +18,7 @@ const PhoneAuthModal = dynamic(() => import("./components/PhoneAuthModal"), {
 });
 
 export default function Home() {
+  const { showAlert } = useAlert();
   const [modalOpen, setModalOpen] = useState<null | "login" | "register">(null);
   // Compteur d'utilisateurs inscrits
   const [userCount, setUserCount] = useState<number | null>(null);
@@ -37,16 +39,16 @@ export default function Home() {
               icon: '/icon-512.png'
             });
           } else {
-            alert("✅ Lien copié ! Partage-le avec tes amis :\n\n" + message);
+            showAlert("✅ Lien copié ! Partage-le avec tes amis :\n\n" + message, "success");
           }
         })
         .catch(() => {
           // Fallback si la copie échoue
-          alert("📱 Partage BE STRONG :\n\n" + message);
+          showAlert("📱 Partage BE STRONG :\n\n" + message, "info");
         });
     } else {
       // Fallback pour les navigateurs plus anciens
-      alert("📱 Partage BE STRONG :\n\n" + message);
+      showAlert("📱 Partage BE STRONG :\n\n" + message, "info");
     }
   }, []);
 

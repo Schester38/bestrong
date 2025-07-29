@@ -121,16 +121,23 @@ async function ensureTablesExist() {
 // Créer une tâche d'échange
 export async function POST(request: NextRequest) {
   try {
+    console.log('🔄 Début création de tâche...');
+    
     // S'assurer que les tables existent
     await ensureTablesExist();
     
     const body = await request.json();
+    console.log('📝 Données reçues:', body);
+    
     const { type, url, actionsRestantes, createur } = createTaskSchema.parse(body);
     const credits = 1; // Crédit fixe de 1 pour toutes les tâches
     
+    console.log('✅ Validation des données réussie:', { type, url, actionsRestantes, createur });
+    
     // Bypass admin : accès total
     if (createur === ADMIN_PHONE) {
-      // Créer la tâche sans débiter de crédits
+      console.log('👑 Création de tâche admin...');
+      
       const newTask = {
         id: Date.now().toString(),
         type,
@@ -147,11 +154,15 @@ export async function POST(request: NextRequest) {
         .insert(newTask);
 
       if (error) {
-        console.error('Erreur création tâche admin:', error);
-        return NextResponse.json({ error: "Erreur lors de la création de la tâche" }, { status: 500 });
+        console.error('❌ Erreur création tâche admin:', error);
+        return NextResponse.json({ 
+          error: "Erreur lors de la création de la tâche", 
+          details: error.message 
+        }, { status: 500 });
       }
 
-      // Transformer les données pour correspondre au format attendu par le frontend
+      console.log('✅ Tâche admin créée avec succès');
+      
       const transformedTask = {
         id: newTask.id,
         type: newTask.type,
@@ -166,6 +177,8 @@ export async function POST(request: NextRequest) {
     }
     
     // Trouver l'utilisateur par téléphone ou pseudo
+    console.log('🔍 Recherche utilisateur:', createur);
+    
     let { data: user, error: userError } = await supabase
       .from('users')
       .select('*')
@@ -173,12 +186,16 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
     
     if (userError) {
-      console.error('Erreur recherche utilisateur:', userError);
-      return NextResponse.json({ error: "Erreur lors de la recherche de l'utilisateur" }, { status: 500 });
+      console.error('❌ Erreur recherche utilisateur:', userError);
+      return NextResponse.json({ 
+        error: "Erreur lors de la recherche de l'utilisateur",
+        details: userError.message 
+      }, { status: 500 });
     }
     
     if (!user) {
-      // Créer un nouvel utilisateur si pas trouvé
+      console.log('👤 Utilisateur non trouvé, création...');
+      
       const newUser = {
         id: Date.now().toString(),
         phone: createur,
@@ -196,22 +213,32 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (createError) {
-        console.error('Erreur création utilisateur:', createError);
-        return NextResponse.json({ error: "Erreur lors de la création de l'utilisateur" }, { status: 500 });
+        console.error('❌ Erreur création utilisateur:', createError);
+        return NextResponse.json({ 
+          error: "Erreur lors de la création de l'utilisateur",
+          details: createError.message 
+        }, { status: 500 });
       }
 
       user = createdUser;
+      console.log('✅ Nouvel utilisateur créé:', user.id);
+    } else {
+      console.log('✅ Utilisateur trouvé:', user.id, 'Crédits:', user.credits);
     }
     
     const totalCost = 1; // Coût fixe de 1 crédit pour créer une tâche
-    console.log(`Création de tâche: ${createur}, crédits actuels: ${user.credits}, coût total: ${totalCost}`);
+    console.log(`💰 Vérification crédits: ${user.credits} >= ${totalCost}`);
     
     if (user.credits < totalCost) {
-      console.log(`Crédits insuffisants: ${user.credits} < ${totalCost}`);
-      return NextResponse.json({ error: "Crédits insuffisants" }, { status: 400 });
+      console.log(`❌ Crédits insuffisants: ${user.credits} < ${totalCost}`);
+      return NextResponse.json({ 
+        error: "Crédits insuffisants",
+        details: `Vous avez ${user.credits} crédits, il vous faut ${totalCost} crédit(s)`
+      }, { status: 400 });
     }
     
     // Débiter les crédits
+    console.log('💳 Débit des crédits...');
     const { error: updateError } = await supabase
       .from('users')
       .update({ 
@@ -221,13 +248,17 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id);
 
     if (updateError) {
-      console.error('Erreur mise à jour crédits:', updateError);
-      return NextResponse.json({ error: "Erreur lors de la mise à jour des crédits" }, { status: 500 });
+      console.error('❌ Erreur mise à jour crédits:', updateError);
+      return NextResponse.json({ 
+        error: "Erreur lors de la mise à jour des crédits",
+        details: updateError.message 
+      }, { status: 500 });
     }
 
-    console.log(`Crédits débités: ${user.credits - totalCost} restants pour ${createur}`);
+    console.log(`✅ Crédits débités: ${user.credits - totalCost} restants`);
     
     // Créer la tâche
+    console.log('📝 Création de la tâche...');
     const newTask = {
       id: Date.now().toString(),
       type,
@@ -244,40 +275,60 @@ export async function POST(request: NextRequest) {
       .insert(newTask);
 
     if (taskError) {
-      console.error('Erreur création tâche:', taskError);
-      return NextResponse.json({ error: "Erreur lors de la création de la tâche" }, { status: 500 });
+      console.error('❌ Erreur création tâche:', taskError);
+      return NextResponse.json({ 
+        error: "Erreur lors de la création de la tâche",
+        details: taskError.message 
+      }, { status: 500 });
     }
+
+    console.log('✅ Tâche créée avec succès:', newTask.id);
 
     // Enregistrer l'activité de création de tâche
     try {
-      await logActivity({
-        userId: user.id,
-        userPhone: user.phone,
-        userPseudo: user.pseudo,
-        type: 'task_created',
-        description: `Création d'une tâche ${type} pour ${actionsRestantes} actions`,
-        details: { taskId: newTask.id, taskType: type, actionsCount: actionsRestantes, creditsPerAction: credits },
-        credits: totalCost
-      });
+    await logActivity({
+      userId: user.id,
+      userPhone: user.phone,
+      userPseudo: user.pseudo,
+      type: 'task_created',
+      description: `Création d'une tâche ${type} pour ${actionsRestantes} actions`,
+      details: { taskId: newTask.id, taskType: type, actionsCount: actionsRestantes, creditsPerAction: credits },
+      credits: totalCost
+    });
+      console.log('✅ Activité enregistrée');
     } catch (activityError) {
-      console.warn('Erreur lors de l\'enregistrement de l\'activité:', activityError);
+      console.warn('⚠️ Erreur lors de l\'enregistrement de l\'activité:', activityError);
     }
     
-    // Transformer les données pour correspondre au format attendu par le frontend
-    const transformedTask = {
-      id: newTask.id,
-      type: newTask.type,
-      url: newTask.url,
-      credits: newTask.credits,
-      actionsRestantes: newTask.actions_restantes,
-      createur: newTask.createur,
-      createdAt: newTask.created_at,
-      updatedAt: newTask.updated_at
-    };
-    return NextResponse.json(transformedTask, { status: 201 });
+      const transformedTask = {
+        id: newTask.id,
+        type: newTask.type,
+        url: newTask.url,
+        credits: newTask.credits,
+        actionsRestantes: newTask.actions_restantes,
+        createur: newTask.createur,
+        createdAt: newTask.created_at,
+        updatedAt: newTask.updated_at
+      };
+    
+    console.log('🎉 Création de tâche terminée avec succès');
+      return NextResponse.json(transformedTask, { status: 201 });
+    
   } catch (error) {
-    console.error('Erreur POST /api/exchange/tasks:', error);
-    return NextResponse.json({ error: "Erreur lors de la création de la tâche", details: error }, { status: 400 });
+    console.error('❌ Erreur POST /api/exchange/tasks:', error);
+    
+    if (error instanceof Error) {
+      return NextResponse.json({ 
+        error: "Erreur lors de la création de la tâche", 
+        details: error.message,
+        type: error.constructor.name
+      }, { status: 400 });
+    } else {
+      return NextResponse.json({ 
+        error: "Erreur lors de la création de la tâche", 
+        details: String(error)
+      }, { status: 400 });
+    }
   }
 }
 
@@ -304,30 +355,30 @@ export async function GET() {
     // Récupérer les complétions pour chaque tâche
     const tasksWithCompletions = await Promise.all((tasks || []).map(async (task) => {
       try {
-        const { data: completions, error: completionsError } = await supabase
-          .from('task_completions')
-          .select('*')
-          .eq('exchange_task_id', task.id);
+      const { data: completions, error: completionsError } = await supabase
+        .from('task_completions')
+        .select('*')
+        .eq('exchange_task_id', task.id);
 
-        if (completionsError) {
+      if (completionsError) {
           console.error('⚠️ Erreur récupération complétions pour tâche', task.id, ':', completionsError);
-        }
+      }
 
-        return {
-          id: task.id,
-          type: task.type,
-          url: task.url,
-          credits: task.credits,
-          actionsRestantes: task.actions_restantes, // Transformation snake_case vers camelCase
-          createur: task.createur,
-          createdAt: task.created_at,
-          updatedAt: task.updated_at,
-          completions: completions?.map(comp => ({
-            id: comp.id,
-            userId: comp.user_id,
-            completedAt: comp.completed_at
-          })) || []
-        };
+      return {
+        id: task.id,
+        type: task.type,
+        url: task.url,
+        credits: task.credits,
+        actionsRestantes: task.actions_restantes, // Transformation snake_case vers camelCase
+        createur: task.createur,
+        createdAt: task.created_at,
+        updatedAt: task.updated_at,
+        completions: completions?.map(comp => ({
+          id: comp.id,
+          userId: comp.user_id,
+          completedAt: comp.completed_at
+        })) || []
+      };
       } catch (error) {
         console.error('⚠️ Erreur lors du traitement de la tâche', task.id, ':', error);
         return {

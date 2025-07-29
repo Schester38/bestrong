@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Trash2, RefreshCw, Lock, Eye, EyeOff, Edit, Search, Activity, Clock } from "lucide-react";
 import Link from "next/link";
+import { useAlert } from "../components/CustomAlert";
 
 // Interface Suggestion pour typage global
 interface Suggestion {
@@ -39,6 +40,7 @@ interface Activity {
 }
 
 export default function AdminPage() {
+  const { showConfirm } = useAlert();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -298,81 +300,77 @@ export default function AdminPage() {
       return;
     }
 
-    if (!confirm(`Êtes-vous sûr de vouloir ajouter ${bulkCreditsAmount} crédits à TOUS les utilisateurs ?`)) {
-      return;
-    }
-
-    setBulkCreditsLoading(true);
-    try {
-      const response = await fetch("/api/admin/users/bulk-credits", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          creditsToAdd: parseInt(bulkCreditsAmount)
-        })
-      });
-      
-      const data = await response.json();
-      if (data.success) {
-        // Mettre à jour l'état local
-        const creditsToAdd = parseInt(bulkCreditsAmount);
-        setUsers(prev => 
-          prev.map(user => ({
-            ...user,
-            credits: user.credits + creditsToAdd
-          }))
-        );
-        setFilteredUsers(prev => 
-          prev.map(user => ({
-            ...user,
-            credits: user.credits + creditsToAdd
-          }))
-        );
-        setSuccess(`${bulkCreditsAmount} crédits ajoutés à tous les utilisateurs avec succès`);
-        setBulkCreditsAmount("");
-      } else {
-        setError(data.error || "Erreur lors de l'ajout des crédits");
+    showConfirm(`Êtes-vous sûr de vouloir ajouter ${bulkCreditsAmount} crédits à TOUS les utilisateurs ?`, async () => {
+      setBulkCreditsLoading(true);
+      try {
+        const response = await fetch("/api/admin/users/bulk-credits", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            creditsToAdd: parseInt(bulkCreditsAmount)
+          })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+          // Mettre à jour l'état local
+          const creditsToAdd = parseInt(bulkCreditsAmount);
+          setUsers(prev => 
+            prev.map(user => ({
+              ...user,
+              credits: user.credits + creditsToAdd
+            }))
+          );
+          setFilteredUsers(prev => 
+            prev.map(user => ({
+              ...user,
+              credits: user.credits + creditsToAdd
+            }))
+          );
+          setSuccess(`${bulkCreditsAmount} crédits ajoutés à tous les utilisateurs avec succès`);
+          setBulkCreditsAmount("");
+        } else {
+          setError(data.error || "Erreur lors de l'ajout des crédits");
+        }
+      } catch {
+        setError("Erreur réseau lors de l'ajout des crédits");
+      } finally {
+        setBulkCreditsLoading(false);
       }
-    } catch {
-      setError("Erreur réseau lors de l'ajout des crédits");
-    } finally {
-      setBulkCreditsLoading(false);
-    }
+    });
   };
 
   // Supprimer un utilisateur
   const deleteUser = async (userId: string, userPhone: string) => {
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur ${userPhone} ?`)) {
-      return;
-    }
+    showConfirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur ${userPhone} ?`, async () => {
+      try {
+        console.log(`Tentative de suppression de l'utilisateur ${userPhone} (ID: ${userId})`);
+        
+        const response = await fetch("/api/auth/delete-user", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId }),
+        });
 
-    try {
-      console.log(`Tentative de suppression de l'utilisateur ${userPhone} (ID: ${userId})`);
-      
-      const response = await fetch("/api/auth/delete-user", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId }),
-      });
+        const data = await response.json();
 
-      const data = await response.json();
-
-      if (data.error) {
-        setError(data.error);
-        console.error('Erreur API:', data.error);
-      } else {
-        setSuccess(data.message);
-        console.log('Utilisateur supprimé avec succès');
-        // Recharger la liste
-        await loadUsers();
-        setTimeout(() => setSuccess(""), 3000);
+        if (data.error) {
+          setError(data.error);
+          console.error('Erreur API:', data.error);
+        } else {
+          setSuccess(data.message);
+          console.log('Utilisateur supprimé avec succès');
+          // Recharger la liste
+          await loadUsers();
+          setTimeout(() => setSuccess(""), 3000);
+        }
+      } catch {
+        console.error('Erreur lors de la suppression:', error);
+        setError("Erreur lors de la suppression");
       }
-    } catch {
-      console.error('Erreur lors de la suppression:', error);
-      setError("Erreur lors de la suppression");
-    }
+    });
   };
 
   // Ouvrir le modal d'édition

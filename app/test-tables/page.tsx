@@ -34,6 +34,19 @@ export default function TestTablesPage() {
     }
   };
 
+  const initTablesSimple = async () => {
+    setInitLoading(true);
+    try {
+      const response = await fetch('/api/init-tables-simple');
+      const data = await response.json();
+      setInitResults(data);
+    } catch (error) {
+      setInitResults({ error: error instanceof Error ? error.message : String(error) });
+    } finally {
+      setInitLoading(false);
+    }
+  };
+
   useEffect(() => {
     testTables();
   }, []);
@@ -78,13 +91,22 @@ export default function TestTablesPage() {
               Initialisation des Tables
             </h2>
             
-            <button
-              onClick={initTables}
-              disabled={initLoading}
-              className="mb-4 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
-            >
-              {initLoading ? 'Initialisation...' : 'Initialiser les tables'}
-            </button>
+            <div className="space-y-2">
+              <button
+                onClick={initTables}
+                disabled={initLoading}
+                className="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+              >
+                {initLoading ? 'Initialisation...' : 'Initialiser les tables (Service Role)'}
+              </button>
+              <button
+                onClick={initTablesSimple}
+                disabled={initLoading}
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+              >
+                {initLoading ? 'Initialisation...' : 'Initialiser les tables (Anon Key)'}
+              </button>
+            </div>
 
             {initResults && (
               <div className="space-y-4">

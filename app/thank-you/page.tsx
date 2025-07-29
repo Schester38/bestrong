@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getCurrentUser } from "../utils/auth";
+import { useAlert } from "../components/CustomAlert";
 
 declare global {
   interface Window {
@@ -14,6 +15,7 @@ declare global {
 }
 
 export default function ThankYouPage() {
+  const { showAlert } = useAlert();
   const [showTrialButton, setShowTrialButton] = useState(false);
   const [showNote, setShowNote] = useState(false);
   const [noteReason, setNoteReason] = useState<'admin' | 'trial' | null>(null);
@@ -115,10 +117,10 @@ export default function ThankYouPage() {
       });
       window.CinetPay.waitResponse(function (data: { status: string }) {
         if (data.status === "REFUSED") {
-          alert("Votre paiement a échoué");
+          showAlert("Votre paiement a échoué", "error");
           window.location.reload();
         } else if (data.status === "ACCEPTED") {
-          alert("Votre paiement a été effectué avec succès");
+          showAlert("Votre paiement a été effectué avec succès", "success");
           window.location.href = "/dashboard";
         }
       });

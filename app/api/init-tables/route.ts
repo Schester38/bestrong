@@ -2,20 +2,25 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export async function GET() {
   try {
     console.log('🔄 Initialisation des tables...');
     
-    if (!supabaseServiceKey) {
+    // Utiliser la clé de service si disponible, sinon la clé anonyme
+    const keyToUse = supabaseServiceKey || supabaseAnonKey;
+    
+    if (!keyToUse) {
       return NextResponse.json({ 
-        error: 'Clé de service Supabase manquante',
-        message: 'La variable d\'environnement SUPABASE_SERVICE_ROLE_KEY n\'est pas définie'
+        error: 'Clés Supabase manquantes',
+        message: 'Les variables d\'environnement Supabase ne sont pas définies'
       }, { status: 500 });
     }
     
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    console.log('🔑 Utilisation de la clé:', supabaseServiceKey ? 'Service Role' : 'Anon');
+    const supabase = createClient(supabaseUrl, keyToUse);
     
     // Créer la table tasks si elle n'existe pas
     const { error: tasksError } = await supabase.rpc('create_tasks_table_if_not_exists');

@@ -28,6 +28,7 @@ import { useRouter } from "next/navigation";
 import { getCurrentUser, logout } from "../utils/auth";
 import Script from "next/script";
 import { useTheme } from "../hooks/useTheme";
+import { useAlert } from "../components/CustomAlert";
 
 // Type global pour les tâches d'échange
 type ExchangeTask = {
@@ -62,6 +63,7 @@ type User = {
 
 export default function Dashboard() {
   const { isDark } = useTheme();
+  const { showAlert, showConfirm } = useAlert();
   const [activeTab, setActiveTab] = useState("exchange");
   const [credits, setCredits] = useState(150);
   const [tasks, setTasks] = useState<ExchangeTask[]>([]);
@@ -378,7 +380,7 @@ export default function Dashboard() {
   const fetchTasks = useCallback(async () => {
     try {
       console.log('🔄 Chargement des tâches...');
-      const res = await fetch("/api/exchange/tasks");
+    const res = await fetch("/api/exchange/tasks");
       
       if (!res.ok) {
         const errorText = await res.text();
@@ -386,38 +388,38 @@ export default function Dashboard() {
         throw new Error(`Erreur serveur: ${res.status} - ${errorText}`);
       }
       
-      const data = await res.json();
+    const data = await res.json();
       
-      if (Array.isArray(data)) {
+    if (Array.isArray(data)) {
         console.log(`✅ ${data.length} tâches récupérées, enrichissement en cours...`);
         
-        for (const t of data) {
-          try {
-            // N'appelle l'API que si t.createur est une chaîne non vide et n'est pas un numéro
-            if (t.createur && isNaN(Number(t.createur))) {
-              const userRes = await fetch(`/api/exchange/user-credits?pseudo=${encodeURIComponent(t.createur)}`);
-              if (userRes.ok) {
-                const userData = await userRes.json();
-                t.createurCredits = userData.credits;
-                t.createurPseudo = userData.pseudo;
-              } else {
-                t.createurCredits = 0;
-                t.createurPseudo = null;
-              }
+      for (const t of data) {
+        try {
+          // N'appelle l'API que si t.createur est une chaîne non vide et n'est pas un numéro
+          if (t.createur && isNaN(Number(t.createur))) {
+            const userRes = await fetch(`/api/exchange/user-credits?pseudo=${encodeURIComponent(t.createur)}`);
+            if (userRes.ok) {
+              const userData = await userRes.json();
+              t.createurCredits = userData.credits;
+              t.createurPseudo = userData.pseudo;
             } else {
               t.createurCredits = 0;
               t.createurPseudo = null;
             }
-          } catch (enrichmentError) {
-            console.warn('⚠️ Erreur enrichissement tâche:', t.id, enrichmentError);
+          } else {
             t.createurCredits = 0;
             t.createurPseudo = null;
           }
+          } catch (enrichmentError) {
+            console.warn('⚠️ Erreur enrichissement tâche:', t.id, enrichmentError);
+          t.createurCredits = 0;
+          t.createurPseudo = null;
         }
+      }
         
-        setTasks(data);
+      setTasks(data);
         console.log('✅ Tâches enrichies et mises à jour');
-      } else {
+    } else {
         console.warn('⚠️ Données reçues ne sont pas un tableau:', data);
         setTasks([]);
       }
@@ -1265,6 +1267,7 @@ export default function Dashboard() {
             
             {/* Formulaire de création de tâche */}
             <ExchangeTaskForm 
+              showAlert={showAlert}
               onTaskCreated={() => {
                 fetchTasks();
                 refreshCredits(); // Rafraîchir les crédits après création
@@ -1276,6 +1279,8 @@ export default function Dashboard() {
               onRefresh={fetchTasks}
               showOnlyMine={showOnlyMine}
               onNewTask={() => setShowOnlyMine(false)}
+              showAlert={showAlert}
+              showConfirm={showConfirm}
             />
           </div>
         )}
@@ -1555,7 +1560,7 @@ export default function Dashboard() {
                 <div className="flex space-x-2">
                   <button 
                     onClick={() => {
-                      if (confirm("Voulez-vous vraiment supprimer cette conversation ?")) {
+                      showConfirm("Voulez-vous vraiment supprimer cette conversation ?", () => {
                         // Filtrer les messages pour supprimer cette conversation
                         const filteredMessages = messages.filter(m => {
                           const from = typeof m.from === 'string' ? m.from : '';
@@ -1582,7 +1587,7 @@ export default function Dashboard() {
                         // Fermer la conversation
                         setSelectedConv(null);
                         setChatClosed(true);
-                      }
+                      });
                     }}
                     className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors"
                   >
@@ -1886,11 +1891,13 @@ export default function Dashboard() {
 
 interface ExchangeTaskFormProps {
   onTaskCreated: () => void;
+  showAlert: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
 }
-function ExchangeTaskForm({ onTaskCreated }: ExchangeTaskFormProps) {
+function ExchangeTaskForm({ onTaskCreated, showAlert }: ExchangeTaskFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [actionType, setActionType] = useState("LIKE");
   const [urlError, setUrlError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Utiliser l'utilisateur connecté
   useEffect(() => {
@@ -1903,6 +1910,10 @@ function ExchangeTaskForm({ onTaskCreated }: ExchangeTaskFormProps) {
   async function handleSubmit() {
     const form = formRef.current;
     if (!form) return;
+    
+    setIsSubmitting(true);
+    
+    try {
     const data = Object.fromEntries(new FormData(form));
     const url = String(data.url || "");
     
@@ -1917,17 +1928,18 @@ function ExchangeTaskForm({ onTaskCreated }: ExchangeTaskFormProps) {
     // Vérifier que l'utilisateur est connecté
     const currentUser = getCurrentUser();
     if (!currentUser) {
-      alert("Vous devez être connecté pour créer une tâche.");
+      showAlert("Vous devez être connecté pour créer une tâche.", "error");
       return;
     }
     
     // Vérifier les crédits de l'utilisateur (coût fixe de 1 crédit)
     if (currentUser.credits < 1) {
-      alert(`Crédits insuffisants. Vous avez ${currentUser.credits} crédits, il vous faut 1 crédit pour créer une tâche.`);
+      showAlert(`Crédits insuffisants. Vous avez ${currentUser.credits} crédits, il vous faut 1 crédit pour créer une tâche.`, "error");
       return;
     }
     
-    await fetch("/api/exchange/tasks", {
+      console.log('🔄 Création de tâche en cours...');
+      const response = await fetch("/api/exchange/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -1937,8 +1949,27 @@ function ExchangeTaskForm({ onTaskCreated }: ExchangeTaskFormProps) {
         createur: currentUser.phone,
       }),
     });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Erreur création tâche:', response.status, errorText);
+        showAlert(`Erreur lors de la création de la tâche: ${response.status} - ${errorText}`, "error");
+        return;
+      }
+      
+      const result = await response.json();
+      console.log('✅ Tâche créée avec succès:', result);
+      
     form.reset();
     onTaskCreated();
+      showAlert('✅ Tâche créée avec succès !', "success");
+      
+    } catch (error) {
+      console.error('❌ Erreur lors de la création de la tâche:', error);
+      showAlert(`Erreur lors de la création de la tâche: ${error instanceof Error ? error.message : 'Erreur inconnue'}`, "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 space-y-4">
@@ -1985,7 +2016,13 @@ function ExchangeTaskForm({ onTaskCreated }: ExchangeTaskFormProps) {
         </div>
 
       </div>
-      <button type="submit" className="mt-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-2 rounded-full font-semibold hover:shadow-lg transition-all duration-200">Créer la tâche</button>
+      <button 
+        type="submit" 
+        disabled={isSubmitting}
+        className="mt-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-2 rounded-full font-semibold hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isSubmitting ? '🔄 Création...' : 'Créer la tâche'}
+      </button>
     </form>
   );
 }
@@ -1995,8 +2032,10 @@ interface ExchangeTaskListProps {
   onRefresh: () => void;
   showOnlyMine?: boolean;
   onNewTask?: () => void;
+  showAlert: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
+  showConfirm: (message: string, onConfirm: () => void, onCancel?: () => void) => void;
 }
-function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: ExchangeTaskListProps) {
+function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask, showAlert, showConfirm }: ExchangeTaskListProps) {
   const [filterType, setFilterType] = useState<string>("ALL");
   const [completerPseudo, setCompleterPseudo] = useState<string>("");
 
@@ -2153,7 +2192,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
   async function handleComplete(taskId: string) {
     // Vérifier si l'utilisateur a d'abord cliqué sur "Voir"
     if (!viewedTasks.has(taskId)) {
-      alert("⚠️ Vous devez d'abord effectuer la tâche. Merci !");
+      showAlert("⚠️ Vous devez d'abord effectuer la tâche. Merci !", "warning");
       return;
     }
 
@@ -2176,20 +2215,20 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
       
       const data = await response.json();
       if (data.error) {
-        alert(data.error);
+        showAlert(data.error, "error");
       } else if (data.verified) {
-        alert(`✅ ${data.message}\n💰 Vous avez gagné ${data.creditsEarned} crédits !`);
+        showAlert(`✅ ${data.message}\n💰 Vous avez gagné ${data.creditsEarned} crédits !`, "success");
         // Ajouter la tâche à la liste des tâches complétées
         setCompletedTasks(prev => new Set([...prev, taskId]));
         onRefresh();
         refreshDashboardCredits(userId);
       } else {
-        alert(`❌ ${data.message}\n⚠️ L'action n'a pas pu être vérifiée automatiquement.`);
+        showAlert(`❌ ${data.message}\n⚠️ L'action n'a pas pu être vérifiée automatiquement.`, "error");
         onRefresh();
       }
     } catch {
       console.error('Erreur lors de la complétion:', Error);
-      alert("Erreur lors de la complétion de la tâche");
+      showAlert("Erreur lors de la complétion de la tâche", "error");
     }
   }
 
@@ -2197,14 +2236,14 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
     // Récupérer l'utilisateur actuel
     const currentUser = getCurrentUser();
     if (!currentUser) {
-      alert('Vous devez être connecté pour supprimer une tâche');
+      showAlert('Vous devez être connecté pour supprimer une tâche', "error");
       return;
     }
 
     // Trouver la tâche pour vérifier le créateur
     const task = tasks.find(t => t.id === taskId);
     if (!task) {
-      alert('Tâche non trouvée');
+      showAlert('Tâche non trouvée', "error");
       return;
     }
 
@@ -2213,23 +2252,24 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask }: Exchang
     const isCreator = norm(task.createur) === norm(currentUser.phone);
     
     if (!isCreator) {
-      alert('Vous ne pouvez supprimer que vos propres tâches');
+      showAlert('Vous ne pouvez supprimer que vos propres tâches', "error");
       return;
     }
 
-    if (!confirm('Supprimer cette tâche ?')) return;
-    
-    try {
-      const response = await fetch(`/api/exchange/tasks?id=${taskId}`, { method: 'DELETE' });
-      if (response.ok) {
-        onRefresh();
-      } else {
-        alert('Erreur lors de la suppression de la tâche');
-      }
-    } catch {
-      console.error('Erreur lors de la suppression:', Error);
-      alert('Erreur lors de la suppression de la tâche');
-    }
+    showConfirm('Supprimer cette tâche ?', () => {
+      fetch(`/api/exchange/tasks?id=${taskId}`, { method: 'DELETE' })
+        .then(response => {
+          if (response.ok) {
+            onRefresh();
+          } else {
+            showAlert('Erreur lors de la suppression de la tâche', "error");
+          }
+        })
+        .catch(() => {
+          console.error('Erreur lors de la suppression:', Error);
+          showAlert('Erreur lors de la suppression de la tâche', "error");
+        });
+    });
   }
 
 
