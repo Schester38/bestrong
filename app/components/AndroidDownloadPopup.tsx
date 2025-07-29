@@ -146,7 +146,7 @@ export default function AndroidDownloadPopup({ isOpen, onClose, onDownload }: An
 
           {/* Note */}
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-4">
-            L'installation se fera automatiquement après le téléchargement
+            Ouvrez le fichier téléchargé pour installer l'application
           </p>
         </div>
       </div>
