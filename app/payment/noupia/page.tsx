@@ -212,119 +212,111 @@ Vérifiez votre connexion internet et réessayez.`);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-12">
-      <div className="w-full max-w-2xl">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
+      <div className="w-full max-w-sm">
         {/* Header */}
-        <div className="text-center mb-32">
+        <div className="text-center mb-8">
           <Link 
             href="/"
-            className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-24"
+            className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-6"
           >
-            <ArrowLeft className="w-6 h-6" />
+            <ArrowLeft className="w-5 h-5" />
             Retour à l'accueil
           </Link>
           
-          <h1 className="text-6xl font-bold text-gray-900 dark:text-white mb-12">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             Paiement NOUPIA
           </h1>
-          <p className="text-3xl text-gray-600 dark:text-gray-300">
+          <p className="text-base text-gray-600 dark:text-gray-300">
             MTN Mobile Money
           </p>
         </div>
 
         {/* Formulaire de paiement */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-20 shadow-xl mb-24">
-          <form onSubmit={(e) => { e.preventDefault(); initiatePayment(); }}>
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg mb-6">
+          <form onSubmit={(e) => { e.preventDefault(); initiatePayment(); }} className="space-y-4">
             {/* Montant */}
-            <div className="mb-16">
-              <label className="block text-2xl font-medium text-gray-700 dark:text-gray-300 mb-12">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Montant (XAF)
               </label>
               <input
                 type="number"
                 value={formData.amount}
                 onChange={(e) => setFormData({...formData, amount: parseInt(e.target.value) || 0})}
-                className="w-full p-12 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent text-3xl"
+                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
                 placeholder="1000"
                 min="100"
                 required
               />
             </div>
 
-            {/* Séparateur */}
-            <div className="h-8 bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent rounded-full mb-16"></div>
-
             {/* Numéro de téléphone */}
-            <div className="mb-16">
-              <label className="block text-2xl font-medium text-gray-700 dark:text-gray-300 mb-12">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Numéro MTN
               </label>
               <input
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                className="w-full p-12 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent text-3xl"
+                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
                 placeholder="Votre numéro MTN"
                 required
               />
             </div>
 
-            {/* Séparateur */}
-            <div className="h-8 bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent rounded-full mb-16"></div>
-
             {/* Bouton de paiement */}
-            <div>
-              <button
-                type="submit"
-                disabled={!isFormValid() || isLoading}
-                className={`w-full py-20 px-12 rounded-xl font-bold text-white transition-all duration-300 flex items-center justify-center gap-8 text-3xl ${
-                  isFormValid() && !isLoading
-                    ? 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 shadow-lg hover:shadow-xl'
-                    : 'bg-gray-400 cursor-not-allowed'
-                }`}
-              >
-                {isLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-                    Traitement en cours...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="w-12 h-12" />
-                    Payer {formData.amount} XAF
-                  </>
-                )}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={!isFormValid() || isLoading}
+              className={`w-full py-4 px-4 rounded-lg font-medium text-white transition-all duration-300 flex items-center justify-center gap-2 text-base ${
+                isFormValid() && !isLoading
+                  ? 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 shadow-lg hover:shadow-xl'
+                  : 'bg-gray-400 cursor-not-allowed'
+              }`}
+            >
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Traitement...
+                </>
+              ) : (
+                <>
+                  <CreditCard className="w-4 h-4" />
+                  Payer {formData.amount} XAF
+                </>
+              )}
+            </button>
           </form>
 
           {/* Statut du paiement */}
           {paymentStatus && (
-            <div className={`mt-20 p-12 rounded-xl ${
+            <div className={`mt-4 p-4 rounded-lg ${
               paymentStatus === 'successful' ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' :
               paymentStatus === 'failed' ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800' :
               'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800'
             }`}>
-              <div className="flex items-center gap-8">
+              <div className="flex items-center gap-3">
                 {paymentStatus === 'successful' ? (
                   <>
-                    <CheckCircle className="w-10 h-10 text-green-500" />
-                    <span className="text-green-700 dark:text-green-300 font-medium text-2xl">
-                      Paiement réussi ! Redirection vers le tableau de bord...
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <span className="text-green-700 dark:text-green-300 font-medium text-sm">
+                      Paiement réussi ! Redirection...
                     </span>
                   </>
                 ) : paymentStatus === 'failed' ? (
                   <>
-                    <XCircle className="w-10 h-10 text-red-500" />
-                    <span className="text-red-700 dark:text-red-300 font-medium text-2xl">
-                      Paiement échoué. Veuillez réessayer.
+                    <XCircle className="w-5 h-5 text-red-500" />
+                    <span className="text-red-700 dark:text-red-300 font-medium text-sm">
+                      Paiement échoué. Réessayez.
                     </span>
                   </>
                 ) : (
                   <>
-                    <Clock className="w-10 h-10 text-yellow-500" />
-                    <span className="text-yellow-700 dark:text-yellow-300 font-medium text-2xl">
-                      Vérification du paiement en cours...
+                    <Clock className="w-5 h-5 text-yellow-500" />
+                    <span className="text-yellow-700 dark:text-yellow-300 font-medium text-sm">
+                      Vérification en cours...
                     </span>
                   </>
                 )}
@@ -334,27 +326,27 @@ Vérifiez votre connexion internet et réessayez.`);
 
           {/* Bouton de réessai */}
           {paymentStatus === 'failed' && (
-            <div className="mt-16">
+            <div className="mt-4">
               <button 
                 onClick={() => {
                   setFormData({ ...formData, amount: 1000, phone: formData.phone, reference: `BE_STRONG_${Date.now()}` });
                   setTransactionId(null);
                   setPaymentStatus(null);
                 }}
-                className="w-full bg-red-500 hover:bg-red-600 text-white py-12 px-12 rounded-xl font-semibold transition-all duration-300 text-2xl"
+                className="w-full bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-lg font-medium transition-all duration-300 text-sm"
               >
-                Réessayer le paiement
+                Réessayer
               </button>
             </div>
           )}
         </div>
 
         {/* Informations */}
-        <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-2xl p-20">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-8 text-center">
+        <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 text-center">
             Informations importantes
           </h3>
-          <div className="space-y-6 text-base text-gray-600 dark:text-gray-300">
+          <div className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
             <div className="flex items-center gap-3">
               <span className="text-green-500 text-lg">✅</span>
               <span>Paiement sécurisé via NOUPIA</span>
