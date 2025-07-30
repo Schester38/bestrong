@@ -364,11 +364,7 @@ body {
   background-clip: text;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
+/* Reset global - supprimé car cause des problèmes de layout */
 
 input, textarea, select {
   font-family: inherit;
