@@ -212,86 +212,100 @@ Vérifiez votre connexion internet et réessayez.`);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-12">
-      <div className="w-full max-w-2xl">
+    <div className="h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
+      <div className="w-full max-w-lg">
         {/* Header */}
-        <div className="text-center mb-20">
+        <div className="text-center mb-1 sm:mb-2">
           <Link 
             href="/"
-            className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-16"
+            className="inline-flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-1 group"
           >
-            <ArrowLeft className="w-6 h-6" />
+            <ArrowLeft className="w-2 h-2 group-hover:-translate-x-1 transition-transform" />
             Retour à l'accueil
           </Link>
           
-          <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-8">
-            Paiement NOUPIA
-          </h1>
-          <p className="text-2xl text-gray-600 dark:text-gray-300">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-blue-500 rounded-full blur-3xl opacity-20"></div>
+            <h1 className="relative text-sm sm:text-base font-bold text-gray-900 dark:text-white mb-0 bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+              Paiement NOUPIA
+            </h1>
+          </div>
+          <p className="text-xs text-gray-600 dark:text-gray-300 font-medium">
             MTN Mobile Money Cameroun
           </p>
         </div>
 
         {/* Formulaire de paiement */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-16 shadow-xl mb-16">
-          <form onSubmit={(e) => { e.preventDefault(); initiatePayment(); }} className="space-y-16">
-            {/* Montant */}
-            <div className="mb-16">
-              <label className="block text-xl font-medium text-gray-700 dark:text-gray-300 mb-8">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-2 sm:p-3 shadow-2xl mb-2 sm:mb-3 border border-white/20 dark:border-gray-700/50">
+          <form onSubmit={(e) => { e.preventDefault(); initiatePayment(); }} className="space-y-3">
+                        {/* Montant */}
+            <div className="mb-2 sm:mb-4">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
                 Montant (XAF)
               </label>
-              <input
-                type="number"
-                value={formData.amount}
-                onChange={(e) => setFormData({...formData, amount: parseInt(e.target.value) || 0})}
-                className="w-full p-8 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent text-2xl"
-                placeholder="1000"
-                min="100"
-                required
-              />
+              <div className="relative">
+                <input
+                  type="number"
+                  value={formData.amount}
+                  onChange={(e) => setFormData({...formData, amount: parseInt(e.target.value) || 0})}
+                  className="w-full p-2 sm:p-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-white/50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-green-500/30 focus:border-green-500 text-sm sm:text-base transition-all duration-300 backdrop-blur-sm"
+                  placeholder="1000"
+                  min="100"
+                  required
+                />
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs sm:text-sm font-bold">
+                  XAF
+                </div>
+              </div>
             </div>
             
             {/* Séparateur */}
-            <div className="h-8 bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent rounded-full mb-16"></div>
+            <div className="h-1 bg-gradient-to-r from-transparent via-green-200 dark:via-green-800 to-transparent rounded-full mb-4 sm:mb-8"></div>
 
             {/* Numéro de téléphone */}
-            <div className="mb-16">
-              <label className="block text-xl font-medium text-gray-700 dark:text-gray-300 mb-8">
+            <div className="mb-2 sm:mb-4">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
                 Numéro MTN
               </label>
-              <input
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                className="w-full p-8 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent text-2xl"
-                placeholder="Votre numéro MTN"
-                required
-              />
+              <div className="relative">
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  className="w-full p-2 sm:p-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-white/50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-green-500/30 focus:border-green-500 text-sm sm:text-base transition-all duration-300 backdrop-blur-sm"
+                  placeholder="Votre numéro MTN"
+                  required
+                />
+ 
+              </div>
             </div>
             
             {/* Séparateur */}
-            <div className="h-8 bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent rounded-full mb-16"></div>
+            <div className="h-1 bg-gradient-to-r from-transparent via-green-200 dark:via-green-800 to-transparent rounded-full mb-4 sm:mb-8"></div>
 
             {/* Bouton de paiement */}
             <div>
               <button
                 type="submit"
                 disabled={!isFormValid() || isLoading}
-                className={`w-full py-16 px-10 rounded-xl font-bold text-white transition-all duration-300 flex items-center justify-center gap-6 text-2xl ${
+                className={`w-full py-4 sm:py-8 px-4 sm:px-8 rounded-xl font-bold text-white transition-all duration-500 flex items-center justify-center gap-4 text-sm sm:text-xl relative overflow-hidden ${
                   isFormValid() && !isLoading
-                    ? 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 shadow-lg hover:shadow-xl'
+                    ? 'bg-gradient-to-r from-green-500 via-blue-500 to-purple-500 hover:from-green-600 hover:via-blue-600 hover:to-purple-600 shadow-2xl hover:shadow-green-500/25 hover:scale-105'
                     : 'bg-gray-400 cursor-not-allowed'
                 }`}
               >
+                {isFormValid() && !isLoading && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full transition-transform duration-1000 hover:translate-x-full"></div>
+                )}
                 {isLoading ? (
                   <>
-                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white"></div>
-                    Traitement en cours...
+                    <div className="animate-spin rounded-full h-4 w-4 sm:h-6 sm:w-6 border-b-2 border-white"></div>
+                    <span className="text-xs sm:text-base">Traitement en cours...</span>
                   </>
                 ) : (
                   <>
-                    <CreditCard className="w-10 h-10" />
-                    Payer {formData.amount} XAF
+                    <CreditCard className="w-4 h-4 sm:w-6 sm:h-6" />
+                    <span className="text-xs sm:text-base">Payer {formData.amount} XAF</span>
                   </>
                 )}
               </button>
@@ -300,30 +314,36 @@ Vérifiez votre connexion internet et réessayez.`);
 
           {/* Statut du paiement */}
           {paymentStatus && (
-            <div className={`mt-16 p-8 rounded-xl ${
-              paymentStatus === 'successful' ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' :
-              paymentStatus === 'failed' ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800' :
-              'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800'
+            <div className={`mt-4 sm:mt-8 p-4 sm:p-6 rounded-xl backdrop-blur-xl border-2 ${
+              paymentStatus === 'successful' ? 'bg-green-50/80 dark:bg-green-900/20 border-green-200 dark:border-green-800 shadow-green-500/25' :
+              paymentStatus === 'failed' ? 'bg-red-50/80 dark:bg-red-900/20 border-red-200 dark:border-red-800 shadow-red-500/25' :
+              'bg-yellow-50/80 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 shadow-yellow-500/25'
             }`}>
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2 sm:gap-4">
                 {paymentStatus === 'successful' ? (
                   <>
-                    <CheckCircle className="w-8 h-8 text-green-500" />
-                    <span className="text-green-700 dark:text-green-300 font-medium text-xl">
+                    <div className="p-1 sm:p-2 bg-green-100 dark:bg-green-900/50 rounded-full">
+                      <CheckCircle className="w-4 h-4 sm:w-6 sm:h-6 text-green-500" />
+                    </div>
+                    <span className="text-green-700 dark:text-green-300 font-medium text-xs sm:text-lg">
                       Paiement réussi ! Redirection vers le tableau de bord...
                     </span>
                   </>
                 ) : paymentStatus === 'failed' ? (
                   <>
-                    <XCircle className="w-8 h-8 text-red-500" />
-                    <span className="text-red-700 dark:text-red-300 font-medium text-xl">
+                    <div className="p-1 sm:p-2 bg-red-100 dark:bg-red-900/50 rounded-full">
+                      <XCircle className="w-4 h-4 sm:w-6 sm:h-6 text-red-500" />
+                    </div>
+                    <span className="text-red-700 dark:text-red-300 font-medium text-xs sm:text-lg">
                       Paiement échoué. Veuillez réessayer.
                     </span>
                   </>
                 ) : (
                   <>
-                    <Clock className="w-8 h-8 text-yellow-500" />
-                    <span className="text-yellow-700 dark:text-yellow-300 font-medium text-xl">
+                    <div className="p-1 sm:p-2 bg-yellow-100 dark:bg-yellow-900/50 rounded-full">
+                      <Clock className="w-4 h-4 sm:w-6 sm:h-6 text-yellow-500" />
+                    </div>
+                    <span className="text-yellow-700 dark:text-yellow-300 font-medium text-xs sm:text-lg">
                       Vérification du paiement en cours...
                     </span>
                   </>
@@ -334,14 +354,14 @@ Vérifiez votre connexion internet et réessayez.`);
 
           {/* Bouton de réessai */}
           {paymentStatus === 'failed' && (
-            <div className="mt-16">
+            <div className="mt-4 sm:mt-8">
               <button 
                 onClick={() => {
                   setFormData({ ...formData, amount: 1000, phone: formData.phone, reference: `BE_STRONG_${Date.now()}` });
                   setTransactionId(null);
                   setPaymentStatus(null);
                 }}
-                className="w-full bg-red-500 hover:bg-red-600 text-white py-10 px-10 rounded-xl font-semibold transition-all duration-300 text-xl"
+                className="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-3 sm:py-6 px-4 sm:px-8 rounded-xl font-semibold transition-all duration-300 text-xs sm:text-lg shadow-xl hover:shadow-red-500/25 hover:scale-105"
               >
                 Réessayer le paiement
               </button>
@@ -350,22 +370,28 @@ Vérifiez votre connexion internet et réessayez.`);
         </div>
 
         {/* Informations */}
-        <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-2xl p-20">
-          <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-16 text-center">
+        <div className="bg-gradient-to-r from-green-50/80 to-blue-50/80 dark:from-green-900/20 dark:to-blue-900/20 rounded-2xl p-2 sm:p-3 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 shadow-2xl">
+          <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white mb-2 sm:mb-3 text-center bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
             Informations importantes
           </h3>
-          <div className="space-y-12 text-lg text-gray-600 dark:text-gray-300">
-            <div className="flex items-center gap-6">
-              <span className="text-green-500 text-2xl">✅</span>
-              <span>Paiement sécurisé via NOUPIA</span>
+          <div className="space-y-1 sm:space-y-2 text-xs text-gray-600 dark:text-gray-300">
+            <div className="flex items-center gap-2 sm:gap-4 p-2 sm:p-3 bg-white/50 dark:bg-gray-800/50 rounded-xl backdrop-blur-sm">
+              <div className="p-1 sm:p-2 bg-green-100 dark:bg-green-900/50 rounded-full">
+                <span className="text-green-500 text-sm sm:text-xl">✅</span>
+              </div>
+              <span className="font-medium text-xs sm:text-sm">Paiement sécurisé via NOUPIA</span>
             </div>
-            <div className="flex items-center gap-6">
-              <span className="text-green-500 text-2xl">✅</span>
-              <span>USSD *126# • Frais : 2 XAF</span>
+            <div className="flex items-center gap-2 sm:gap-4 p-2 sm:p-3 bg-white/50 dark:bg-gray-800/50 rounded-xl backdrop-blur-sm">
+              <div className="p-1 sm:p-2 bg-blue-100 dark:bg-blue-900/50 rounded-full">
+                <span className="text-blue-500 text-sm sm:text-xl">📱</span>
+              </div>
+              <span className="font-medium text-xs sm:text-sm">Frais : 2 XAF</span>
             </div>
-            <div className="flex items-center gap-6">
-              <span className="text-green-500 text-2xl">✅</span>
-              <span>Vérification automatique</span>
+            <div className="flex items-center gap-2 sm:gap-4 p-2 sm:p-3 bg-white/50 dark:bg-gray-800/50 rounded-xl backdrop-blur-sm">
+              <div className="p-1 sm:p-2 bg-purple-100 dark:bg-purple-900/50 rounded-full">
+                <span className="text-purple-500 text-sm sm:text-xl">⚡</span>
+              </div>
+              <span className="font-medium text-xs sm:text-sm">Vérification automatique</span>
             </div>
           </div>
         </div>
