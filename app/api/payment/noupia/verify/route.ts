@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Clés NOUPIA
-const NOUPIA_DEVELOPER_KEY = process.env.NOUPIA_DEVELOPER_KEY || 'pBvYpdUaFuoEduhLZ0.o8vmaUqvZED5obsPrr0s_WVZh8Innn.q2j852ye42N924H_mBn8C.DlDceR8JiPeI5OqdS4szf1zM63AcDeOhFiE1YgRkk.XWBs2kvVUQoAFJlt0RH3f1QrrE3MaQd6da8j7Z56osk16J1tfCzw9SQqiRrIhsekaey.usBsS6Pt3o4QcfviA2Umi8CB8aTh5.ZD4g4QFka1J3TyC60ejPQV4tyJ28WFixeAKdj4suYl_';
-const NOUPIA_SUBSCRIPTION_KEY = process.env.NOUPIA_SUBSCRIPTION_KEY || '3dZjlyglnGyLm1KI1BXFSszD17OnoXZgEHGMRP_mflo5iCO0VjPh3u8DRjlsdVu88duCI0gsbl_FjMSL7U73ZcOEPNcyz4ycSbx9toR0taIhmcQjhcAqjMcB9KuNcuGX';
+// Clés NOUPIA depuis .env.local
+const NOUPIA_DEVELOPER_KEY = process.env.NOUPIA_DEVELOPER_KEY!;
+const NOUPIA_SUBSCRIPTION_KEY = process.env.NOUPIA_SUBSCRIPTION_KEY!;
 
 interface NoupiaVerifyRequest {
-  transaction: string;
+  transactionId: string;
 }
 
 interface NoupiaVerifyResponse {
@@ -35,10 +35,20 @@ interface NoupiaVerifyResponse {
 
 export async function POST(request: NextRequest) {
   try {
+    // Vérifier que les clés API sont disponibles
+    if (!NOUPIA_DEVELOPER_KEY || !NOUPIA_SUBSCRIPTION_KEY) {
+      console.error('❌ Clés API NOUPIA manquantes');
+      return NextResponse.json({
+        response: 'error',
+        code: 'MISSING_API_KEYS',
+        message: 'Configuration API manquante'
+      }, { status: 500 });
+    }
+
     const body: NoupiaVerifyRequest = await request.json();
 
     // Validation des données
-    if (!body.transaction) {
+    if (!body.transactionId) {
       return NextResponse.json({
         response: 'error',
         code: 'MISSING_TRANSACTION',
@@ -46,9 +56,14 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    console.log('Verifying NOUPIA payment:', body.transaction);
+    console.log('🔍 Vérification paiement NOUPIA:', body.transactionId);
 
-    // Appel à l'API NOUPIA pour vérifier
+    // Appel API NOUPIA RÉELLE pour vérification
+    console.log('🌐 Appel API NOUPIA réelle pour vérification...');
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 secondes timeout
+
     const response = await fetch('https://api.noupia.com/pay', {
       method: 'POST',
       headers: {
@@ -63,42 +78,59 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         operation: 'verify',
-        transaction: body.transaction
-      })
+        transaction: body.transactionId
+      }),
+      signal: controller.signal
     });
 
-    const result: NoupiaVerifyResponse = await response.json();
+    clearTimeout(timeoutId);
+    console.log('📡 Réponse vérification NOUPIA status:', response.status);
 
-    console.log('NOUPIA verify response:', result);
+    const responseText = await response.text();
+    console.log('📡 Réponse vérification NOUPIA texte:', responseText);
+
+    let result: NoupiaVerifyResponse;
+
+    try {
+      result = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('❌ Erreur parsing JSON vérification:', parseError);
+      return NextResponse.json({
+        response: 'error',
+        code: 'INVALID_RESPONSE',
+        message: 'Réponse invalide de l\'API NOUPIA'
+      }, { status: 500 });
+    }
+
+    console.log('📡 Réponse vérification NOUPIA parsée:', result);
 
     if (result.response === 'success' && result.data) {
-      // Si le paiement est réussi, mettre à jour les crédits de l'utilisateur
-      if (result.data.status === 'successful') {
-        console.log('Payment successful, updating user credits...');
-        
-        // Ici vous pouvez ajouter la logique pour créditer l'utilisateur
-        // Par exemple, appeler votre API de mise à jour des crédits
-        try {
-          // Exemple : mettre à jour les crédits dans Supabase
-          // await updateUserCredits(userId, amount);
-          console.log('User credits updated successfully');
-        } catch (error) {
-          console.error('Error updating user credits:', error);
-        }
-      }
-
+      console.log('✅ Vérification réussie (API RÉELLE), statut:', result.data.status);
       return NextResponse.json(result);
     } else {
-      console.error('NOUPIA verify error:', result);
-      return NextResponse.json(result, { status: 400 });
+      console.error('❌ Erreur vérification NOUPIA:', result);
+      return NextResponse.json({
+        response: 'error',
+        code: 'VERIFICATION_FAILED',
+        message: result.message || 'Erreur lors de la vérification'
+      }, { status: 400 });
     }
 
   } catch (error) {
-    console.error('Error verifying NOUPIA payment:', error);
+    console.error('❌ Erreur vérification paiement NOUPIA:', error);
+    
+    if (error instanceof Error && error.name === 'AbortError') {
+      return NextResponse.json({
+        response: 'error',
+        code: 'TIMEOUT',
+        message: 'Délai d\'attente dépassé lors de la vérification'
+      }, { status: 408 });
+    }
+    
     return NextResponse.json({
       response: 'error',
       code: 'INTERNAL_ERROR',
-      message: 'Erreur interne du serveur'
+      message: `Erreur interne du serveur: ${error instanceof Error ? error.message : 'Erreur inconnue'}`
     }, { status: 500 });
   }
 } 
