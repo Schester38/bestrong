@@ -37,7 +37,7 @@ export default function NoupiaPaymentPage() {
   });
 
   const isFormValid = () => {
-    return formData.amount > 0 &&
+    return formData.amount >= 1000 &&
            formData.phone.length >= 9 &&
            formData.phone.length <= 9;
   };
@@ -78,7 +78,11 @@ export default function NoupiaPaymentPage() {
 
   const initiatePayment = async () => {
     if (!isFormValid()) {
-      alert("Veuillez remplir tous les champs correctement");
+      if (formData.amount < 1000) {
+        alert("❌ Montant minimum requis : 1000 XAF");
+      } else {
+        alert("Veuillez remplir tous les champs correctement");
+      }
       return;
     }
     
@@ -250,7 +254,7 @@ Vérifiez votre connexion internet et réessayez.`);
                   onChange={(e) => setFormData({...formData, amount: parseInt(e.target.value) || 0})}
                   className="w-full p-2 sm:p-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-white/50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-green-500/30 focus:border-green-500 text-sm sm:text-base transition-all duration-300 backdrop-blur-sm"
                   placeholder="1000"
-                  min="100"
+                  min="1000"
                   required
                 />
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs sm:text-sm font-bold">

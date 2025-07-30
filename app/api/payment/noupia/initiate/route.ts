@@ -69,6 +69,15 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // Validation du montant minimum
+    if (body.amount < 1000) {
+      console.error('❌ Montant insuffisant:', { amount: body.amount, minimum: 1000 });
+      return NextResponse.json({
+        success: false,
+        message: 'Montant minimum requis : 1000 XAF'
+      }, { status: 400 });
+    }
+
     // Préparer les données pour l'API NOUPIA
     const noupiaData = {
       operation: 'initiate',
