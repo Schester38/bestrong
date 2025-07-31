@@ -18,7 +18,7 @@ export default function ThankYouPage() {
   const { showAlert } = useAlert();
   const [showTrialButton, setShowTrialButton] = useState(false);
   const [showNote, setShowNote] = useState(false);
-  const [noteReason, setNoteReason] = useState<'admin' | 'trial' | null>(null);
+  const [noteReason, setNoteReason] = useState<'admin' | 'trial' | 'payment' | null>(null);
   const [loading, setLoading] = useState(true);
 
 
@@ -70,6 +70,22 @@ export default function ThankYouPage() {
                 } else {
                   // Nouvel utilisateur dans sa période d'essai
                   setShowTrialButton(true);
+                  setShowNote(false);
+                }
+              } 
+              // Vérifier si la période de paiement est terminée
+              else if (userData.date_dernier_paiement) {
+                const datePaiement = new Date(userData.date_dernier_paiement);
+                const now = new Date();
+                const diffJours = (now.getTime() - datePaiement.getTime()) / (1000 * 60 * 60 * 24);
+                
+                if (diffJours >= 30) {
+                  setShowNote(true);
+                  setNoteReason('payment');
+                  setShowTrialButton(false);
+                } else {
+                  // Utilisateur avec paiement valide
+                  setShowTrialButton(false);
                   setShowNote(false);
                 }
               } else {
@@ -166,41 +182,22 @@ export default function ThankYouPage() {
           <div className="mt-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-xl text-yellow-900 dark:bg-yellow-900/30 dark:text-yellow-100 flex flex-col items-center">
             <p className="mb-3 text-base font-medium text-center">
               <span className="font-bold">Note :</span> {noteReason === 'admin' ? (
-                <>Votre accès a été temporairement bloqué par l'administrateur. Après votre paiement, veuillez contacter l'admin avec une capture d'écran pour demander la réactivation de votre accès aux fonctionnalités de l'application.</>
+                <>Votre accès a été temporairement bloqué par l'administrateur. Veuillez effectuer un nouveau paiement pour réactiver votre accès aux fonctionnalités de l'application.</>
               ) : noteReason === 'trial' ? (
-                <>Votre période d'essai gratuit est terminée. Après votre paiement, veuillez contacter l'admin avec une capture d'écran pour obtenir l'accès aux fonctionnalités de l'application.</>
+                <>Votre période d'essai gratuit de 45 jours est terminée. Veuillez effectuer un paiement pour obtenir l'accès aux fonctionnalités de l'application.</>
+              ) : noteReason === 'payment' ? (
+                <>Votre période de paiement de 30 jours est terminée. Veuillez effectuer un nouveau paiement pour continuer à accéder aux fonctionnalités de l'application.</>
               ) : null}
             </p>
-            <a
-              href="https://wa.me/237672886348"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-full font-semibold text-lg transition-all duration-200 shadow-md"
+            <button
+              onClick={() => window.location.href = "/payment/noupia"}
+              className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-2 rounded-full font-semibold text-lg transition-all duration-200 shadow-md"
             >
-              Contacter l'admin
-            </a>
+              Effectuer le paiement
+            </button>
           </div>
         )}
 
-        <button
-          className="w-full bg-gradient-to-r from-yellow-400 to-yellow-600 text-white py-3 rounded-lg font-semibold text-lg hover:shadow-lg transition-all duration-200 mb-4"
-          onClick={() => window.location.href = "/paypal-qr.html"}
-        >
-          Payer avec PayPal
-        </button>
-        <p className="text-xs text-gray-600 dark:text-gray-300 mb-2">Prix PayPal : 5€ ou 5$ (international)</p>
-        <button
-          className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-3 rounded-lg font-semibold text-lg hover:shadow-lg transition-all duration-200 mb-4"
-          onClick={() => window.location.href = "/mtn-orange"}
-        >
-          Payer avec MTN/ORANGE
-        </button>
-        <button
-          className="w-full bg-gradient-to-r from-blue-400 to-blue-600 text-white py-3 rounded-lg font-semibold text-lg hover:shadow-lg transition-all duration-200 mb-4"
-          onClick={() => window.location.href = "/wave-paiement.html"}
-        >
-          Payer avec WAVE
-        </button>
         <button
           className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-lg font-semibold text-lg hover:shadow-lg transition-all duration-200 mb-4"
           onClick={() => window.location.href = "/payment/noupia"}
