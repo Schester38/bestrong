@@ -345,7 +345,7 @@ Vérifiez votre connexion internet et réessayez.`);
                 ) : (
                   <>
                     <div className="p-1 sm:p-2 bg-yellow-100 dark:bg-yellow-900/50 rounded-full">
-                      <Clock className="w-4 h-4 sm:w-6 sm:h-6 text-yellow-500" />
+                      <div className="w-4 h-4 sm:w-6 sm:h-6 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
                     </div>
                     <span className="text-yellow-700 dark:text-yellow-300 font-medium text-xs sm:text-lg">
                       Vérification du paiement en cours...
