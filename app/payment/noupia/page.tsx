@@ -389,7 +389,7 @@ Vérifiez votre connexion internet et réessayez.`);
               <div className="p-1 sm:p-2 bg-blue-100 dark:bg-blue-900/50 rounded-full">
                 <span className="text-blue-500 text-sm sm:text-xl">📱</span>
               </div>
-              <span className="font-medium text-xs sm:text-sm">Frais : 2 XAF</span>
+              <span className="font-medium text-xs sm:text-sm">Frais: 2%</span>
             </div>
             <div className="flex items-center gap-2 sm:gap-4 p-2 sm:p-3 bg-white/50 dark:bg-gray-800/50 rounded-xl backdrop-blur-sm">
               <div className="p-1 sm:p-2 bg-purple-100 dark:bg-purple-900/50 rounded-full">
