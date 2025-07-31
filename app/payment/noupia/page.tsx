@@ -399,6 +399,15 @@ Vérifiez votre connexion internet et réessayez.`);
             </div>
           </div>
         </div>
+
+        {/* Contact Support */}
+        <div className="mt-2 sm:mt-4 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-2 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 shadow-xl">
+          <div className="text-center">
+            <p className="text-xs text-gray-600 dark:text-gray-300 mb-2">
+              Problème ? <a href="https://wa.me/237672886348" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 font-medium hover:underline">Contactez-nous</a>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
