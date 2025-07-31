@@ -38,8 +38,7 @@ export default function NoupiaPaymentPage() {
 
   const isFormValid = () => {
     return formData.amount >= 1000 &&
-           formData.phone.length >= 9 &&
-           formData.phone.length <= 9;
+           formData.phone.length >= 9;
   };
 
   const createSubscription = async () => {
@@ -235,7 +234,7 @@ Vérifiez votre connexion internet et réessayez.`);
             </h1>
           </div>
           <p className="text-xs text-gray-600 dark:text-gray-300 font-medium">
-            MTN Mobile Money Cameroun
+            MTN Mobile Money
           </p>
         </div>
 
