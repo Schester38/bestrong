@@ -122,16 +122,16 @@ export default function Home() {
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 dark:bg-gray-900/80 dark:border-gray-700 sticky top-0 z-50 relative w-full">
         {/* Header centré avec mr-auto/ml-auto pour un alignement parfait */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 w-full">
           <div className="flex items-center justify-center h-12 sm:h-16 w-full">
             {/* Logo et titre - centré */}
             <div className="flex items-center">
               <img 
                 src="/icon-512.png" 
                 alt="BE STRONG Logo" 
-                className="w-8 h-8 sm:w-10 sm:h-10 mr-2"
+                className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 mr-1 sm:mr-2"
               />
-              <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
+              <h1 className="text-sm sm:text-lg lg:text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
                 BE STRONG
               </h1>
             </div>
@@ -145,9 +145,10 @@ export default function Home() {
                 <>
                   <Link
                     href="/dashboard"
-                    className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-2 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold hover:shadow-lg transition-all duration-200"
+                    className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-1 sm:px-2 lg:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold hover:shadow-lg transition-all duration-200"
                   >
-                    Tableau de bord
+                    <span className="hidden sm:inline">Tableau de bord</span>
+                    <span className="sm:hidden">Dashboard</span>
                   </Link>
                   <button
                     onClick={() => {
@@ -155,24 +156,27 @@ export default function Home() {
                       setCurrentUser(null);
                       window.location.href = "/";
                     }}
-                    className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-red-500 hover:text-red-600 dark:hover:text-red-400 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200"
+                    className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-red-500 hover:text-red-600 dark:hover:text-red-400 px-1 sm:px-2 lg:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200"
                   >
-                    Se déconnecter
+                    <span className="hidden sm:inline">Se déconnecter</span>
+                    <span className="sm:hidden">Déco</span>
                   </button>
                 </>
               ) : (
                 <>
                   <button
                     onClick={() => setModalOpen("login")}
-                    className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-pink-500 hover:text-pink-600 dark:hover:text-pink-400 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200"
+                    className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-pink-500 hover:text-pink-600 dark:hover:text-pink-400 px-1 sm:px-2 lg:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200"
                   >
-                    Se connecter
+                    <span className="hidden sm:inline">Se connecter</span>
+                    <span className="sm:hidden">Connexion</span>
                   </button>
                   <button
                     onClick={() => setModalOpen("register")}
-                    className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-2 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold hover:shadow-lg transition-all duration-200"
+                    className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-1 sm:px-2 lg:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold hover:shadow-lg transition-all duration-200"
                   >
-                    Créer un compte
+                    <span className="hidden sm:inline">Créer un compte</span>
+                    <span className="sm:hidden">Inscription</span>
                   </button>
                 </>
               )}
@@ -183,13 +187,14 @@ export default function Home() {
 
       {/* Bouton ESSAIE GRATUIT pour 45 jours en haut de la page */}
       <div className="w-full flex justify-center mt-6">
-        <div className="max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl px-2 sm:px-4 lg:px-8">
           <button
             onClick={() => setModalOpen("register")}
-            className="bg-white text-pink-600 px-8 py-4 rounded-full text-lg font-semibold hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2"
+            className="bg-white text-pink-600 px-4 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 rounded-full text-sm sm:text-lg font-semibold hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2"
           >
-            ESSAIE GRATUIT pour 45 jours
-            <ArrowRight className="w-5 h-5" />
+            <span className="hidden sm:inline">ESSAIE GRATUIT pour 45 jours</span>
+            <span className="sm:hidden">ESSAI GRATUIT 45j</span>
+            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
       </div>
@@ -204,68 +209,71 @@ export default function Home() {
       )}
 
       {/* Hero Section */}
-      <section className="relative py-20 px-4 sm:px-6 lg:px-8 w-full flex justify-center">
+      <section className="relative py-10 sm:py-16 lg:py-20 px-2 sm:px-4 lg:px-8 w-full flex justify-center">
         <div className="max-w-7xl text-center">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6">
+          <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold mb-4 sm:mb-6">
             <span className="bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
               Boostez votre
             </span>
             <br />
             <span className="text-gray-900 dark:text-white">visibilité TikTok</span>
           </h1>
-          <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+          <p className="text-lg sm:text-xl lg:text-2xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto px-2">
             Augmentez vos abonnés, vues et likes de manière éthique grâce à notre plateforme d&apos;échanges organiques et nos outils d&apos;optimisation.
           </p>
           
           {/* Boutons d'action centrés */}
-          <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center items-center">
-            <a href="https://youtu.be/Uwh_izubcEw" target="_blank" rel="noopener noreferrer" className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-12 py-4 rounded-full text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap">
-              Présentation BE STRONG
-              <ArrowRight className="w-5 h-5" />
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center items-center px-2">
+            <a href="https://youtu.be/Uwh_izubcEw" target="_blank" rel="noopener noreferrer" className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 sm:px-8 lg:px-12 py-3 sm:py-4 rounded-full text-lg sm:text-xl lg:text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto">
+              <span className="hidden sm:inline">Présentation BE STRONG</span>
+              <span className="sm:hidden">Présentation</span>
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
             </a>
             
-            <Link href="/don" className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-12 py-4 rounded-full text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap">
+            <Link href="/don" className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 sm:px-8 lg:px-12 py-3 sm:py-4 rounded-full text-lg sm:text-xl lg:text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto">
               Faire un don
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
             </Link>
             
-            <Link href="/download-apk" className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-12 py-4 rounded-full text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap">
-              Télécharger l&apos;App Android
-              <ArrowRight className="w-5 h-5" />
+            <Link href="/download-apk" className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 sm:px-8 lg:px-12 py-3 sm:py-4 rounded-full text-lg sm:text-xl lg:text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto">
+              <span className="hidden sm:inline">Télécharger l&apos;App Android</span>
+              <span className="sm:hidden">App Android</span>
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
             </Link>
             
             <ShareButton 
-              className="bg-gradient-to-r from-green-400 to-blue-500 text-white px-12 py-4 rounded-full text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap"
+              className="bg-gradient-to-r from-green-400 to-blue-500 text-white px-6 sm:px-8 lg:px-12 py-3 sm:py-4 rounded-full text-lg sm:text-xl lg:text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M18 12l3-3m0 0l-3-3m3 3H9" />
               </svg>
-              Partager BE STRONG
+              <span className="hidden sm:inline">Partager BE STRONG</span>
+              <span className="sm:hidden">Partager</span>
             </ShareButton>
           </div>
 
           {/* Compteur d'utilisateurs centré */}
-          <div className="mt-8 flex justify-center">
-            <div className="relative px-8 py-5 rounded-2xl shadow-xl bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 flex flex-col items-center border-4 border-white dark:border-gray-900 animate-fade-in-up">
+          <div className="mt-6 sm:mt-8 flex justify-center px-2">
+            <div className="relative px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 rounded-2xl shadow-xl bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 flex flex-col items-center border-4 border-white dark:border-gray-900 animate-fade-in-up">
               <div className="flex items-center gap-2 mb-1">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m9-7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                <span className="text-4xl font-extrabold text-white drop-shadow animate-pulse">{userCount ?? '...'}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 sm:w-8 sm:h-8 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m9-7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                <span className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white drop-shadow animate-pulse">{userCount ?? '...'}</span>
               </div>
-              <div className="text-white text-base font-medium tracking-wide">utilisateurs inscrits</div>
+              <div className="text-white text-sm sm:text-base font-medium tracking-wide">utilisateurs inscrits</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Statistiques en temps réel */}
-      <section className="py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-pink-500 to-purple-600 relative w-full flex justify-center">
+      <section className="py-8 sm:py-10 lg:py-12 px-2 sm:px-4 lg:px-8 bg-gradient-to-r from-pink-500 to-purple-600 relative w-full flex justify-center">
         <div className="max-w-7xl">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-white mb-4">
+          <div className="text-center mb-6 sm:mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3 sm:mb-4">
               Statistiques en temps réel
             </h2>
-            <p className="text-pink-100">
+            <p className="text-pink-100 text-sm sm:text-base">
               Découvrez l'impact de BE STRONG sur la communauté TikTok
             </p>
           </div>
@@ -276,62 +284,62 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900 w-full flex justify-center">
+      <section id="features" className="py-12 sm:py-16 lg:py-20 px-2 sm:px-4 lg:px-8 bg-white dark:bg-gray-900 w-full flex justify-center">
         <div className="max-w-7xl">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
               Fonctionnalités principales
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300">
+            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300">
               Tout ce dont vous avez besoin pour réussir sur TikTok
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="bg-gradient-to-br from-pink-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 p-8 rounded-2xl border border-gray-200 dark:border-gray-600">
-              <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center mb-6">
-                <Users className="w-6 h-6 text-white" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+            <div className="bg-gradient-to-br from-pink-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 p-6 sm:p-8 rounded-2xl border border-gray-200 dark:border-gray-600">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
+                <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
                 Échanges organiques
               </h3>
-              <p className="text-gray-600 dark:text-gray-300">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
                 Gagnez des crédits en interagissant avec d&apos;autres comptes et utilisez-les pour recevoir des engagements sur vos vidéos.
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-pink-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 p-8 rounded-2xl border border-gray-200 dark:border-gray-600">
-              <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center mb-6">
-                <Shield className="w-6 h-6 text-white" />
+            <div className="bg-gradient-to-br from-pink-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 p-6 sm:p-8 rounded-2xl border border-gray-200 dark:border-gray-600">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
+                <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
                 100% Sécurisé
               </h3>
-              <p className="text-gray-600 dark:text-gray-300">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
                 Conformité RGPD et respect des conditions d&apos;utilisation de TikTok. Protection contre les abus et les bots (faux comptes).
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-pink-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 p-8 rounded-2xl border border-gray-200 dark:border-gray-600">
-              <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center mb-6">
-                <Users className="w-6 h-6 text-white" />
+            <div className="bg-gradient-to-br from-pink-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 p-6 sm:p-8 rounded-2xl border border-gray-200 dark:border-gray-600">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
+                <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
                 Communauté active
               </h3>
-              <p className="text-gray-600 dark:text-gray-300">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
                 Forum d&apos;entraide, challenges hebdomadaires et conseils d&apos;experts pour maximiser votre croissance.
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-pink-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 p-8 rounded-2xl border border-gray-200 dark:border-gray-600">
-              <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center mb-6">
-                <TrendingUp className="w-6 h-6 text-white" />
+            <div className="bg-gradient-to-br from-pink-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 p-6 sm:p-8 rounded-2xl border border-gray-200 dark:border-gray-600">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
+                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
                 Recommandations IA
               </h3>
-              <p className="text-gray-600 dark:text-gray-300">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
                 Conseils automatisés pour les hashtags, heures de posting et optimisation de contenu basés sur l&apos;IA.
               </p>
             </div>
@@ -340,21 +348,22 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-pink-500 to-purple-600 w-full flex justify-center">
+      <section className="py-12 sm:py-16 lg:py-20 px-2 sm:px-4 lg:px-8 bg-gradient-to-r from-pink-500 to-purple-600 w-full flex justify-center">
         <div className="max-w-4xl text-center">
-          <h2 className="text-4xl font-bold text-white mb-6">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4 sm:mb-6">
             Prêt à booster votre visibilité TikTok ?
           </h2>
-          <p className="text-xl text-pink-100 mb-8">
+          <p className="text-lg sm:text-xl text-pink-100 mb-6 sm:mb-8">
             Rejoignez des milliers de créateurs qui ont déjà augmenté leur audience de manière éthique
           </p>
           <div className="flex justify-center">
             <button
               onClick={() => setModalOpen("register")}
-              className="bg-white text-pink-600 px-8 py-4 rounded-full text-lg font-semibold hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2"
+              className="bg-white text-pink-600 px-6 sm:px-8 py-3 sm:py-4 rounded-full text-lg font-semibold hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2"
             >
-              ESSAIE GRATUIT pour 45 jours
-              <ArrowRight className="w-5 h-5" />
+              <span className="hidden sm:inline">ESSAIE GRATUIT pour 45 jours</span>
+              <span className="sm:hidden">ESSAI GRATUIT 45j</span>
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>
