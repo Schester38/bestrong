@@ -3,7 +3,7 @@
   "name": "BE STRONG - Plateforme TikTok",
   "short_name": "BE STRONG",
   "description": "Plateforme éthique pour augmenter votre visibilité TikTok avec des échanges organiques, analytics et conseils d'optimisation",
-  "start_url": "/",
+  "start_url": "/?utm_source=pwa&utm_medium=app",
   "display": "standalone",
   "offline_enabled": true,
   "background_sync": true,
