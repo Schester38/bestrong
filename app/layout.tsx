@@ -5,7 +5,6 @@ import NavigationArrows from './components/NavigationArrows'
 import PWAInstallPrompt from './components/PWAInstallPrompt'
 import PWAInstallInstructions from './components/PWAInstallInstructions'
 import PWAStatus from './components/PWAStatus'
-import ServiceWorkerControl from './components/ServiceWorkerControl'
 
 export const metadata: Metadata = {
   title: 'BE STRONG - Plateforme de motivation et fitness',
@@ -67,8 +66,9 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <head>
+        <meta name="theme-color" content="#000000" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#ec4899" />
+        <link rel="icon" href="/favicon.ico" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="BE STRONG" />
@@ -88,36 +88,6 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              // Gestion robuste du Service Worker
-              if ('serviceWorker' in navigator) {
-                // Vérifier si le SW doit être désactivé
-                const disableSW = localStorage.getItem('disableServiceWorker') === 'true';
-                
-                if (!disableSW) {
-                  window.addEventListener('load', function() {
-                    navigator.serviceWorker.register('/sw.js')
-                      .then(function(registration) {
-                        console.log('Service Worker enregistré avec succès:', registration.scope);
-                      })
-                      .catch(function(error) {
-                        console.warn('Erreur lors de l\'enregistrement du Service Worker:', error);
-                        // Option pour désactiver le SW en cas d'erreur répétée
-                        if (error.name === 'AbortError' || error.message.includes('aborted')) {
-                          console.log('Service Worker désactivé automatiquement suite à une erreur');
-                          localStorage.setItem('disableServiceWorker', 'true');
-                        }
-                      });
-                  });
-                } else {
-                  console.log('Service Worker désactivé manuellement');
-                }
-              }
-            `
-          }}
-        />
       </head>
       <body className="font-sans antialiased">
         <Providers>
@@ -126,7 +96,6 @@ export default function RootLayout({
           <PWAInstallPrompt />
           <PWAInstallInstructions />
           <PWAStatus />
-          <ServiceWorkerControl />
         </Providers>
       </body>
     </html>
