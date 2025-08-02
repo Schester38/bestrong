@@ -28,7 +28,12 @@ const BadgeSystem = ({ userId, className = '' }: BadgeSystemProps) => {
 
   useEffect(() => {
     if (userId) {
-      fetchBadges()
+      // Temporairement désactivé pour éviter les erreurs de fetch
+      // fetchBadges()
+      
+      // Utiliser des badges de démonstration à la place
+      setDefaultBadges()
+      setIsLoading(false)
     }
   }, [userId])
 

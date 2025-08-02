@@ -1,11 +1,26 @@
 "use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function AnimatedBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    // Vérifier si l'écran est assez large pour l'animation
+    const checkScreenSize = () => {
+      setIsVisible(window.innerWidth >= 768); // Seulement sur tablette et desktop
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -21,7 +36,7 @@ export default function AnimatedBackground() {
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    // Particules
+    // Particules - réduit de 50 à 20 pour de meilleures performances
     const particles: Array<{
       x: number;
       y: number;
@@ -36,14 +51,14 @@ export default function AnimatedBackground() {
     const createParticles = () => {
       const colors = ['#ec4899', '#8b5cf6', '#3b82f6', '#10b981'];
       
-      for (let i = 0; i < 50; i++) {
+      for (let i = 0; i < 20; i++) { // Réduit de 50 à 20
         particles.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          vx: (Math.random() - 0.5) * 0.5,
-          vy: (Math.random() - 0.5) * 0.5,
-          size: Math.random() * 3 + 1,
-          opacity: Math.random() * 0.5 + 0.1,
+          vx: (Math.random() - 0.5) * 0.3, // Vitesse réduite
+          vy: (Math.random() - 0.5) * 0.3,
+          size: Math.random() * 2 + 1, // Taille réduite
+          opacity: Math.random() * 0.3 + 0.1, // Opacité réduite
           color: colors[Math.floor(Math.random() * colors.length)]
         });
       }
@@ -51,7 +66,9 @@ export default function AnimatedBackground() {
 
     createParticles();
 
-    // Animation
+    let animationId: number;
+
+    // Animation optimisée
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -78,41 +95,45 @@ export default function AnimatedBackground() {
         ctx.fillStyle = `${particle.color}${Math.floor(particle.opacity * 255).toString(16).padStart(2, '0')}`;
         ctx.fill();
 
-        // Dessiner les connexions
-        particles.forEach((otherParticle, otherIndex) => {
-          if (index !== otherIndex) {
-            const distance = Math.sqrt(
-              Math.pow(particle.x - otherParticle.x, 2) + 
-              Math.pow(particle.y - otherParticle.y, 2)
-            );
+        // Dessiner les connexions (optimisé)
+        for (let otherIndex = index + 1; otherIndex < particles.length; otherIndex++) {
+          const otherParticle = particles[otherIndex];
+          const distance = Math.sqrt(
+            Math.pow(particle.x - otherParticle.x, 2) + 
+            Math.pow(particle.y - otherParticle.y, 2)
+          );
 
-            if (distance < 100) {
-              ctx.beginPath();
-              ctx.moveTo(particle.x, particle.y);
-              ctx.lineTo(otherParticle.x, otherParticle.y);
-              ctx.strokeStyle = `${particle.color}${Math.floor((1 - distance / 100) * 0.3 * 255).toString(16).padStart(2, '0')}`;
-              ctx.lineWidth = 1;
-              ctx.stroke();
-            }
+          if (distance < 80) { // Distance réduite
+            ctx.beginPath();
+            ctx.moveTo(particle.x, particle.y);
+            ctx.lineTo(otherParticle.x, otherParticle.y);
+            ctx.strokeStyle = `${particle.color}${Math.floor((1 - distance / 80) * 0.2 * 255).toString(16).padStart(2, '0')}`;
+            ctx.lineWidth = 0.5; // Ligne plus fine
+            ctx.stroke();
           }
-        });
+        }
       });
 
-      requestAnimationFrame(animate);
+      animationId = requestAnimationFrame(animate);
     };
 
     animate();
 
     return () => {
       window.removeEventListener('resize', resizeCanvas);
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
     };
-  }, []);
+  }, [isVisible]);
+
+  if (!isVisible) return null;
 
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-0 opacity-30"
-      style={{ background: 'transparent' }}
+      className="fixed inset-0 pointer-events-none z-0"
+      style={{ opacity: 0.3 }} // Opacité réduite
     />
   );
 } 

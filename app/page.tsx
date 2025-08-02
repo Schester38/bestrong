@@ -7,35 +7,87 @@ import { getCurrentUser } from "./utils/auth";
 import { useTheme } from "./hooks/useTheme";
 import { useToast } from "./hooks/useToast";
 import Link from "next/link";
-import { ArrowRight, Users, TrendingUp, Star, Zap, Share2, Heart, MessageCircle, Settings, LogOut, RefreshCw, Bell, Target, BarChart3, Brain, Megaphone, Construction, CheckCircle, Shield, Smartphone, Download, Search } from "lucide-react";
-import AIDashboardWidget from "./components/AIDashboardWidget";
-import AINotification from "./components/AINotification";
-import LiveStats from "./components/LiveStats";
-import MotivationalPopup from "./components/MotivationalPopup";
-import NotificationPopup from "./components/NotificationPopup";
-import ShareButton from "./components/ShareButton";
+import { ArrowRight, Users, TrendingUp, Star, Zap, Share2, Heart, MessageCircle, Settings, LogOut, RefreshCw, Bell, Target, BarChart3, Brain, Megaphone, Construction, CheckCircle, Shield, Smartphone, Download } from "lucide-react";
+
+// Composants critiques - chargés immédiatement
 import ThemeToggle from "./components/ThemeToggle";
-import PWAInstallPrompt from "./components/PWAInstallPrompt";
-import PWAInstallInstructions from "./components/PWAInstallInstructions";
-import PWAStatus from "./components/PWAStatus";
-import NavigationArrows from "./components/NavigationArrows";
-import ScrollToTop from "./components/ScrollToTop";
+import ShareButton from "./components/ShareButton";
 import LoadingSpinner from "./components/LoadingSpinner";
-import GlobalSearch from "./components/GlobalSearch";
-import ToastComponent from "./components/Toast";
-import BadgeSystem from "./components/BadgeSystem";
-import AdvancedStats from "./components/AdvancedStats";
-import SmartNotifications from "./components/SmartNotifications";
-import ChatSystem from "./components/ChatSystem";
-import InteractiveTutorial from "./components/InteractiveTutorial";
 
-
+// Composants non critiques - lazy loading
 const PhoneAuthModal = dynamic(() => import("./components/PhoneAuthModal"), { 
-  ssr: false 
+  ssr: false,
+  loading: () => <LoadingSpinner />
 });
 
 const AnimatedBackground = dynamic(() => import("./components/AnimatedBackground"), { 
-  ssr: false 
+  ssr: false,
+  loading: () => null
+});
+
+const LiveStats = dynamic(() => import("./components/LiveStats"), {
+  ssr: false,
+  loading: () => <div className="h-32 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
+});
+
+const MotivationalPopup = dynamic(() => import("./components/MotivationalPopup"), {
+  ssr: false
+});
+
+const NotificationPopup = dynamic(() => import("./components/NotificationPopup"), {
+  ssr: false
+});
+
+const PWAInstallPrompt = dynamic(() => import("./components/PWAInstallPrompt"), {
+  ssr: false
+});
+
+const PWAInstallInstructions = dynamic(() => import("./components/PWAInstallInstructions"), {
+  ssr: false
+});
+
+const PWAStatus = dynamic(() => import("./components/PWAStatus"), {
+  ssr: false
+});
+
+const NavigationArrows = dynamic(() => import("./components/NavigationArrows"), {
+  ssr: false
+});
+
+const ScrollToTop = dynamic(() => import("./components/ScrollToTop"), {
+  ssr: false
+});
+
+const ToastComponent = dynamic(() => import("./components/Toast"), {
+  ssr: false
+});
+
+const BadgeSystem = dynamic(() => import("./components/BadgeSystem"), {
+  ssr: false
+});
+
+const AdvancedStats = dynamic(() => import("./components/AdvancedStats"), {
+  ssr: false
+});
+
+const SmartNotifications = dynamic(() => import("./components/SmartNotifications"), {
+  ssr: false
+});
+
+const ChatSystem = dynamic(() => import("./components/ChatSystem"), {
+  ssr: false
+});
+
+const InteractiveTutorial = dynamic(() => import("./components/InteractiveTutorial"), {
+  ssr: false
+});
+
+const AIDashboardWidget = dynamic(() => import("./components/AIDashboardWidget"), {
+  ssr: false
+});
+
+const AINotification = dynamic(() => import("./components/AINotification"), {
+  ssr: false
 });
 
 export default function Home() {
@@ -83,7 +135,7 @@ export default function Home() {
       const response = await fetch('/api/users/count', {
         method: 'GET',
         headers: {
-          'Cache-Control': 'no-cache',
+          'Cache-Control': 'max-age=120', // Cache pendant 2 minutes
         },
       });
       const data = await response.json();
@@ -95,10 +147,10 @@ export default function Home() {
     }
   }, []);
 
-  // Fetch le nombre d'utilisateurs au chargement et toutes les 30 secondes (au lieu de 10)
+  // Fetch le nombre d'utilisateurs au chargement et toutes les 60 secondes (au lieu de 30)
   useEffect(() => {
     fetchUserCount(); // Premier appel
-    const interval = setInterval(fetchUserCount, 30000); // Polling toutes les 30 secondes
+    const interval = setInterval(fetchUserCount, 60000); // Polling toutes les 60 secondes
 
     return () => clearInterval(interval); // Nettoyage de l'intervalle
   }, [fetchUserCount]);
@@ -157,23 +209,8 @@ export default function Home() {
           </div>
           
           <div className="flex items-center space-x-2 sm:space-x-4 ml-auto">
-            <button
-              onClick={() => {
-                // Ouvrir la recherche globale
-                const event = new KeyboardEvent('keydown', {
-                  key: 'k',
-                  ctrlKey: true,
-                  bubbles: true
-                });
-                document.dispatchEvent(event);
-              }}
-              className="p-2 text-gray-600 dark:text-gray-300 hover:text-pink-500 dark:hover:text-pink-400 transition-colors"
-              title="Recherche globale (Ctrl+K)"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-                          <SmartNotifications userId={currentUser?.id} />
-                          <ChatSystem userId={currentUser?.id} />
+            <SmartNotifications userId={currentUser?.id} />
+            <ChatSystem userId={currentUser?.id} />
             <ThemeToggle />
             {currentUser ? (
               <>
@@ -456,7 +493,6 @@ export default function Home() {
       <PWAInstallInstructions />
       <PWAStatus />
       <ScrollToTop />
-      <GlobalSearch />
       
       {/* Toast notifications */}
       {toasts.map((toast) => (

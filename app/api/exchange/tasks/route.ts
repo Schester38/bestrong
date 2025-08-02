@@ -3,9 +3,9 @@ import { createClient } from '@supabase/supabase-js';
 import { z } from "zod";
 import { logActivity } from '../../../utils/activities';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // Client Supabase côté serveur - utiliser la clé anon pour l'instant
 const supabase = createClient(supabaseUrl, supabaseAnonKey);

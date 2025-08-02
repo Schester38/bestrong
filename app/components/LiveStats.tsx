@@ -12,16 +12,32 @@ export default function LiveStats() {
     views: 0,
     engagement: 0
   });
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Vérifier si le composant est visible dans le viewport
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+
+    const element = document.querySelector('.live-stats-section');
+    if (element) {
+      observer.observe(element);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   // Fonction pour récupérer le nombre d'utilisateurs
   const fetchUserCount = async () => {
     try {
-      console.log('🔄 Récupération du nombre d\'utilisateurs...');
       const response = await fetch('/api/users/count', {
         method: 'GET',
         headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache',
+          'Cache-Control': 'max-age=60', // Cache pendant 1 minute
         },
       });
       
@@ -30,14 +46,12 @@ export default function LiveStats() {
       }
       
       const data = await response.json();
-      console.log('📊 Nombre d\'utilisateurs reçu:', data.count);
       
       if (data.count && data.count !== userCount) {
         setUserCount(data.count);
-        console.log('✅ Nombre d\'utilisateurs mis à jour:', data.count);
       }
     } catch (error) {
-      console.error("❌ Erreur lors de la récupération du nombre d'utilisateurs:", error);
+      console.error("Erreur lors de la récupération du nombre d'utilisateurs:", error);
     }
   };
 
@@ -61,48 +75,46 @@ export default function LiveStats() {
   };
 
   useEffect(() => {
-    console.log('🚀 Initialisation du composant LiveStats');
+    if (!isVisible) return;
     
     // Récupérer le nombre d'utilisateurs au chargement
     fetchUserCount();
     
-    // Mettre à jour le nombre d'utilisateurs toutes les 10 secondes (au lieu de 30)
-    const userCountInterval = setInterval(fetchUserCount, 10000);
+    // Mettre à jour le nombre d'utilisateurs toutes les 60 secondes (au lieu de 10)
+    const userCountInterval = setInterval(fetchUserCount, 60000);
     
-    // Simuler des statistiques en temps réel
+    // Simuler des statistiques en temps réel toutes les 10 secondes (au lieu de 3)
     const statsInterval = setInterval(() => {
       setStats(prev => ({
-        followers: prev.followers + Math.floor(Math.random() * 5) + 1,
-        likes: prev.likes + Math.floor(Math.random() * 20) + 5,
-        views: prev.views + Math.floor(Math.random() * 100) + 10,
-        engagement: Math.floor(Math.random() * 10) + 85 // Entre 85% et 95%
+        followers: prev.followers + Math.floor(Math.random() * 3) + 1,
+        likes: prev.likes + Math.floor(Math.random() * 10) + 2,
+        views: prev.views + Math.floor(Math.random() * 50) + 5,
+        engagement: Math.floor(Math.random() * 10) + 85
       }));
-    }, 3000);
+    }, 10000);
 
     return () => {
-      console.log('🧹 Nettoyage des intervalles LiveStats');
       clearInterval(userCountInterval);
       clearInterval(statsInterval);
     };
-  }, []);
+  }, [isVisible]);
 
   // Effet pour animer le compteur d'utilisateurs
   useEffect(() => {
     if (userCount !== null) {
-      // Animation du compteur vers la valeur réelle
       const targetCount = userCount;
       const startCount = displayCount;
-      const duration = 2000; // 2 secondes
+      const duration = 2000;
       const startTime = Date.now();
 
       const animate = () => {
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
         
-        // Fonction d'easing pour une animation fluide
+        // Fonction d'easing pour une animation plus fluide
         const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-        const currentCount = Math.floor(startCount + (targetCount - startCount) * easeOutQuart);
         
+        const currentCount = Math.floor(startCount + (targetCount - startCount) * easeOutQuart);
         setDisplayCount(currentCount);
 
         if (progress < 1) {
@@ -112,19 +124,6 @@ export default function LiveStats() {
 
       animate();
     }
-  }, [userCount]);
-
-  // Effet pour simuler une croissance continue
-  useEffect(() => {
-    const growthInterval = setInterval(() => {
-      if (userCount !== null) {
-        // Simuler une croissance aléatoire de 1 à 3 utilisateurs
-        const growth = Math.floor(Math.random() * 3) + 1;
-        setDisplayCount(prev => prev + growth);
-      }
-    }, 15000); // Toutes les 15 secondes
-
-    return () => clearInterval(growthInterval);
   }, [userCount]);
 
   const formatNumber = (num: number) => {
@@ -137,48 +136,78 @@ export default function LiveStats() {
   };
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-      <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 text-center">
-        <div className="flex items-center justify-center mb-2">
-          <Users className="w-6 h-6 text-pink-400 mr-2" />
-          <span className="text-2xl font-bold text-white">
-            {displayCount > 0 ? formatNumber(displayCount) : (userCount ? formatNumber(userCount) : '...')}
-          </span>
+    <section className="live-stats-section py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent mb-4">
+            Statistiques en Temps Réel
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 text-lg">
+            Rejoignez notre communauté dynamique
+          </p>
         </div>
-        <p className="text-sm text-gray-300">
-          {displayCount > 0 ? getUserStatusText(displayCount) : (userCount ? getUserStatusText(userCount) : 'Utilisateurs actifs')}
-        </p>
-      </div>
 
-      <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 text-center">
-        <div className="flex items-center justify-center mb-2">
-          <TrendingUp className="w-6 h-6 text-purple-400 mr-2" />
-          <span className="text-2xl font-bold text-white">
-            {formatNumber(stats.followers)}
-          </span>
-        </div>
-        <p className="text-sm text-gray-300">Followers gagnés</p>
-      </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 shadow-xl">
+            <div className="flex items-center justify-center mb-4">
+              <Users className="w-8 h-8 text-pink-500" />
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-white mb-2">
+                {formatNumber(displayCount)}
+              </div>
+              <div className="text-sm text-gray-300">
+                {userCount ? getUserStatusText(userCount) : 'Chargement...'}
+              </div>
+            </div>
+          </div>
 
-      <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 text-center">
-        <div className="flex items-center justify-center mb-2">
-          <Heart className="w-6 h-6 text-red-400 mr-2" />
-          <span className="text-2xl font-bold text-white">
-            {formatNumber(stats.likes)}
-          </span>
-        </div>
-        <p className="text-sm text-gray-300">Likes reçus</p>
-      </div>
+          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 shadow-xl">
+            <div className="flex items-center justify-center mb-4">
+              <TrendingUp className="w-8 h-8 text-purple-500" />
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-white mb-2">
+                {formatNumber(stats.followers)}
+              </div>
+              <div className="text-sm text-gray-300">Nouveaux abonnés</div>
+            </div>
+          </div>
 
-      <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 text-center">
-        <div className="flex items-center justify-center mb-2">
-          <Eye className="w-6 h-6 text-blue-400 mr-2" />
-          <span className="text-2xl font-bold text-white">
-            {formatNumber(stats.views)}
-          </span>
+          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 shadow-xl">
+            <div className="flex items-center justify-center mb-4">
+              <Heart className="w-8 h-8 text-red-500" />
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-white mb-2">
+                {formatNumber(stats.likes)}
+              </div>
+              <div className="text-sm text-gray-300">J'aime générés</div>
+            </div>
+          </div>
+
+          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 shadow-xl">
+            <div className="flex items-center justify-center mb-4">
+              <Eye className="w-8 h-8 text-blue-500" />
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-white mb-2">
+                {formatNumber(stats.views)}
+              </div>
+              <div className="text-sm text-gray-300">Vues totales</div>
+            </div>
+          </div>
         </div>
-        <p className="text-sm text-gray-300">Vues générées</p>
+
+        <div className="mt-8 text-center">
+          <div className="inline-flex items-center space-x-2 bg-green-500/20 backdrop-blur-lg rounded-full px-4 py-2 border border-green-500/30">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-green-400 text-sm font-medium">
+              Engagement: {stats.engagement}%
+            </span>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
   );
 } 
