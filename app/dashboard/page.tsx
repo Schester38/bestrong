@@ -432,10 +432,19 @@ export default function Dashboard() {
       // Test de connectivité d'abord
       try {
         setConnectionStatus('checking');
-        const testRes = await fetch("/api/test", {
-          method: 'GET',
-          signal: AbortSignal.timeout(3000) // 3 secondes
+        
+        // Timeout de sécurité pour éviter le blocage
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Timeout')), 3000);
         });
+        
+        const testPromise = fetch("/api/test", {
+          method: 'GET',
+          signal: AbortSignal.timeout(2000) // 2 secondes au lieu de 3
+        });
+        
+        const testRes = await Promise.race([testPromise, timeoutPromise]) as Response;
+        
         if (!testRes.ok) {
           throw new Error('Serveur non disponible');
         }
