@@ -69,12 +69,9 @@ export async function POST(request: NextRequest) {
       headers: {
         'Accept': '*/*',
         'Content-Type': 'application/json',
-        'User-Agent': 'BE-STRONG-APP/1.0',
         'Noupia-API-Signature': 'np-live',
         'Noupia-API-Key': NOUPIA_DEVELOPER_KEY,
-        'Noupia-Product-Key': NOUPIA_SUBSCRIPTION_KEY,
-        'Noupia-API-Version': '1.0',
-        'Cache-Control': 'no-cache'
+        'Noupia-Product-Key': NOUPIA_SUBSCRIPTION_KEY
       },
       body: JSON.stringify({
         operation: 'verify',

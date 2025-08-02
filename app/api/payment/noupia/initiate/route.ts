@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Clés NOUPIA depuis .env.local
-const NOUPIA_DEVELOPER_KEY = process.env.NOUPIA_DEVELOPER_KEY || 'test_key';
-const NOUPIA_SUBSCRIPTION_KEY = process.env.NOUPIA_SUBSCRIPTION_KEY || 'test_subscription';
+const NOUPIA_DEVELOPER_KEY = process.env.NOUPIA_DEVELOPER_KEY;
+const NOUPIA_SUBSCRIPTION_KEY = process.env.NOUPIA_SUBSCRIPTION_KEY;
 
 interface NoupiaPaymentRequest {
   amount: number;
@@ -11,9 +11,10 @@ interface NoupiaPaymentRequest {
   name: string;
   reference: string;
   method: 'mobilemoney' | 'noupia' | 'invoice' | 'withdraw';
-  operator?: 'mtn' | 'orange' | 'moov' | 'auto';
+  operator?: 'mtn' | 'orange' | 'moov' | 'airtel' | 'free' | 'auto';
   country: string;
   currency: string;
+  user_id?: number;
 }
 
 interface NoupiaResponse {
@@ -34,30 +35,17 @@ export async function POST(request: NextRequest) {
   try {
     console.log('🔍 Début de la requête POST /api/payment/noupia/initiate');
     
-    // Vérifier que les clés API sont disponibles
-    if (!NOUPIA_DEVELOPER_KEY || !NOUPIA_SUBSCRIPTION_KEY || 
-        NOUPIA_DEVELOPER_KEY === 'test_key' || NOUPIA_SUBSCRIPTION_KEY === 'test_subscription') {
-      console.error('❌ Clés API NOUPIA manquantes ou en mode test');
-      console.log('🔧 Mode test activé - Simulation du paiement');
-      
-      // Mode test - Simulation d'un paiement réussi
-      const testTransactionId = `TEST_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      return NextResponse.json({
-        success: true,
-        message: 'Paiement initié avec succès (MODE TEST)',
-        data: {
-          transaction: testTransactionId,
-          ussd: '*126#',
-          channel: 'MTN Mobile Money',
-          amount: 100,
-          fee: 2,
-          currency: 'XAF'
-        }
-      });
-    }
-    
     const body: NoupiaPaymentRequest = await request.json();
+    console.log('📥 Données reçues:', body);
+    
+    // Vérifier que les clés API sont disponibles
+    if (!NOUPIA_DEVELOPER_KEY || !NOUPIA_SUBSCRIPTION_KEY) {
+      console.error('❌ Clés API NOUPIA manquantes');
+      return NextResponse.json({
+        success: false,
+        message: 'Configuration API manquante'
+      }, { status: 500 });
+    }
     console.log('📥 Données reçues:', body);
 
     // Validation des données
@@ -69,30 +57,42 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Validation du montant minimum
-    if (body.amount < 1000) {
-      console.error('❌ Montant insuffisant:', { amount: body.amount, minimum: 1000 });
+    // Validation du montant minimum selon la documentation NOUPIA
+    if (body.amount < 100) {
+      console.error('❌ Montant insuffisant:', { amount: body.amount, minimum: 100 });
       return NextResponse.json({
         success: false,
-        message: 'Montant minimum requis : 1000 XAF'
+        message: 'Montant minimum requis : 100 XAF'
       }, { status: 400 });
     }
 
-    // Préparer les données pour l'API NOUPIA
+    // Préparer les données pour l'API NOUPIA selon la documentation exacte
+    // Paramètres requis + opérateur pour Orange Money
     const noupiaData = {
       operation: 'initiate',
       reference: body.reference.replace(/[^a-zA-Z0-9]/g, '').substring(0, 30),
       amount: parseInt(body.amount.toString()),
-      phone: body.phone.replace(/\D/g, '').replace(/^237/, ''),
       method: body.method,
+      phone: parseInt(body.phone.replace(/\D/g, '')),
       country: body.country,
       currency: body.currency,
-      email: body.email || 'user@bestrong.com',
-      name: body.name || 'BeStrong User',
-      operator: 'MTN' // Forcer MTN
+      // Ajouter l'opérateur seulement pour MTN (Orange utilise method: mobilemoney)
+      ...(body.operator && body.operator !== 'auto' && body.operator !== 'orange' && { 
+        operator: body.operator.toUpperCase() 
+      })
     };
 
     console.log('📡 Données NOUPIA:', noupiaData);
+    console.log('🔍 Debug operator:', { 
+      received: body.operator, 
+      condition: body.operator && body.operator !== 'auto',
+      final: body.operator && body.operator !== 'auto' ? body.operator.toUpperCase() : 'non ajouté'
+    });
+    console.log('🔍 Debug phone:', { 
+      original: body.phone,
+      cleaned: body.phone.replace(/\D/g, ''),
+      parsed: parseInt(body.phone.replace(/\D/g, ''))
+    });
     console.log('🔑 Clés API disponibles:', {
       developerKey: NOUPIA_DEVELOPER_KEY ? '✅' : '❌',
       subscriptionKey: NOUPIA_SUBSCRIPTION_KEY ? '✅' : '❌'
@@ -100,28 +100,26 @@ export async function POST(request: NextRequest) {
 
     // Appel API NOUPIA RÉELLE
     console.log('🌐 Appel API NOUPIA réelle...');
+    console.log('🔑 Headers envoyés:', {
+      'Accept': '*/*',
+      'Noupia-API-Signature': 'np-live',
+      'Noupia-API-Key': NOUPIA_DEVELOPER_KEY ? '✅ Présent' : '❌ Manquant',
+      'Noupia-Product-Key': NOUPIA_SUBSCRIPTION_KEY ? '✅ Présent' : '❌ Manquant',
+      'Content-Type': 'application/json'
+    });
     
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 secondes timeout
-
     try {
       const response = await fetch('https://api.noupia.com/pay', {
         method: 'POST',
         headers: {
           'Accept': '*/*',
-          'Content-Type': 'application/json',
-          'User-Agent': 'BE-STRONG-APP/1.0',
           'Noupia-API-Signature': 'np-live',
           'Noupia-API-Key': NOUPIA_DEVELOPER_KEY,
           'Noupia-Product-Key': NOUPIA_SUBSCRIPTION_KEY,
-          'Noupia-API-Version': '1.0',
-          'Cache-Control': 'no-cache'
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(noupiaData),
-        signal: controller.signal
+        body: JSON.stringify(noupiaData)
       });
-
-      clearTimeout(timeoutId);
       console.log('📡 Réponse NOUPIA status:', response.status);
 
       // Lire la réponse
@@ -167,32 +165,13 @@ export async function POST(request: NextRequest) {
       }
 
     } catch (fetchError) {
-      clearTimeout(timeoutId);
       console.error('❌ Erreur fetch:', fetchError);
       
-      if (fetchError instanceof Error && fetchError.name === 'AbortError') {
-        return NextResponse.json({
-          success: false,
-          message: 'Délai d\'attente dépassé. Veuillez réessayer.'
-        }, { status: 408 });
-      }
-      
-      // En cas d'erreur réseau, retourner en mode test
-      console.log('🔧 Fallback en mode test à cause de l\'erreur réseau');
-      const testTransactionId = `TEST_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+      // En cas d'erreur réseau, retourner une erreur
       return NextResponse.json({
-        success: true,
-        message: 'Paiement initié avec succès (MODE TEST - Erreur réseau)',
-        data: {
-          transaction: testTransactionId,
-          ussd: '*126#',
-          channel: 'MTN Mobile Money',
-          amount: noupiaData.amount,
-          fee: 2,
-          currency: 'XAF'
-        }
-      });
+        success: false,
+        message: 'Erreur de connexion au service de paiement'
+      }, { status: 500 });
     }
 
   } catch (error) {

@@ -26,6 +26,7 @@ export default function Home() {
   const [currentUser, setCurrentUser] = useState<{ phone: string; pseudo?: string } | null>(null);
   const [isAndroid, setIsAndroid] = useState(false);
   const [showAndroidPopup, setShowAndroidPopup] = useState(false);
+  const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
 
   // Fonction de fallback pour le partage
   const fallbackShare = useCallback((shareData: { title: string; text: string; url: string }) => {
@@ -68,6 +69,8 @@ export default function Home() {
       setUserCount(data.count);
     } catch (error) {
       console.error("Erreur lors de la récupération du nombre d'utilisateurs:", error);
+      // Si on ne peut pas récupérer les données, activer le mode maintenance
+      setIsMaintenanceMode(true);
     }
   }, []);
 
@@ -78,6 +81,13 @@ export default function Home() {
 
     return () => clearInterval(interval); // Nettoyage de l'intervalle
   }, [fetchUserCount]);
+
+  // Redirection vers la page de maintenance si nécessaire
+  useEffect(() => {
+    if (isMaintenanceMode) {
+      window.location.href = '/maintenance';
+    }
+  }, [isMaintenanceMode]);
 
 
   useEffect(() => {
@@ -372,6 +382,7 @@ export default function Home() {
                 <li><Link href="/help" className="hover:text-white transition-colors">Aide</Link></li>
                 <li><a href="https://wa.me/672886348" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Contact</a></li>
                 <li><Link href="/privacy" className="hover:text-white transition-colors">Confidentialité</Link></li>
+                <li><Link href="/maintenance" className="hover:text-white transition-colors">Maintenance</Link></li>
               </ul>
             </div>
             <div className="flex flex-col">
@@ -386,6 +397,7 @@ export default function Home() {
               <h4 className="font-semibold mb-2 text-sm sm:text-base">Administration</h4>
               <ul className="space-y-1 text-gray-400 text-xs sm:text-sm">
                 <li><Link href="/admin" className="hover:text-white transition-colors">Gestion utilisateurs</Link></li>
+                <li><Link href="/test-supabase" className="hover:text-white transition-colors">Diagnostic Supabase</Link></li>
               </ul>
             </div>
           </div>

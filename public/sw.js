@@ -1,7 +1,8 @@
-// Service Worker optimisé pour BE STRONG
-const CACHE_NAME = 'be-strong-v1.2';
-const STATIC_CACHE = 'be-strong-static-v1.2';
-const DYNAMIC_CACHE = 'be-strong-dynamic-v1.2';
+// Service Worker optimisé pour BE STRONG PWA
+const CACHE_NAME = 'be-strong-v1.3';
+const STATIC_CACHE = 'be-strong-static-v1.3';
+const DYNAMIC_CACHE = 'be-strong-dynamic-v1.3';
+const API_CACHE = 'be-strong-api-v1.3';
 
 // Ressources à mettre en cache immédiatement
 const STATIC_RESOURCES = [
@@ -10,16 +11,25 @@ const STATIC_RESOURCES = [
   '/icon-512.png',
   '/icon-512-maskable.png',
   '/icon-512-any.png',
+  '/icon.png',
   '/manifest.json',
-  '/globals.css'
+  '/browserconfig.xml'
+];
+
+// Pages importantes à mettre en cache
+const IMPORTANT_PAGES = [
+  '/dashboard',
+  '/inscription',
+  '/help'
 ];
 
 // Stratégies de cache
 const CACHE_STRATEGIES = {
   STATIC: 'cache-first',
   DYNAMIC: 'network-first',
-  API: 'network-only',
-  IMAGES: 'cache-first'
+  API: 'network-first',
+  IMAGES: 'cache-first',
+  PAGES: 'network-first'
 };
 
 // Installation du service worker
@@ -39,8 +49,14 @@ self.addEventListener('install', (event) => {
         return cache.addAll([
           '/icon-512.png',
           '/icon-512-maskable.png',
-          '/icon-512-any.png'
+          '/icon-512-any.png',
+          '/icon.png'
         ]);
+      }),
+
+      // Cache des pages importantes
+      caches.open('pages').then((cache) => {
+        return cache.addAll(IMPORTANT_PAGES);
       })
     ]).then(() => {
       console.log('Service Worker: Installation terminée');
@@ -60,7 +76,9 @@ self.addEventListener('activate', (event) => {
           // Supprimer les anciens caches
           if (cacheName !== STATIC_CACHE && 
               cacheName !== DYNAMIC_CACHE && 
-              cacheName !== 'images') {
+              cacheName !== API_CACHE &&
+              cacheName !== 'images' &&
+              cacheName !== 'pages') {
             console.log('Service Worker: Suppression de l\'ancien cache:', cacheName);
             return caches.delete(cacheName);
           }
@@ -82,6 +100,11 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') {
     return;
   }
+
+  // Ignorer les requêtes de développement
+  if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+    return;
+  }
   
   // Stratégie pour les API
   if (url.pathname.startsWith('/api/')) {
@@ -100,6 +123,12 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(handleStaticRequest(request));
     return;
   }
+
+  // Stratégie pour les pages importantes
+  if (isImportantPage(request)) {
+    event.respondWith(handleImportantPageRequest(request));
+    return;
+  }
   
   // Stratégie par défaut pour les pages
   event.respondWith(handlePageRequest(request));
@@ -107,13 +136,14 @@ self.addEventListener('fetch', (event) => {
 
 // Gestion des requêtes API
 async function handleApiRequest(request) {
+  const cache = await caches.open(API_CACHE);
+  
   try {
-    // Toujours essayer le réseau en premier pour les API
+    // Essayer le réseau en premier pour les API
     const networkResponse = await fetch(request);
     
     if (networkResponse.ok) {
       // Mettre en cache la réponse pour une utilisation future
-      const cache = await caches.open(DYNAMIC_CACHE);
       cache.put(request, networkResponse.clone());
       return networkResponse;
     }
@@ -123,13 +153,16 @@ async function handleApiRequest(request) {
     console.log('Service Worker: Erreur API, utilisation du cache:', error);
     
     // Essayer de récupérer depuis le cache
-    const cachedResponse = await caches.match(request);
+    const cachedResponse = await cache.match(request);
     if (cachedResponse) {
       return cachedResponse;
     }
     
     // Retourner une réponse d'erreur
-    return new Response(JSON.stringify({ error: 'Service indisponible' }), {
+    return new Response(JSON.stringify({ 
+      error: 'Service indisponible',
+      message: 'Vérifiez votre connexion internet'
+    }), {
       status: 503,
       headers: { 'Content-Type': 'application/json' }
     });
@@ -182,15 +215,46 @@ async function handleStaticRequest(request) {
   }
 }
 
-// Gestion des requêtes de pages
-async function handlePageRequest(request) {
+// Gestion des pages importantes
+async function handleImportantPageRequest(request) {
+  const cache = await caches.open('pages');
+  
   try {
     // Essayer le réseau en premier
     const networkResponse = await fetch(request);
     
     if (networkResponse.ok) {
       // Mettre en cache pour une utilisation future
-      const cache = await caches.open(DYNAMIC_CACHE);
+      cache.put(request, networkResponse.clone());
+      return networkResponse;
+    }
+    
+    throw new Error('Network response not ok');
+  } catch (error) {
+    console.log('Service Worker: Erreur page importante, utilisation du cache:', error);
+    
+    // Essayer de récupérer depuis le cache
+    const cachedResponse = await cache.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    
+    // Retourner la page offline
+    const offlineResponse = await caches.match('/offline.html');
+    return offlineResponse || new Response('Page non disponible hors ligne');
+  }
+}
+
+// Gestion des requêtes de pages
+async function handlePageRequest(request) {
+  const cache = await caches.open(DYNAMIC_CACHE);
+  
+  try {
+    // Essayer le réseau en premier
+    const networkResponse = await fetch(request);
+    
+    if (networkResponse.ok) {
+      // Mettre en cache pour une utilisation future
       cache.put(request, networkResponse.clone());
       return networkResponse;
     }
@@ -200,7 +264,7 @@ async function handlePageRequest(request) {
     console.log('Service Worker: Erreur page, utilisation du cache:', error);
     
     // Essayer de récupérer depuis le cache
-    const cachedResponse = await caches.match(request);
+    const cachedResponse = await cache.match(request);
     if (cachedResponse) {
       return cachedResponse;
     }
@@ -214,14 +278,18 @@ async function handlePageRequest(request) {
 // Fonctions utilitaires
 function isImageRequest(request) {
   return request.destination === 'image' || 
-         /\.(png|jpg|jpeg|gif|svg|webp|avif)$/i.test(request.url);
+         /\.(png|jpg|jpeg|gif|svg|webp|avif|ico)$/i.test(request.url);
 }
 
 function isStaticResource(request) {
   return request.destination === 'style' || 
          request.destination === 'script' ||
          request.destination === 'font' ||
-         /\.(css|js|woff|woff2|ttf|eot)$/i.test(request.url);
+         /\.(css|js|woff|woff2|ttf|eot|json|xml)$/i.test(request.url);
+}
+
+function isImportantPage(request) {
+  return IMPORTANT_PAGES.some(page => request.url.includes(page));
 }
 
 // Gestion des messages
@@ -244,6 +312,10 @@ self.addEventListener('message', (event) => {
       })
     );
   }
+
+  if (event.data && event.data.type === 'GET_VERSION') {
+    event.ports[0].postMessage({ version: CACHE_NAME });
+  }
 });
 
 // Gestion des erreurs
@@ -253,4 +325,77 @@ self.addEventListener('error', (event) => {
 
 self.addEventListener('unhandledrejection', (event) => {
   console.error('Service Worker Unhandled Rejection:', event.reason);
+});
+
+// Gestion de la synchronisation en arrière-plan
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'background-sync') {
+    event.waitUntil(doBackgroundSync());
+  }
+});
+
+async function doBackgroundSync() {
+  try {
+    // Synchroniser les données en arrière-plan
+    console.log('Service Worker: Synchronisation en arrière-plan');
+    
+    // Ici vous pouvez ajouter la logique de synchronisation
+    // Par exemple, synchroniser les tâches, messages, etc.
+    
+  } catch (error) {
+    console.error('Service Worker: Erreur de synchronisation:', error);
+  }
+}
+
+// Gestion des notifications push
+self.addEventListener('push', (event) => {
+  if (event.data) {
+    const data = event.data.json();
+    
+    const options = {
+      body: data.body || 'Nouvelle notification BE STRONG',
+      icon: '/icon-512.png',
+      badge: '/icon-512.png',
+      vibrate: [100, 50, 100],
+      data: {
+        dateOfArrival: Date.now(),
+        primaryKey: 1
+      },
+      actions: [
+        {
+          action: 'explore',
+          title: 'Voir',
+          icon: '/icon-512.png'
+        },
+        {
+          action: 'close',
+          title: 'Fermer',
+          icon: '/icon-512.png'
+        }
+      ]
+    };
+
+    event.waitUntil(
+      self.registration.showNotification(data.title || 'BE STRONG', options)
+    );
+  }
+});
+
+// Gestion des clics sur les notifications
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  if (event.action === 'explore') {
+    event.waitUntil(
+      clients.openWindow('/dashboard')
+    );
+  } else if (event.action === 'close') {
+    // Fermer la notification
+    return;
+  } else {
+    // Action par défaut
+    event.waitUntil(
+      clients.openWindow('/')
+    );
+  }
 }); 

@@ -48,14 +48,14 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -88,6 +88,22 @@ body {
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: var(--primary) var(--secondary);
+}
+
+/* Animation pour le prompt d'installation PWA */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
 }
 
 /* Animations pour les fonctionnalités IA */
@@ -157,7 +173,7 @@ body {
 /* Animations pour les notifications */
 @keyframes popup-slide-in {
   from {
-    transform: translateY(-10px) scale(0.95);
+    transform: translateY(-20px) scale(0.95);
     opacity: 0;
   }
   to {
@@ -171,22 +187,22 @@ body {
 }
 
 .animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
+  animation: pulse-glow 2s infinite;
 }
 
 .animate-brain-pulse {
-  animation: brain-pulse 2s ease-in-out infinite;
+  animation: brain-pulse 2s infinite;
 }
 
 /* Styles pour les notifications */
 @keyframes notification-badge-pulse {
   0%, 100% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
   }
   50% {
     transform: scale(1.1);
-    box-shadow: 0 0 0 10px rgba(236, 72, 153, 0);
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
   }
 }
 
@@ -204,7 +220,7 @@ body {
 @keyframes modal-fade-in {
   from {
     opacity: 0;
-    transform: scale(0.9);
+    transform: scale(0.95);
   }
   to {
     opacity: 1;
@@ -230,51 +246,51 @@ body {
 }
 
 .modal-fade-in {
-  animation: modal-fade-in 0.3s ease-out;
+  animation: modal-fade-in 0.2s ease-out;
 }
 
 .modal-backdrop-fade-in {
-  animation: modal-backdrop-fade-in 0.3s ease-out;
+  animation: modal-backdrop-fade-in 0.2s ease-out;
 }
 
 /* Styles pour les gradients de notification */
 .notification-gradient {
-  background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 50%, #3b82f6 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .notification-gradient-hover {
-  background: linear-gradient(135deg, #db2777 0%, #7c3aed 50%, #2563eb 100%);
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
 }
 
 /* Styles pour les cartes de notification */
 .notification-card {
   backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .dark .notification-card {
-  background: rgba(26, 26, 26, 0.95);
+  background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Styles pour les boutons de notification */
 .notification-button {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
 }
 
 .notification-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* Styles pour les icônes de notification */
 .notification-icon {
-  transition: all 0.3s ease;
+  transition: transform 0.2s ease;
 }
 
 .notification-icon:hover {
-  transform: rotate(15deg) scale(1.1);
+  transform: scale(1.1);
 }
 
 /* Styles pour les états de notification */
@@ -285,23 +301,24 @@ body {
 .notification-unread::before {
   content: '';
   position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: linear-gradient(135deg, #ec4899, #8b5cf6);
-  border-radius: 0 2px 2px 0;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+  animation: notification-badge-pulse 2s infinite;
 }
 
 /* Styles pour les animations d'entrée */
 @keyframes slide-in-from-top-2 {
   from {
+    transform: translateY(-100%);
     opacity: 0;
-    transform: translateY(-8px) scale(0.95);
   }
   to {
+    transform: translateY(0);
     opacity: 1;
-    transform: translateY(0) scale(1);
   }
 }
 
@@ -326,7 +343,7 @@ body {
 }
 
 .animate-in {
-  animation-fill-mode: both;
+  animation: fade-in 0.2s ease-out;
 }
 
 .slide-in-from-top-2 {
@@ -334,11 +351,11 @@ body {
 }
 
 .fade-in {
-  animation: fade-in 0.3s ease-out;
+  animation: fade-in 0.2s ease-out;
 }
 
 .zoom-in-95 {
-  animation: zoom-in-95 0.3s ease-out;
+  animation: zoom-in-95 0.2s ease-out;
 }
 
 /* Styles pour les gradients de fond */
@@ -347,8 +364,8 @@ body {
 }
 
 .ai-card {
-  background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -371,19 +388,15 @@ input, textarea, select {
 }
 
 .card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--card-foreground);
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .btn-primary {
-  background: var(--primary);
-  color: var(--primary-foreground);
+  background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
 }
 
 .btn-secondary {
-  background: var(--secondary);
-  color: var(--secondary-foreground);
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
 }

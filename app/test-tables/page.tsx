@@ -24,7 +24,9 @@ export default function TestTablesPage() {
   const initTables = async () => {
     setInitLoading(true);
     try {
-      const response = await fetch('/api/init-tables');
+      const response = await fetch('/api/init-tables', {
+        method: 'POST'
+      });
       const data = await response.json();
       setInitResults(data);
     } catch (error) {

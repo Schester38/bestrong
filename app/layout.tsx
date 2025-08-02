@@ -1,14 +1,55 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 import NavigationArrows from './components/NavigationArrows'
-
-const inter = Inter({ subsets: ['latin'] })
+import PWAInstallPrompt from './components/PWAInstallPrompt'
+import PWAInstallInstructions from './components/PWAInstallInstructions'
+import PWAStatus from './components/PWAStatus'
 
 export const metadata: Metadata = {
   title: 'BE STRONG - Plateforme de motivation et fitness',
   description: 'Rejoignez la communauté BE STRONG pour atteindre vos objectifs fitness et motivation',
+  manifest: '/manifest.json',
+  themeColor: '#3b82f6',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'BE STRONG',
+    startupImage: [
+      {
+        url: '/icon-512.png',
+        media: '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)',
+      },
+      {
+        url: '/icon-512.png',
+        media: '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)',
+      },
+      {
+        url: '/icon-512.png',
+        media: '(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)',
+      },
+    ],
+  },
+  icons: {
+    icon: [
+      { url: '/icon.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    shortcut: '/icon.png',
+  },
+  other: {
+    'mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'default',
+    'apple-mobile-web-app-title': 'BE STRONG',
+    'application-name': 'BE STRONG',
+    'msapplication-TileColor': '#3b82f6',
+    'msapplication-config': '/browserconfig.xml',
+  },
 }
 
 export default function RootLayout({
@@ -18,10 +59,25 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body className={inter.className}>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#3b82f6" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="BE STRONG" />
+        <link rel="apple-touch-icon" href="/icon-512.png" />
+        <link rel="mask-icon" href="/icon-maskable.png" color="#3b82f6" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+      </head>
+      <body className="font-sans antialiased">
         <Providers>
           {children}
           <NavigationArrows />
+          <PWAInstallPrompt />
+          <PWAInstallInstructions />
+          <PWAStatus />
         </Providers>
       </body>
     </html>
