@@ -1,21 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Users, TrendingUp, Shield } from "lucide-react";
+import { ArrowRight, TrendingUp, Users, Zap, Shield, Smartphone, BarChart3, MessageCircle, Heart, Star, Download } from "lucide-react";
+import AINotification from "./components/AINotification";
+import LiveStats from "./components/LiveStats";
 import ScrollToTop from "./components/ScrollToTop";
 import ThemeToggle from "./components/ThemeToggle";
 import MotivationalPopup from "./components/MotivationalPopup";
 import ShareButton from "./components/ShareButton";
-import AnimatedBackground from "./components/AnimatedBackground";
-import LiveStats from "./components/LiveStats";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useAlert } from "./components/CustomAlert";
-import AndroidDownloadPopup from "./components/AndroidDownloadPopup";
 
 const PhoneAuthModal = dynamic(() => import("./components/PhoneAuthModal"), { 
   ssr: false,
   loading: () => <div className="animate-pulse bg-gray-200 h-96 rounded-lg"></div>
+});
+
+const AnimatedBackground = dynamic(() => import("./components/AnimatedBackground"), {
+  ssr: false,
+  loading: () => null
 });
 
 export default function Home() {
@@ -24,9 +28,8 @@ export default function Home() {
   // Compteur d'utilisateurs inscrits
   const [userCount, setUserCount] = useState<number | null>(null);
   const [currentUser, setCurrentUser] = useState<{ phone: string; pseudo?: string } | null>(null);
-  const [isAndroid, setIsAndroid] = useState(false);
-  const [showAndroidPopup, setShowAndroidPopup] = useState(false);
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   // Fonction de fallback pour le partage
   const fallbackShare = useCallback((shareData: { title: string; text: string; url: string }) => {
@@ -91,6 +94,9 @@ export default function Home() {
 
 
   useEffect(() => {
+    // Marquer que nous sommes côté client
+    setIsClient(true);
+    
     // Charger les informations de l'utilisateur connecté depuis le localStorage
     if (typeof window !== "undefined") {
       const user = localStorage.getItem("currentUser");
@@ -103,30 +109,15 @@ export default function Home() {
       }
     }
 
-    // Demander les permissions de notification pour l'app Android
+    // Demander les permissions de notification pour l'app PWA
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
-    }
-
-    // Détecter Android et cacher l'icône
-    const isAndroidDevice = /Android/i.test(navigator.userAgent);
-    setIsAndroid(isAndroidDevice);
-    if (isAndroidDevice) {
-      const logo = document.querySelector('.android-hide-logo') as HTMLElement;
-      if (logo) {
-        logo.style.display = 'none';
-      }
-      
-      // Afficher le popup de téléchargement après 30 secondes
-      setTimeout(() => {
-        setShowAndroidPopup(true);
-      }, 30000);
     }
   }, []);
 
   return (
     <div className="min-h-screen relative">
-      <AnimatedBackground />
+      {isClient && <AnimatedBackground />}
       
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 dark:bg-gray-900/80 dark:border-gray-700 sticky top-0 z-50 relative">
@@ -136,7 +127,7 @@ export default function Home() {
               <img 
                 src="/icon-512.png" 
                 alt="BE STRONG Logo" 
-                className="w-8 h-8 sm:w-10 sm:h-10 mr-2 android-hide-logo"
+                className="w-8 h-8 sm:w-10 sm:h-10 mr-2"
               />
               <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
                 BE STRONG
@@ -409,15 +400,6 @@ export default function Home() {
       <ScrollToTop />
       <MotivationalPopup />
       
-      {/* Popup de téléchargement Android */}
-      <AndroidDownloadPopup
-        isOpen={showAndroidPopup}
-        onClose={() => setShowAndroidPopup(false)}
-        onDownload={() => {
-          // Le téléchargement est géré dans le composant
-          setShowAndroidPopup(false);
-        }}
-      />
     </div>
   );
 }
