@@ -13,19 +13,20 @@ export default function SplashScreen() {
       'Chargement des données...',
       'Connexion au serveur...',
       'Préparation de l\'interface...',
-      'Presque prêt...'
+      'Presque prêt...',
+      'Finalisation...'
     ]
 
     let currentIndex = 0
     const textInterval = setInterval(() => {
       currentIndex = (currentIndex + 1) % loadingTexts.length
       setLoadingText(loadingTexts[currentIndex])
-    }, 400)
+    }, 500)
 
-    // Masquer le splash screen après 1.5 secondes (très rapide)
+    // Masquer le splash screen après 4 secondes (durée augmentée)
     const hideTimeout = setTimeout(() => {
       setIsVisible(false)
-    }, 1500)
+    }, 4000)
 
     return () => {
       clearInterval(textInterval)
@@ -69,8 +70,13 @@ export default function SplashScreen() {
         </div>
 
         {/* Texte de chargement */}
-        <p className="text-sm sm:text-base opacity-90 font-medium">
+        <p className="text-sm sm:text-base opacity-90 font-medium mb-8">
           {loadingText}
+        </p>
+
+        {/* Crédit en bas */}
+        <p className="text-xs sm:text-sm opacity-70 font-light absolute bottom-4 left-1/2 transform -translate-x-1/2">
+          App créée par Gadar Perets
         </p>
       </div>
 
