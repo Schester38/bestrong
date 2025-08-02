@@ -20,12 +20,12 @@ export default function SplashScreen() {
     const textInterval = setInterval(() => {
       currentIndex = (currentIndex + 1) % loadingTexts.length
       setLoadingText(loadingTexts[currentIndex])
-    }, 500)
+    }, 400)
 
-    // Masquer le splash screen après 2 secondes (plus rapide)
+    // Masquer le splash screen après 1.5 secondes (très rapide)
     const hideTimeout = setTimeout(() => {
       setIsVisible(false)
-    }, 2000)
+    }, 1500)
 
     return () => {
       clearInterval(textInterval)
@@ -36,12 +36,12 @@ export default function SplashScreen() {
   if (!isVisible) return null
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
+    <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center" style={{ animation: 'fadeIn 0.1s ease-in' }}>
       {/* Particules flottantes */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute w-5 h-5 bg-white/20 rounded-full top-1/4 left-1/4 animate-bounce" style={{ animationDelay: '0s' }}></div>
-        <div className="absolute w-3 h-3 bg-white/20 rounded-full top-2/3 right-1/4 animate-bounce" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute w-4 h-4 bg-white/20 rounded-full bottom-1/3 left-1/3 animate-bounce" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute w-5 h-5 bg-white/30 rounded-full top-1/4 left-1/4 animate-bounce" style={{ animationDelay: '0s' }}></div>
+        <div className="absolute w-3 h-3 bg-white/30 rounded-full top-2/3 right-1/4 animate-bounce" style={{ animationDelay: '0.5s' }}></div>
+        <div className="absolute w-4 h-4 bg-white/30 rounded-full bottom-1/3 left-1/3 animate-bounce" style={{ animationDelay: '1s' }}></div>
       </div>
 
       {/* Contenu principal */}
@@ -64,7 +64,7 @@ export default function SplashScreen() {
         </p>
 
         {/* Barre de chargement */}
-        <div className="w-48 sm:w-64 h-2 bg-white/30 rounded-full mx-auto mb-4 overflow-hidden">
+        <div className="w-48 sm:w-64 h-2 bg-white/40 rounded-full mx-auto mb-4 overflow-hidden">
           <div className="h-full bg-white rounded-full animate-pulse" style={{ width: '70%' }}></div>
         </div>
 
@@ -75,6 +75,10 @@ export default function SplashScreen() {
       </div>
 
       <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
         .text-shadow {
           text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
@@ -87,7 +91,7 @@ export default function SplashScreen() {
           }
         }
         .animate-bounce {
-          animation: bounce 4s infinite;
+          animation: bounce 3s infinite;
         }
       `}</style>
     </div>
