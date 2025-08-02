@@ -32,16 +32,21 @@ export default function ContentScheduler({ userId, className = '' }: ContentSche
   const [filterStatus, setFilterStatus] = useState<'all' | 'draft' | 'scheduled' | 'published' | 'failed'>('all')
 
   useEffect(() => {
-    if (userId) {
+    if (userId && userId.trim() !== '') {
       loadScheduledContent()
     }
   }, [userId, selectedDate, filterStatus])
 
   const loadScheduledContent = async () => {
+    if (!userId || userId.trim() === '') {
+      console.log('User ID non disponible, arrêt du chargement du contenu planifié')
+      return
+    }
+
     try {
       setIsLoading(true)
       const params = new URLSearchParams({
-        userId: userId!,
+        userId: userId,
         date: selectedDate,
         status: filterStatus
       })

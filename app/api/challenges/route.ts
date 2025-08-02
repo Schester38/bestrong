@@ -1,182 +1,176 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+);
 
-// GET: Récupérer les défis et la progression d'un utilisateur
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url)
-    const userId = searchParams.get('userId')
-    const type = searchParams.get('type') // daily, weekly, monthly, special
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
 
-    if (!userId) {
-      return NextResponse.json({ error: 'userId requis' }, { status: 400 })
-    }
-
-    // Récupérer tous les défis actifs
-    let challengesQuery = supabase
-      .from('challenges')
-      .select('*')
-      .eq('is_active', true)
-
-    if (type && type !== 'all') {
-      challengesQuery = challengesQuery.eq('type', type)
-    }
-
-    const { data: challenges, error: challengesError } = await challengesQuery
-
-    if (challengesError) {
-      console.error('Erreur récupération défis:', challengesError)
-      return NextResponse.json({ error: 'Erreur récupération défis' }, { status: 500 })
-    }
-
-    // Récupérer la progression de l'utilisateur
-    const { data: userProgress, error: progressError } = await supabase
-      .from('user_challenges')
-      .select('*')
-      .eq('user_id', userId)
-
-    if (progressError) {
-      console.error('Erreur récupération progression:', progressError)
-      return NextResponse.json({ error: 'Erreur récupération progression' }, { status: 500 })
-    }
-
-    // Combiner les défis avec la progression
-    const challengesWithProgress = challenges?.map(challenge => {
-      const progress = userProgress?.find(p => p.challenge_id === challenge.id)
-      return {
-        id: challenge.id,
-        title: challenge.title,
-        description: challenge.description,
-        type: challenge.type,
-        difficulty: challenge.difficulty,
-        category: challenge.category,
-        reward: {
-          credits: challenge.reward_credits,
-          experience: challenge.reward_experience,
-          badge: challenge.reward_badge
-        },
-        progress: {
-          current: progress?.current_progress || 0,
-          target: challenge.target_value,
-          completed: progress?.is_completed || false
-        },
-        deadline: challenge.deadline,
-        completedAt: progress?.completed_at,
-        rewardClaimed: progress?.reward_claimed || false
+    // Défis par défaut
+    const defaultChallenges = [
+      {
+        id: '1',
+        title: '🎯 Créateur du jour',
+        description: 'Publiez 3 contenus de qualité',
+        type: 'task_created',
+        difficulty: 'medium',
+        category: 'content',
+        reward_credits: 50,
+        reward_experience: 100,
+        target_value: 3,
+        isCompleted: false,
+        created_at: new Date().toISOString()
+      },
+      {
+        id: '2',
+        title: '📈 Stratège social',
+        description: 'Gagnez 500 nouveaux followers',
+        type: 'task_created',
+        difficulty: 'hard',
+        category: 'growth',
+        reward_credits: 200,
+        reward_experience: 500,
+        target_value: 500,
+        isCompleted: false,
+        created_at: new Date().toISOString()
+      },
+      {
+        id: '3',
+        title: '❤️ Engagement Master',
+        description: 'Obtenez 1000 likes sur un contenu',
+        type: 'task_created',
+        difficulty: 'expert',
+        category: 'engagement',
+        reward_credits: 500,
+        reward_experience: 1000,
+        target_value: 1000,
+        isCompleted: false,
+        created_at: new Date().toISOString()
+      },
+      {
+        id: '4',
+        title: '🔥 Viral Hunter',
+        description: 'Créez un contenu qui dépasse 10k vues',
+        type: 'task_created',
+        difficulty: 'expert',
+        category: 'viral',
+        reward_credits: 1000,
+        reward_experience: 2000,
+        target_value: 10000,
+        isCompleted: false,
+        created_at: new Date().toISOString()
       }
-    }) || []
+    ];
 
-    return NextResponse.json({ challenges: challengesWithProgress })
+    // Si pas d'userId, retourner les défis par défaut
+    if (!userId || userId.trim() === '') {
+      return NextResponse.json({ challenges: defaultChallenges });
+    }
+
+    // Essayer de récupérer les défis depuis la table activities
+    try {
+      const { data: challenges, error } = await supabase
+        .from('activities')
+        .select('*')
+        .eq('type', 'task_created')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Erreur récupération défis:', error);
+        // Retourner les défis par défaut en cas d'erreur
+        return NextResponse.json({ challenges: defaultChallenges });
+      }
+
+      // Si pas de défis en base, retourner les défis par défaut
+      if (!challenges || challenges.length === 0) {
+        return NextResponse.json({ challenges: defaultChallenges });
+      }
+
+      // Essayer de récupérer les complétions utilisateur
+      let userCompletions: Array<{activity_id: string, completed_at: string}> = [];
+      try {
+        const { data: completions, error: completionsError } = await supabase
+          .from('user_completions')
+          .select('activity_id, completed_at')
+          .eq('user_id', userId);
+
+        if (!completionsError && completions) {
+          userCompletions = completions;
+        }
+      } catch (completionError) {
+        console.log('Pas de table user_completions, utilisation des défis sans statut');
+      }
+
+      // Marquer les défis comme complétés
+      const challengesWithStatus = challenges.map(challenge => ({
+        ...challenge,
+        title: challenge.description || 'Défi sans titre',
+        isCompleted: userCompletions.some(completion => 
+          completion.activity_id === challenge.id
+        ) || false,
+        completedAt: userCompletions.find(completion => 
+          completion.activity_id === challenge.id
+        )?.completed_at
+      }));
+
+      return NextResponse.json({ challenges: challengesWithStatus });
+    } catch (dbError) {
+      console.log('Erreur base de données, utilisation des défis par défaut');
+      return NextResponse.json({ challenges: defaultChallenges });
+    }
+
   } catch (error) {
-    console.error('Erreur API challenges:', error)
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+    console.error('Erreur API défis:', error);
+    // En cas d'erreur, retourner les défis par défaut
+    const fallbackChallenges = [
+      {
+        id: 'fallback-1',
+        title: '🎯 Défi de Fallback',
+        description: 'Défi par défaut en cas d\'erreur',
+        type: 'task_created',
+        difficulty: 'easy',
+        category: 'general',
+        reward_credits: 10,
+        reward_experience: 20,
+        target_value: 1,
+        isCompleted: false,
+        created_at: new Date().toISOString()
+      }
+    ];
+    return NextResponse.json({ challenges: fallbackChallenges });
   }
 }
 
-// POST: Mettre à jour la progression d'un défi
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await req.json()
-    const { userId, challengeId, progress, action } = body
+    const { userId, challengeId } = await request.json();
 
     if (!userId || !challengeId) {
-      return NextResponse.json({ error: 'userId et challengeId requis' }, { status: 400 })
+      return NextResponse.json({ error: 'User ID et Challenge ID requis' }, { status: 400 });
     }
 
-    if (action === 'claim_reward') {
-      // Réclamer une récompense
-      const { error } = await supabase
-        .from('user_challenges')
-        .update({ 
-          reward_claimed: true,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', userId)
-        .eq('challenge_id', challengeId)
+    // Marquer le défi comme complété
+    const { data, error } = await supabase
+      .from('user_completions')
+      .insert({
+        user_id: userId,
+        activity_id: challengeId,
+        completed_at: new Date().toISOString()
+      });
 
-      if (error) {
-        console.error('Erreur réclamation récompense:', error)
-        return NextResponse.json({ error: 'Erreur réclamation récompense' }, { status: 500 })
-      }
-
-      return NextResponse.json({ success: true, message: 'Récompense réclamée' })
+    if (error) {
+      console.error('Erreur complétion défi:', error);
+      return NextResponse.json({ error: 'Erreur complétion défi' }, { status: 500 });
     }
 
-    // Mettre à jour la progression
-    const { data: existingProgress, error: fetchError } = await supabase
-      .from('user_challenges')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('challenge_id', challengeId)
-      .single()
-
-    if (fetchError && fetchError.code !== 'PGRST116') {
-      console.error('Erreur vérification progression:', fetchError)
-      return NextResponse.json({ error: 'Erreur vérification progression' }, { status: 500 })
-    }
-
-    // Récupérer les détails du défi pour vérifier si terminé
-    const { data: challenge, error: challengeError } = await supabase
-      .from('challenges')
-      .select('target_value')
-      .eq('id', challengeId)
-      .single()
-
-    if (challengeError) {
-      console.error('Erreur récupération défi:', challengeError)
-      return NextResponse.json({ error: 'Erreur récupération défi' }, { status: 500 })
-    }
-
-    const isCompleted = progress >= challenge.target_value
-    const completedAt = isCompleted ? new Date().toISOString() : null
-
-    if (existingProgress) {
-      // Mettre à jour la progression existante
-      const { error } = await supabase
-        .from('user_challenges')
-        .update({
-          current_progress: progress,
-          is_completed: isCompleted,
-          completed_at: completedAt,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', userId)
-        .eq('challenge_id', challengeId)
-
-      if (error) {
-        console.error('Erreur mise à jour progression:', error)
-        return NextResponse.json({ error: 'Erreur mise à jour progression' }, { status: 500 })
-      }
-    } else {
-      // Créer une nouvelle progression
-      const { error } = await supabase
-        .from('user_challenges')
-        .insert({
-          user_id: userId,
-          challenge_id: challengeId,
-          current_progress: progress,
-          is_completed: isCompleted,
-          completed_at: completedAt
-        })
-
-      if (error) {
-        console.error('Erreur création progression:', error)
-        return NextResponse.json({ error: 'Erreur création progression' }, { status: 500 })
-      }
-    }
-
-    return NextResponse.json({ 
-      success: true, 
-      completed: isCompleted,
-      message: isCompleted ? 'Défi terminé !' : 'Progression mise à jour'
-    })
+    return NextResponse.json({ success: true, data });
   } catch (error) {
-    console.error('Erreur API challenges POST:', error)
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+    console.error('Erreur API complétion défi:', error);
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 } 

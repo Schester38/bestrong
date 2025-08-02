@@ -790,11 +790,7 @@ export default function AdminPage() {
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center h-auto md:h-16 gap-4 md:gap-0 py-2 md:py-0">
-            <div className="flex items-center mb-2 md:mb-0">
-              <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-                Administration BE STRONG
-              </h1>
-            </div>
+
             <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full md:w-auto">
               <button
                 onClick={loadUsers}
@@ -822,6 +818,34 @@ export default function AdminPage() {
                      >
                        <span>IA Intelligente</span>
                      </Link>
+                     <Link
+                       href="/admin/challenges"
+                       className="flex items-center justify-center space-x-2 bg-orange-500 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg hover:bg-orange-600 w-full sm:w-auto"
+                     >
+                       <span>Gestion Défis</span>
+                     </Link>
+                     <button
+                       onClick={async () => {
+                         try {
+                           const response = await fetch('/api/admin/create-default-challenges', {
+                             method: 'POST'
+                           });
+                           const data = await response.json();
+                           if (response.ok) {
+                             alert(data.message);
+                           } else {
+                             console.error('Erreur API:', data.error);
+                             alert('Erreur: ' + data.error);
+                           }
+                         } catch (error) {
+                           console.error('Erreur réseau:', error);
+                           alert('Erreur réseau lors de la création automatique');
+                         }
+                       }}
+                       className="flex items-center justify-center space-x-2 bg-yellow-500 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg hover:bg-yellow-600 w-full sm:w-auto"
+                     >
+                       <span>Créer Auto Défis</span>
+                     </button>
               <button
                 onClick={async () => {
                   setShowSuggestionsModal(true);

@@ -7,18 +7,15 @@ interface ContentRecommendation {
   id: string
   title: string
   description: string
-  type: 'video' | 'post' | 'story' | 'reel'
   platform: 'tiktok' | 'instagram' | 'youtube'
-  category: 'trending' | 'viral' | 'niche' | 'educational'
+  category: 'beauty' | 'cooking' | 'fitness' | 'trending' | 'engagement' | 'general'
+  estimated_views: number
+  engagement_rate: number
   difficulty: 'easy' | 'medium' | 'hard'
-  estimatedViews: number
-  estimatedEngagement: number
-  timeToCreate: number // en minutes
-  trendingScore: number
-  tags: string[]
+  duration: string
   hashtags: string[]
-  bestTimeToPost: string
-  inspiration?: string
+  thumbnail_url?: string | null
+  created_at: string
 }
 
 interface ContentRecommendationsProps {
@@ -29,21 +26,27 @@ interface ContentRecommendationsProps {
 export default function ContentRecommendations({ userId, className = '' }: ContentRecommendationsProps) {
   const [recommendations, setRecommendations] = useState<ContentRecommendation[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [activeFilter, setActiveFilter] = useState<'all' | 'trending' | 'viral' | 'niche' | 'educational'>('all')
+  const [activeFilter, setActiveFilter] = useState<'all' | 'beauty' | 'cooking' | 'fitness' | 'trending' | 'engagement'>('all')
   const [selectedPlatform, setSelectedPlatform] = useState<'all' | 'tiktok' | 'instagram' | 'youtube'>('all')
   const [showModal, setShowModal] = useState(false)
   const [selectedRecommendation, setSelectedRecommendation] = useState<ContentRecommendation | null>(null)
 
   useEffect(() => {
-    if (userId) {
+    if (userId && userId.trim() !== '') {
       loadRecommendations()
     }
   }, [userId, activeFilter, selectedPlatform])
 
   const loadRecommendations = async () => {
+    if (!userId || userId.trim() === '') {
+      console.log('User ID non disponible, arrêt du chargement des recommandations')
+      return
+    }
+
     try {
       setIsLoading(true)
       const params = new URLSearchParams({
+        userId: userId,
         platform: selectedPlatform,
         category: activeFilter,
         limit: '10'
@@ -66,10 +69,11 @@ export default function ContentRecommendations({ userId, className = '' }: Conte
 
   const getCategoryColor = (category: string) => {
     switch (category) {
+      case 'beauty': return 'text-pink-600 bg-pink-100 dark:bg-pink-900 dark:text-pink-200'
+      case 'cooking': return 'text-orange-600 bg-orange-100 dark:bg-orange-900 dark:text-orange-200'
+      case 'fitness': return 'text-green-600 bg-green-100 dark:bg-green-900 dark:text-green-200'
       case 'trending': return 'text-red-600 bg-red-100 dark:bg-red-900 dark:text-red-200'
-      case 'viral': return 'text-purple-600 bg-purple-100 dark:bg-purple-900 dark:text-purple-200'
-      case 'niche': return 'text-blue-600 bg-blue-100 dark:bg-blue-900 dark:text-blue-200'
-      case 'educational': return 'text-green-600 bg-green-100 dark:bg-green-900 dark:text-green-200'
+      case 'engagement': return 'text-purple-600 bg-purple-100 dark:bg-purple-900 dark:text-purple-200'
       default: return 'text-gray-600 bg-gray-100 dark:bg-gray-700 dark:text-gray-200'
     }
   }
@@ -83,12 +87,13 @@ export default function ContentRecommendations({ userId, className = '' }: Conte
     }
   }
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'video': return <Eye className="w-4 h-4" />
-      case 'post': return <Target className="w-4 h-4" />
-      case 'story': return <Clock className="w-4 h-4" />
-      case 'reel': return <Sparkles className="w-4 h-4" />
+  const getTypeIcon = (category: string) => {
+    switch (category) {
+      case 'beauty': return <Sparkles className="w-4 h-4" />
+      case 'cooking': return <Target className="w-4 h-4" />
+      case 'fitness': return <TrendingUp className="w-4 h-4" />
+      case 'trending': return <Eye className="w-4 h-4" />
+      case 'engagement': return <Heart className="w-4 h-4" />
       default: return <Eye className="w-4 h-4" />
     }
   }
@@ -135,7 +140,7 @@ export default function ContentRecommendations({ userId, className = '' }: Conte
         {/* Filtres */}
         <div className="mb-4">
           <div className="flex flex-wrap gap-2 mb-3">
-            {(['all', 'trending', 'viral', 'niche', 'educational'] as const).map(filter => (
+            {(['all', 'beauty', 'cooking', 'fitness', 'trending', 'engagement'] as const).map(filter => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
@@ -146,10 +151,11 @@ export default function ContentRecommendations({ userId, className = '' }: Conte
                 }`}
               >
                 {filter === 'all' && 'Tout'}
+                {filter === 'beauty' && 'Beauté'}
+                {filter === 'cooking' && 'Cuisine'}
+                {filter === 'fitness' && 'Fitness'}
                 {filter === 'trending' && 'Tendance'}
-                {filter === 'viral' && 'Viral'}
-                {filter === 'niche' && 'Niche'}
-                {filter === 'educational' && 'Éducatif'}
+                {filter === 'engagement' && 'Engagement'}
               </button>
             ))}
           </div>
@@ -189,7 +195,7 @@ export default function ContentRecommendations({ userId, className = '' }: Conte
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-2">
                     <span className="text-lg">{getPlatformIcon(recommendation.platform)}</span>
-                    {getTypeIcon(recommendation.type)}
+                    {getTypeIcon(recommendation.category)}
                     <h4 className="font-medium text-gray-900 dark:text-white">
                       {recommendation.title}
                     </h4>
@@ -207,25 +213,25 @@ export default function ContentRecommendations({ userId, className = '' }: Conte
                     <div className="flex items-center space-x-2">
                       <Eye className="w-4 h-4 text-blue-500" />
                       <span className="text-sm text-gray-600 dark:text-gray-400">
-                        {recommendation.estimatedViews.toLocaleString()} vues
+                        {recommendation.estimated_views.toLocaleString()} vues
                       </span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Heart className="w-4 h-4 text-red-500" />
                       <span className="text-sm text-gray-600 dark:text-gray-400">
-                        {recommendation.estimatedEngagement}% engagement
+                        {recommendation.engagement_rate}% engagement
                       </span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Clock className="w-4 h-4 text-green-500" />
                       <span className="text-sm text-gray-600 dark:text-gray-400">
-                        {recommendation.timeToCreate} min
+                        {recommendation.duration}
                       </span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <TrendingUp className="w-4 h-4 text-purple-500" />
                       <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Score {recommendation.trendingScore}
+                        Difficulté: {recommendation.difficulty}
                       </span>
                     </div>
                   </div>
@@ -280,7 +286,7 @@ export default function ContentRecommendations({ userId, className = '' }: Conte
               {/* Filtres dans le modal */}
               <div className="mb-6">
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {(['all', 'trending', 'viral', 'niche', 'educational'] as const).map(filter => (
+                  {(['all', 'beauty', 'cooking', 'fitness', 'trending', 'engagement'] as const).map(filter => (
                     <button
                       key={filter}
                       onClick={() => setActiveFilter(filter)}
@@ -291,10 +297,11 @@ export default function ContentRecommendations({ userId, className = '' }: Conte
                       }`}
                     >
                       {filter === 'all' && 'Toutes les catégories'}
+                      {filter === 'beauty' && 'Beauté'}
+                      {filter === 'cooking' && 'Cuisine'}
+                      {filter === 'fitness' && 'Fitness'}
                       {filter === 'trending' && 'Tendances'}
-                      {filter === 'viral' && 'Viral'}
-                      {filter === 'niche' && 'Niche'}
-                      {filter === 'educational' && 'Éducatif'}
+                      {filter === 'engagement' && 'Engagement'}
                     </button>
                   ))}
                 </div>
@@ -329,7 +336,7 @@ export default function ContentRecommendations({ userId, className = '' }: Conte
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-2">
                         <span className="text-xl">{getPlatformIcon(recommendation.platform)}</span>
-                        {getTypeIcon(recommendation.type)}
+                        {getTypeIcon(recommendation.category)}
                         <h4 className="font-medium text-gray-900 dark:text-white">
                           {recommendation.title}
                         </h4>
@@ -349,7 +356,7 @@ export default function ContentRecommendations({ userId, className = '' }: Conte
                         <Eye className="w-4 h-4 text-blue-500" />
                         <div>
                           <div className="text-sm font-medium text-gray-900 dark:text-white">
-                            {recommendation.estimatedViews.toLocaleString()}
+                            {recommendation.estimated_views.toLocaleString()}
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400">Vues estimées</div>
                         </div>
@@ -358,7 +365,7 @@ export default function ContentRecommendations({ userId, className = '' }: Conte
                         <Heart className="w-4 h-4 text-red-500" />
                         <div>
                           <div className="text-sm font-medium text-gray-900 dark:text-white">
-                            {recommendation.estimatedEngagement}%
+                            {recommendation.engagement_rate}%
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400">Engagement</div>
                         </div>
@@ -367,7 +374,7 @@ export default function ContentRecommendations({ userId, className = '' }: Conte
                         <Clock className="w-4 h-4 text-green-500" />
                         <div>
                           <div className="text-sm font-medium text-gray-900 dark:text-white">
-                            {recommendation.timeToCreate} min
+                            {recommendation.duration}
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400">Temps création</div>
                         </div>
@@ -376,7 +383,7 @@ export default function ContentRecommendations({ userId, className = '' }: Conte
                         <TrendingUp className="w-4 h-4 text-purple-500" />
                         <div>
                           <div className="text-sm font-medium text-gray-900 dark:text-white">
-                            {recommendation.trendingScore}
+                            Difficulté: {recommendation.difficulty}
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400">Score tendance</div>
                         </div>
@@ -387,7 +394,7 @@ export default function ContentRecommendations({ userId, className = '' }: Conte
                     <div className="flex items-center space-x-2 mb-3">
                       <Calendar className="w-4 h-4 text-orange-500" />
                       <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Meilleur moment: {recommendation.bestTimeToPost}
+                        Meilleur moment: {recommendation.created_at}
                       </span>
                     </div>
 

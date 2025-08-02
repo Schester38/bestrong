@@ -5,22 +5,21 @@ import { Trophy, Target, Star, Zap, Calendar, Award, CheckCircle, Clock, X } fro
 
 interface Challenge {
   id: string
-  title: string
+  title?: string
   description: string
-  type: 'daily' | 'weekly' | 'monthly' | 'special'
-  difficulty: 'easy' | 'medium' | 'hard' | 'expert'
-  reward: {
-    credits: number
-    experience: number
-    badge?: string
-  }
-  progress: {
-    current: number
-    target: number
-    completed: boolean
-  }
-  deadline?: string
-  category: 'content' | 'engagement' | 'social' | 'growth'
+  type: string
+  difficulty?: string
+  category?: string
+  reward_credits?: number
+  reward_experience?: number
+  target_value?: number
+  isCompleted?: boolean
+  completedAt?: string
+  created_at: string
+  user_id?: string
+  user_phone?: string
+  user_pseudo?: string
+  progress?: number
 }
 
 interface ChallengeSystemProps {
@@ -36,15 +35,20 @@ export default function ChallengeSystem({ userId, className = '' }: ChallengeSys
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null)
 
   useEffect(() => {
-    if (userId) {
+    if (userId && userId.trim() !== '') {
       loadChallenges()
     }
   }, [userId, activeTab])
 
   const loadChallenges = async () => {
+    if (!userId || userId.trim() === '') {
+      console.log('User ID non disponible, arrêt du chargement des défis')
+      return
+    }
+
     try {
       setIsLoading(true)
-      const response = await fetch(`/api/challenges?userId=${userId}&type=${activeTab}`)
+      const response = await fetch(`/api/challenges/progress?userId=${userId}`)
       const data = await response.json()
       
       if (response.ok) {
@@ -59,15 +63,17 @@ export default function ChallengeSystem({ userId, className = '' }: ChallengeSys
     }
   }
 
-  const claimReward = async (challengeId: string) => {
+  const updateProgress = async (challengeId: string, progress: number) => {
+    if (!userId) return;
+
     try {
-      const response = await fetch('/api/challenges', {
+      const response = await fetch('/api/challenges/progress', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
           challengeId,
-          action: 'claim_reward'
+          progress
         })
       })
 
@@ -77,15 +83,23 @@ export default function ChallengeSystem({ userId, className = '' }: ChallengeSys
         // Mettre à jour l'état local
         setChallenges(prev => prev.map(challenge => 
           challenge.id === challengeId 
-            ? { ...challenge, progress: { ...challenge.progress, completed: true } }
+            ? { 
+                ...challenge, 
+                progress: data.progress || progress,
+                isCompleted: data.completed || challenge.isCompleted
+              }
             : challenge
         ))
-        console.log('Récompense réclamée:', data.message)
+
+        if (data.completed) {
+          // Afficher une notification de récompense
+          alert(data.message)
+        }
       } else {
-        console.error('Erreur réclamation récompense:', data.error)
+        console.error('Erreur mise à jour progression:', data.error)
       }
     } catch (error) {
-      console.error('Erreur réclamation récompense:', error)
+      console.error('Erreur mise à jour progression:', error)
     }
   }
 
@@ -109,7 +123,14 @@ export default function ChallengeSystem({ userId, className = '' }: ChallengeSys
     }
   }
 
-  const filteredChallenges = challenges.filter(challenge => challenge.type === activeTab)
+  const filteredChallenges = challenges.filter(challenge => {
+    // Si c'est un défi créé via l'admin (type 'task_created'), l'afficher dans tous les onglets
+    if (challenge.type === 'task_created') {
+      return true
+    }
+    // Sinon, filtrer par type comme avant
+    return challenge.type === activeTab
+  })
 
   if (isLoading) {
     return (
@@ -178,12 +199,12 @@ export default function ChallengeSystem({ userId, className = '' }: ChallengeSys
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-2">
-                    {getCategoryIcon(challenge.category)}
-                    <h4 className="font-medium text-gray-900 dark:text-white">
-                      {challenge.title}
-                    </h4>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(challenge.difficulty)}`}>
-                      {challenge.difficulty}
+                    {getCategoryIcon(challenge.category || '')}
+                                          <h4 className="font-medium text-gray-900 dark:text-white">
+                        {challenge.title || challenge.description || 'Défi sans titre'}
+                      </h4>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(challenge.difficulty || '')}`}>
+                      {challenge.difficulty || 'Inconnu'}
                     </span>
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
@@ -194,14 +215,32 @@ export default function ChallengeSystem({ userId, className = '' }: ChallengeSys
                   <div className="mb-3">
                     <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
                       <span>Progression</span>
-                      <span>{challenge.progress.current}/{challenge.progress.target}</span>
+                      <span>{challenge.progress || 0}/{challenge.target_value || 1}</span>
                     </div>
                     <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
                       <div
                         className="bg-gradient-to-r from-pink-500 to-purple-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${Math.min((challenge.progress.current / challenge.progress.target) * 100, 100)}%` }}
+                        style={{ width: `${Math.min(((challenge.progress || 0) / (challenge.target_value || 1)) * 100, 100)}%` }}
                       />
                     </div>
+                    
+                    {/* Boutons de progression */}
+                    {!challenge.isCompleted && (
+                      <div className="flex space-x-2 mt-2">
+                        <button
+                          onClick={() => updateProgress(challenge.id, (challenge.progress || 0) + 1)}
+                          className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
+                        >
+                          +1 Progression
+                        </button>
+                        <button
+                          onClick={() => updateProgress(challenge.id, challenge.target_value || 1)}
+                          className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+                        >
+                          Compléter
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Récompense */}
@@ -209,21 +248,16 @@ export default function ChallengeSystem({ userId, className = '' }: ChallengeSys
                     <div className="flex items-center space-x-3">
                       <div className="flex items-center space-x-1 text-yellow-600 dark:text-yellow-400">
                         <Star className="w-4 h-4" />
-                        <span className="text-sm font-medium">{challenge.reward.credits}</span>
+                        <span className="text-sm font-medium">{challenge.reward_credits || 0}</span>
                       </div>
                       <div className="flex items-center space-x-1 text-blue-600 dark:text-blue-400">
                         <Zap className="w-4 h-4" />
-                        <span className="text-sm font-medium">{challenge.reward.experience} XP</span>
+                        <span className="text-sm font-medium">{challenge.reward_experience || 0} XP</span>
                       </div>
-                      {challenge.reward.badge && (
-                        <div className="flex items-center space-x-1 text-purple-600 dark:text-purple-400">
-                          <Award className="w-4 h-4" />
-                          <span className="text-sm font-medium">{challenge.reward.badge}</span>
-                        </div>
-                      )}
+                      {/* Removed badge as it's not in the new Challenge interface */}
                     </div>
                     
-                    {challenge.progress.completed ? (
+                    {challenge.isCompleted ? (
                       <div className="flex items-center space-x-1 text-green-600 dark:text-green-400">
                         <CheckCircle className="w-4 h-4" />
                         <span className="text-sm font-medium">Terminé</span>
@@ -296,12 +330,12 @@ export default function ChallengeSystem({ userId, className = '' }: ChallengeSys
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-2">
-                          {getCategoryIcon(challenge.category)}
+                          {getCategoryIcon(challenge.category || '')}
                           <h4 className="font-medium text-gray-900 dark:text-white">
-                            {challenge.title}
+                            {challenge.title || 'Défi sans titre'}
                           </h4>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(challenge.difficulty)}`}>
-                            {challenge.difficulty}
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(challenge.difficulty || '')}`}>
+                            {challenge.difficulty || 'Inconnu'}
                           </span>
                         </div>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
@@ -312,14 +346,32 @@ export default function ChallengeSystem({ userId, className = '' }: ChallengeSys
                         <div className="mb-3">
                           <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
                             <span>Progression</span>
-                            <span>{challenge.progress.current}/{challenge.progress.target}</span>
+                            <span>{challenge.progress || 0}/{challenge.target_value || 1}</span>
                           </div>
                           <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
                             <div
                               className="bg-gradient-to-r from-pink-500 to-purple-600 h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${Math.min((challenge.progress.current / challenge.progress.target) * 100, 100)}%` }}
+                              style={{ width: `${Math.min(((challenge.progress || 0) / (challenge.target_value || 1)) * 100, 100)}%` }}
                             />
                           </div>
+                          
+                          {/* Boutons de progression */}
+                          {!challenge.isCompleted && (
+                            <div className="flex space-x-2 mt-2">
+                              <button
+                                onClick={() => updateProgress(challenge.id, (challenge.progress || 0) + 1)}
+                                className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
+                              >
+                                +1 Progression
+                              </button>
+                              <button
+                                onClick={() => updateProgress(challenge.id, challenge.target_value || 1)}
+                                className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+                              >
+                                Compléter
+                              </button>
+                            </div>
+                          )}
                         </div>
 
                         {/* Récompense */}
@@ -327,32 +379,20 @@ export default function ChallengeSystem({ userId, className = '' }: ChallengeSys
                           <div className="flex items-center space-x-3">
                             <div className="flex items-center space-x-1 text-yellow-600 dark:text-yellow-400">
                               <Star className="w-4 h-4" />
-                              <span className="text-sm font-medium">{challenge.reward.credits} crédits</span>
+                              <span className="text-sm font-medium">{challenge.reward_credits || 0} crédits</span>
                             </div>
                             <div className="flex items-center space-x-1 text-blue-600 dark:text-blue-400">
                               <Zap className="w-4 h-4" />
-                              <span className="text-sm font-medium">{challenge.reward.experience} XP</span>
+                              <span className="text-sm font-medium">{challenge.reward_experience || 0} XP</span>
                             </div>
-                            {challenge.reward.badge && (
-                              <div className="flex items-center space-x-1 text-purple-600 dark:text-purple-400">
-                                <Award className="w-4 h-4" />
-                                <span className="text-sm font-medium">{challenge.reward.badge}</span>
-                              </div>
-                            )}
+                            {/* Removed badge as it's not in the new Challenge interface */}
                           </div>
                           
-                          {challenge.progress.completed ? (
+                          {challenge.isCompleted ? (
                             <div className="flex items-center space-x-1 text-green-600 dark:text-green-400">
                               <CheckCircle className="w-4 h-4" />
                               <span className="text-sm font-medium">Terminé</span>
                             </div>
-                          ) : challenge.progress.current >= challenge.progress.target ? (
-                            <button
-                              onClick={() => claimReward(challenge.id)}
-                              className="px-3 py-1 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg text-sm font-medium hover:from-pink-600 hover:to-purple-700 transition-colors"
-                            >
-                              Réclamer
-                            </button>
                           ) : (
                             <div className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
                               <Clock className="w-4 h-4" />
