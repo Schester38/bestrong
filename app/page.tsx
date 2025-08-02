@@ -29,6 +29,7 @@ import SmartNotifications from "./components/SmartNotifications";
 import ChatSystem from "./components/ChatSystem";
 import InteractiveTutorial from "./components/InteractiveTutorial";
 
+
 const PhoneAuthModal = dynamic(() => import("./components/PhoneAuthModal"), { 
   ssr: false 
 });
@@ -447,6 +448,8 @@ export default function Home() {
             <p>&copy; 2024 BE STRONG. Tous droits réservés.</p>
           </div>
         </div>
+
+
       </footer>
       <NavigationArrows />
       <PWAInstallPrompt />
