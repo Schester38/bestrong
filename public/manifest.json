@@ -4,7 +4,7 @@
   "short_name": "BE STRONG",
   "description": "Plateforme éthique pour augmenter votre visibilité TikTok avec des échanges organiques, analytics et conseils d'optimisation",
   "start_url": "/?utm_source=pwa&utm_medium=app&splash=disabled",
-  "display": "fullscreen",
+  "display": "standalone",
   "offline_enabled": true,
   "background_color": "#ec4899",
   "theme_color": "#ec4899",
@@ -46,7 +46,7 @@
     }
   ],
   "splash_pages": null,
-  "display_override": ["fullscreen", "standalone", "minimal-ui"],
+  "display_override": ["standalone", "minimal-ui"],
   "screenshots": [
     {
       "src": "/screenshot1.png",

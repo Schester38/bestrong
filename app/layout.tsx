@@ -69,10 +69,10 @@ export default function RootLayout({
         <meta name="application-name" content="BE STRONG" />
         <meta name="msapplication-TileColor" content="#ec4899" />
         <meta name="msapplication-config" content="/browserconfig.xml" />
-        <meta name="splash-screen" content="disabled" />
-        <meta name="startup-image" content="disabled" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="color-scheme" content="light" />
+        <meta name="background-color" content="#ec4899" />
         <link rel="apple-touch-icon" href="/icon-512.png" />
         <link rel="mask-icon" href="/icon-maskable.png" color="#ec4899" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
