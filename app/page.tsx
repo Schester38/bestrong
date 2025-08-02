@@ -1,26 +1,31 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowRight, TrendingUp, Users, Zap, Shield, Smartphone, BarChart3, MessageCircle, Heart, Star, Download } from "lucide-react";
-import AINotification from "./components/AINotification";
-import LiveStats from "./components/LiveStats";
-import ScrollToTop from "./components/ScrollToTop";
-import ThemeToggle from "./components/ThemeToggle";
-import MotivationalPopup from "./components/MotivationalPopup";
-import ShareButton from "./components/ShareButton";
-import SplashScreen from "./components/SplashScreen";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useAlert } from "./components/CustomAlert";
+import { getCurrentUser } from "./utils/auth";
+import { useTheme } from "./hooks/useTheme";
+import Link from "next/link";
+import { ArrowRight, Users, TrendingUp, Star, Zap, Share2, Heart, MessageCircle, Settings, LogOut, RefreshCw, Bell, Target, BarChart3, Brain, Megaphone, Construction, CheckCircle, Shield, Smartphone, Download } from "lucide-react";
+import AIDashboardWidget from "./components/AIDashboardWidget";
+import AINotification from "./components/AINotification";
+import LiveStats from "./components/LiveStats";
+import MotivationalPopup from "./components/MotivationalPopup";
+import NotificationPopup from "./components/NotificationPopup";
+import ShareButton from "./components/ShareButton";
+import ThemeToggle from "./components/ThemeToggle";
+import PWAInstallPrompt from "./components/PWAInstallPrompt";
+import PWAInstallInstructions from "./components/PWAInstallInstructions";
+import PWAStatus from "./components/PWAStatus";
+import NavigationArrows from "./components/NavigationArrows";
+import ScrollToTop from "./components/ScrollToTop";
 
 const PhoneAuthModal = dynamic(() => import("./components/PhoneAuthModal"), { 
-  ssr: false,
-  loading: () => <div className="animate-pulse bg-gray-200 h-96 rounded-lg"></div>
+  ssr: false 
 });
 
-const AnimatedBackground = dynamic(() => import("./components/AnimatedBackground"), {
-  ssr: false,
-  loading: () => null
+const AnimatedBackground = dynamic(() => import("./components/AnimatedBackground"), { 
+  ssr: false 
 });
 
 export default function Home() {
@@ -118,7 +123,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative overflow-x-hidden flex flex-col items-center">
-      <SplashScreen />
+      
       {isClient && <AnimatedBackground />}
       
       {/* Header */}
