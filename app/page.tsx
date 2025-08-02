@@ -5,8 +5,9 @@ import dynamic from "next/dynamic";
 import { useAlert } from "./components/CustomAlert";
 import { getCurrentUser } from "./utils/auth";
 import { useTheme } from "./hooks/useTheme";
+import { useToast } from "./hooks/useToast";
 import Link from "next/link";
-import { ArrowRight, Users, TrendingUp, Star, Zap, Share2, Heart, MessageCircle, Settings, LogOut, RefreshCw, Bell, Target, BarChart3, Brain, Megaphone, Construction, CheckCircle, Shield, Smartphone, Download } from "lucide-react";
+import { ArrowRight, Users, TrendingUp, Star, Zap, Share2, Heart, MessageCircle, Settings, LogOut, RefreshCw, Bell, Target, BarChart3, Brain, Megaphone, Construction, CheckCircle, Shield, Smartphone, Download, Search } from "lucide-react";
 import AIDashboardWidget from "./components/AIDashboardWidget";
 import AINotification from "./components/AINotification";
 import LiveStats from "./components/LiveStats";
@@ -19,6 +20,9 @@ import PWAInstallInstructions from "./components/PWAInstallInstructions";
 import PWAStatus from "./components/PWAStatus";
 import NavigationArrows from "./components/NavigationArrows";
 import ScrollToTop from "./components/ScrollToTop";
+import LoadingSpinner from "./components/LoadingSpinner";
+import GlobalSearch from "./components/GlobalSearch";
+import ToastComponent from "./components/Toast";
 
 const PhoneAuthModal = dynamic(() => import("./components/PhoneAuthModal"), { 
   ssr: false 
@@ -29,13 +33,15 @@ const AnimatedBackground = dynamic(() => import("./components/AnimatedBackground
 });
 
 export default function Home() {
-  const { showAlert } = useAlert();
-  const [modalOpen, setModalOpen] = useState<null | "login" | "register">(null);
-  // Compteur d'utilisateurs inscrits
-  const [userCount, setUserCount] = useState<number | null>(null);
-  const [currentUser, setCurrentUser] = useState<{ phone: string; pseudo?: string } | null>(null);
-  const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
+  const { isDark } = useTheme();
+  const { showAlert, showConfirm } = useAlert();
+  const { toasts, removeToast, success, error, info, warning } = useToast();
   const [isClient, setIsClient] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [modalOpen, setModalOpen] = useState<"login" | "register" | null>(null);
+  const [userCount, setUserCount] = useState(0);
+  const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Fonction de fallback pour le partage
   const fallbackShare = useCallback((shareData: { title: string; text: string; url: string }) => {
@@ -121,73 +127,79 @@ export default function Home() {
     }
   }, []);
 
+  const handleLogout = () => {
+    localStorage.removeItem("currentUser");
+    setCurrentUser(null);
+    window.location.href = "/";
+  };
+
   return (
     <div className="min-h-screen relative overflow-x-hidden flex flex-col items-center">
       
       {isClient && <AnimatedBackground />}
       
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 dark:bg-gray-900/80 dark:border-gray-700 sticky top-0 z-50 relative w-full">
-        {/* Header centré avec mr-auto/ml-auto pour un alignement parfait */}
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 w-full">
-          <div className="flex items-center justify-center h-12 sm:h-16 w-full">
-            {/* Logo et titre - centré */}
-            <div className="flex items-center">
-              <img 
-                src="/icon-512.png" 
-                alt="BE STRONG Logo" 
-                className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 mr-1 sm:mr-2"
-              />
-              <h1 className="text-sm sm:text-lg lg:text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
-                BE STRONG
-              </h1>
+      <header className="w-full flex justify-center items-center py-4 px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="flex justify-center items-center space-x-4 w-full max-w-7xl">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <span className="text-white font-bold text-lg sm:text-xl">BS</span>
             </div>
-            
-            {/* Boutons de navigation - centrés à droite */}
-            <div className="flex items-center space-x-1 sm:space-x-2 ml-auto">
-              {/* Sélecteur de thème */}
-              <ThemeToggle />
-              
-              {currentUser ? (
-                <>
-                  <Link
-                    href="/dashboard"
-                    className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-1 sm:px-2 lg:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold hover:shadow-lg transition-all duration-200"
-                  >
-                    <span className="hidden sm:inline">Tableau de bord</span>
-                    <span className="sm:hidden">Dashboard</span>
-                  </Link>
-                  <button
-                    onClick={() => {
-                      localStorage.removeItem("currentUser");
-                      setCurrentUser(null);
-                      window.location.href = "/";
-                    }}
-                    className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-red-500 hover:text-red-600 dark:hover:text-red-400 px-1 sm:px-2 lg:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200"
-                  >
-                    <span className="hidden sm:inline">Se déconnecter</span>
-                    <span className="sm:hidden">Déco</span>
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={() => setModalOpen("login")}
-                    className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-pink-500 hover:text-pink-600 dark:hover:text-pink-400 px-1 sm:px-2 lg:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200"
-                  >
-                    <span className="hidden sm:inline">Se connecter</span>
-                    <span className="sm:hidden">Connexion</span>
-                  </button>
-                  <button
-                    onClick={() => setModalOpen("register")}
-                    className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-1 sm:px-2 lg:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold hover:shadow-lg transition-all duration-200"
-                  >
-                    <span className="hidden sm:inline">Créer un compte</span>
-                    <span className="sm:hidden">Inscription</span>
-                  </button>
-                </>
-              )}
-            </div>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+              BE STRONG
+            </h1>
+          </div>
+          
+          <div className="flex items-center space-x-2 sm:space-x-4 ml-auto">
+            <button
+              onClick={() => {
+                // Ouvrir la recherche globale
+                const event = new KeyboardEvent('keydown', {
+                  key: 'k',
+                  ctrlKey: true,
+                  bubbles: true
+                });
+                document.dispatchEvent(event);
+              }}
+              className="p-2 text-gray-600 dark:text-gray-300 hover:text-pink-500 dark:hover:text-pink-400 transition-colors"
+              title="Recherche globale (Ctrl+K)"
+            >
+              <Search className="w-5 h-5" />
+            </button>
+            <ThemeToggle />
+            {currentUser ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-all duration-200 flex items-center space-x-1 shadow-lg hover:shadow-xl"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  <span className="hidden sm:inline">Dashboard</span>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-500 hover:bg-red-600 text-white px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors duration-200 flex items-center space-x-1"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className="hidden sm:inline">Déconnexion</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => setModalOpen("login")}
+                  className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-pink-500 hover:text-pink-600 dark:hover:text-pink-400 px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-all duration-200"
+                >
+                  <span>Connexion</span>
+                </button>
+                <button
+                  onClick={() => setModalOpen("register")}
+                  className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-all duration-200 flex items-center space-x-1 shadow-lg hover:shadow-xl"
+                >
+                  <span>Inscription</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -419,9 +431,21 @@ export default function Home() {
           </div>
         </div>
       </footer>
+      <NavigationArrows />
+      <PWAInstallPrompt />
+      <PWAInstallInstructions />
+      <PWAStatus />
       <ScrollToTop />
-      <MotivationalPopup />
+      <GlobalSearch />
       
+      {/* Toast notifications */}
+      {toasts.map((toast) => (
+        <ToastComponent
+          key={toast.id}
+          toast={toast}
+          onRemove={removeToast}
+        />
+      ))}
     </div>
   );
 }
