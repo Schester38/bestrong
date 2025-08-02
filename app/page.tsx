@@ -123,7 +123,7 @@ export default function Home() {
       <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 dark:bg-gray-900/80 dark:border-gray-700 sticky top-0 z-50 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-12 sm:h-16">
-            <div className="flex items-center -ml-2 sm:ml-0">
+            <div className="flex items-center">
               <img 
                 src="/icon-512.png" 
                 alt="BE STRONG Logo" 
@@ -133,7 +133,7 @@ export default function Home() {
                 BE STRONG
               </h1>
             </div>
-            <div className="flex items-center space-x-1 sm:space-x-2 ml-2 sm:ml-0">
+            <div className="flex items-center space-x-1 sm:space-x-2">
               {/* Sélecteur de thème */}
               <ThemeToggle />
               
