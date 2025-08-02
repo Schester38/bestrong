@@ -70,12 +70,12 @@ export default function SplashScreen() {
         </div>
 
         {/* Texte de chargement */}
-        <p className="text-sm sm:text-base opacity-90 font-medium mb-8">
+        <p className="text-sm sm:text-base opacity-90 font-medium mb-12">
           {loadingText}
         </p>
 
         {/* Crédit en bas */}
-        <p className="text-xs sm:text-sm opacity-70 font-light absolute bottom-4 left-1/2 transform -translate-x-1/2">
+        <p className="text-xs sm:text-sm opacity-60 font-light absolute bottom-8 left-1/2 transform -translate-x-1/2">
           App créée par Gadar Perets
         </p>
       </div>
