@@ -1,6 +1,6 @@
 {
   "id": "be-strong-app",
-  "name": "BE STRONG",
+  "name": "BE STRONG - Plateforme TikTok",
   "short_name": "BE STRONG",
   "description": "Plateforme éthique pour augmenter votre visibilité TikTok avec des échanges organiques, analytics et conseils d'optimisation",
   "start_url": "/",
@@ -10,9 +10,9 @@
   "periodic_sync": true,
   "push_notifications": true,
   "background_color": "#ffffff",
-  "theme_color": "#3b82f6",
+  "theme_color": "#ec4899",
   "orientation": "portrait-primary",
-    "scope": "/",
+  "scope": "/",
   "scope_extensions": [
     {
       "origin": "https://mybestrong.netlify.app"
@@ -46,7 +46,7 @@
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
-        }
+    }
   ],
   "screenshots": [
     {
@@ -76,25 +76,49 @@
       "name": "Dashboard",
       "short_name": "Dashboard",
       "description": "Accéder au tableau de bord",
-      "url": "/dashboard"
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/icon-512-maskable.png",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "Tâches",
       "short_name": "Tâches",
       "description": "Voir les tâches disponibles",
-      "url": "/dashboard?tab=tasks"
+      "url": "/dashboard?tab=tasks",
+      "icons": [
+        {
+          "src": "/icon-512-maskable.png",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "Messagerie",
       "short_name": "Messages",
       "description": "Accéder à la messagerie",
-      "url": "/dashboard?tab=messages"
+      "url": "/dashboard?tab=messages",
+      "icons": [
+        {
+          "src": "/icon-512-maskable.png",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "Admin",
       "short_name": "Admin",
       "description": "Panel d'administration",
-      "url": "/admin"
+      "url": "/admin",
+      "icons": [
+        {
+          "src": "/icon-512-maskable.png",
+          "sizes": "96x96"
+        }
+      ]
     }
   ],
   "related_applications": [],

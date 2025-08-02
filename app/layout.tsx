@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: 'BE STRONG - Plateforme de motivation et fitness',
   description: 'Rejoignez la communauté BE STRONG pour atteindre vos objectifs fitness et motivation',
   manifest: '/manifest.json',
-  themeColor: '#3b82f6',
+  themeColor: '#ec4899',
   viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
   appleWebApp: {
     capable: true,
@@ -19,27 +19,27 @@ export const metadata: Metadata = {
     startupImage: [
       {
         url: '/icon-512.png',
-        media: '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)',
+        media: '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)'
       },
       {
         url: '/icon-512.png',
-        media: '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)',
+        media: '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)'
       },
       {
         url: '/icon-512.png',
-        media: '(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)',
-      },
-    ],
+        media: '(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)'
+      }
+    ]
   },
   icons: {
     icon: [
-      { url: '/icon.png', sizes: '192x192', type: 'image/png' },
       { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+      { url: '/icon-maskable.png', sizes: '192x192', type: 'image/png' }
     ],
     apple: [
-      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' }
     ],
-    shortcut: '/icon.png',
+    shortcut: '/icon-512.png'
   },
   other: {
     'mobile-web-app-capable': 'yes',
@@ -47,9 +47,9 @@ export const metadata: Metadata = {
     'apple-mobile-web-app-status-bar-style': 'default',
     'apple-mobile-web-app-title': 'BE STRONG',
     'application-name': 'BE STRONG',
-    'msapplication-TileColor': '#3b82f6',
-    'msapplication-config': '/browserconfig.xml',
-  },
+    'msapplication-TileColor': '#ec4899',
+    'msapplication-config': '/browserconfig.xml'
+  }
 }
 
 export default function RootLayout({
