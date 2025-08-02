@@ -122,8 +122,9 @@ export default function Home() {
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 dark:bg-gray-900/80 dark:border-gray-700 sticky top-0 z-50 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-12 sm:h-16">
-            <div className="flex items-center">
+          <div className="flex items-center h-12 sm:h-16">
+            {/* Logo et titre - à gauche */}
+            <div className="flex items-center mr-auto">
               <img 
                 src="/icon-512.png" 
                 alt="BE STRONG Logo" 
@@ -133,7 +134,9 @@ export default function Home() {
                 BE STRONG
               </h1>
             </div>
-            <div className="flex items-center space-x-1 sm:space-x-2">
+            
+            {/* Boutons de navigation - à droite */}
+            <div className="flex items-center space-x-1 sm:space-x-2 ml-auto">
               {/* Sélecteur de thème */}
               <ThemeToggle />
               
