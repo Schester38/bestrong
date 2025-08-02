@@ -222,7 +222,11 @@ export default function PhoneAuthModal({ open, onClose, mode, onModeChange }: { 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [pseudo, setPseudo] = useState("");
+  const [copied, setCopied] = useState(false);
   const router = useRouter();
+
+  // Détecter si on est sur Android
+  const isAndroid = typeof window !== 'undefined' && /Android/i.test(navigator.userAgent);
 
   // Filtrer les pays selon la recherche
   const filteredCountries = countryCodes.filter(country => 
@@ -291,10 +295,24 @@ export default function PhoneAuthModal({ open, onClose, mode, onModeChange }: { 
             setTimeout(() => {
               setSuccess("");
               onClose();
-              // Rediriger vers le dashboard avec un délai pour s'assurer que les données sont sauvegardées
-              setTimeout(() => {
-                window.location.href = "/dashboard";
-              }, 500);
+              // Redirection différente selon la plateforme
+              if (isAndroid) {
+                // Sur Android, attendre plus longtemps et forcer un rechargement complet
+                setTimeout(() => {
+                  // Vérifier que les données sont bien sauvegardées
+                  const user = localStorage.getItem("currentUser");
+                  const access = localStorage.getItem("dashboardAccessGranted");
+                  if (user && access) {
+                    window.location.href = "/dashboard";
+                  } else {
+                    // Si les données ne sont pas sauvegardées, réessayer
+                    window.location.reload();
+                  }
+                }, 1000);
+              } else {
+                // Sur les autres plateformes, utiliser le router Next.js
+                router.push("/dashboard");
+              }
             }, 1500);
           }
         }
