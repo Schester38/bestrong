@@ -810,6 +810,18 @@ export default function AdminPage() {
               >
                 <span>Activités utilisateurs</span>
               </Link>
+                                   <Link
+                       href="/admin/tutorials"
+                       className="flex items-center justify-center space-x-2 bg-purple-500 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg hover:bg-purple-600 w-full sm:w-auto"
+                     >
+                       <span>Gestion tutoriels</span>
+                     </Link>
+                     <Link
+                       href="/admin/intelligence"
+                       className="flex items-center justify-center space-x-2 bg-indigo-500 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg hover:bg-indigo-600 w-full sm:w-auto"
+                     >
+                       <span>IA Intelligente</span>
+                     </Link>
               <button
                 onClick={async () => {
                   setShowSuggestionsModal(true);

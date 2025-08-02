@@ -1,139 +1,170 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+import { IntelligentAlgorithm } from '../../utils/intelligent-algorithm'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
-// Client Supabase côté serveur
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-// Ajouter une fonction de normalisation des numéros de téléphone
-function normalizePhone(phone: string): string {
-  // Enlever tous les espaces et caractères spéciaux
-  let normalized = phone.replace(/\s+/g, '').replace(/[^\d+]/g, '');
-  
-  // Si le numéro commence par 237, ajouter le +
-  if (normalized.startsWith('237') && !normalized.startsWith('+237')) {
-    normalized = '+' + normalized;
-  }
-  
-  // Si le numéro commence par 6, 7, 8, 9 (numéro camerounais) sans indicatif, ajouter +237
-  if (/^[6789]/.test(normalized) && !normalized.startsWith('+') && !normalized.startsWith('237')) {
-    normalized = '+237' + normalized;
-  }
-  
-  // Debug: afficher la normalisation
-  console.log(`normalizePhone: "${phone}" -> "${normalized}"`);
-  
-  return normalized;
-}
-
-// GET /api/messages?user=xxx
 export async function GET(request: NextRequest) {
   try {
-  console.log('API messages GET appelée');
-  const url = new URL(request.url);
-  const user = url.searchParams.get('user');
-  console.log('Paramètre user:', user);
-  if (!user) return NextResponse.json({ error: 'Paramètre user requis' }, { status: 400 });
-  
-  const normalizedUser = normalizePhone(user);
-  console.log('User normalisé:', normalizedUser);
-  
-    // Test simple d'abord
-    console.log('Test connexion Supabase...');
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
-    
-    // Test avec une requête simple
-    const { data: testData, error: testError } = await supabase
-      .from('messages')
-      .select('*')
-      .limit(1);
-    
-    if (testError) {
-      console.error('Erreur test table messages:', testError);
-      return NextResponse.json({ 
-        error: 'Erreur table messages', 
-        details: testError.message 
-      }, { status: 500 });
-    }
-    
-    console.log('Test réussi, données:', testData);
-  
-    // Utiliser une approche différente pour la requête OR
-    const { data: messagesFrom, error: errorFrom } = await supabase
-      .from('messages')
-      .select('*')
-      .eq('from_user', normalizedUser);
+    const { searchParams } = new URL(request.url)
+    const userId = searchParams.get('userId')
+    const contactId = searchParams.get('contactId')
 
-    const { data: messagesTo, error: errorTo } = await supabase
-      .from('messages')
-      .select('*')
-      .eq('to_user', normalizedUser);
-
-    if (errorFrom || errorTo) {
-      console.error('Erreur récupération messages:', errorFrom || errorTo);
-      return NextResponse.json({ 
-        error: 'Erreur lors de la récupération des messages',
-        details: errorFrom?.message || errorTo?.message
-      }, { status: 500 });
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID required' }, { status: 400 })
     }
 
-    const messages = [...(messagesFrom || []), ...(messagesTo || [])];
-    messages.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    if (contactId) {
+      // Récupérer les messages d'une conversation spécifique
+      const { data: messages, error } = await supabase
+        .from('messages')
+        .select('*')
+        .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+        .or(`sender_id.eq.${contactId},receiver_id.eq.${contactId}`)
+        .order('created_at', { ascending: true })
 
-    // Transformer les données pour correspondre au format attendu par le frontend
-    const transformedMessages = messages.map(msg => ({
-      id: msg.id,
-      from: msg.from_user,
-      to: msg.to_user,
-      message: msg.message,
-      date: msg.date,
-      lu: msg.lu
-    }));
-  
-    console.log('Messages récupérés:', transformedMessages?.length || 0);
-    return NextResponse.json(transformedMessages || []);
+      if (error) {
+        console.error('Erreur récupération messages:', error)
+        return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+      }
+
+      return NextResponse.json({ messages: messages || [] })
+    } else {
+      // Récupérer les contacts avec leurs derniers messages
+      const { data: contacts, error } = await supabase
+        .from('message_contacts')
+        .select(`
+          *,
+          last_message:messages!inner(
+            content,
+            created_at,
+            sender_id,
+            receiver_id
+          )
+        `)
+        .eq('user_id', userId)
+        .order('last_message.created_at', { ascending: false })
+
+      if (error) {
+        console.error('Erreur récupération contacts:', error)
+        return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+      }
+
+      // Si pas de contacts en base, créer des contacts par défaut
+      if (!contacts || contacts.length === 0) {
+        const defaultContacts = [
+          {
+            id: 'support',
+            name: 'Support BE STRONG',
+            avatar: null,
+            lastMessage: 'Comment puis-je vous aider ?',
+            lastMessageTime: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+            unreadCount: 0,
+            isOnline: true,
+            type: 'support'
+          },
+          {
+            id: 'community',
+            name: 'Communauté TikTok',
+            avatar: null,
+            lastMessage: 'Nouvelle tâche disponible !',
+            lastMessageTime: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+            unreadCount: 0,
+            isOnline: true,
+            type: 'community'
+          },
+          {
+            id: 'admin',
+            name: 'Admin Gadar',
+            avatar: null,
+            lastMessage: 'Merci pour votre participation !',
+            lastMessageTime: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+            unreadCount: 0,
+            isOnline: false,
+            type: 'admin'
+          }
+        ]
+
+        return NextResponse.json({ contacts: defaultContacts })
+      }
+
+      return NextResponse.json({ contacts })
+    }
   } catch (error) {
-    console.error('Erreur générale GET /api/messages:', error);
-    return NextResponse.json({ 
-      error: 'Erreur générale',
-      details: error instanceof Error ? error.message : String(error)
-    }, { status: 500 });
+    console.error('Erreur API messages:', error)
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
 
-// POST /api/messages
 export async function POST(request: NextRequest) {
   try {
-    const { from, to, message } = await request.json();
-    if (!from || !to || !message) {
-      return NextResponse.json({ error: 'Champs requis manquants' }, { status: 400 });
+    const body = await request.json()
+    const { senderId, receiverId, content, type = 'text' } = body
+
+    if (!senderId || !receiverId || !content) {
+      return NextResponse.json({ error: 'Données manquantes' }, { status: 400 })
     }
 
-    const newMsg = {
-      id: Date.now().toString(),
-      from_user: from,
-      to_user: to,
-      message,
-      date: new Date().toISOString()
-    };
-
+    // Créer le message de l'utilisateur
     const { data, error } = await supabase
       .from('messages')
-      .insert(newMsg)
+      .insert({
+        sender_id: senderId,
+        receiver_id: receiverId,
+        content,
+        type,
+        created_at: new Date().toISOString()
+      })
       .select()
-      .single();
+      .single()
 
     if (error) {
-      console.error('Erreur création message:', error);
-      return NextResponse.json({ error: 'Erreur lors de l\'envoi du message' }, { status: 500 });
+      console.error('Erreur création message:', error)
+      return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
     }
 
-    return NextResponse.json(data, { status: 201 });
+    // Si le message est envoyé à un contact système, générer une réponse intelligente
+    if (receiverId === 'support' || receiverId === 'admin' || receiverId === 'community') {
+      try {
+        // Analyser le comportement utilisateur
+        const userBehavior = await IntelligentAlgorithm.analyzeUserBehavior(senderId)
+        const userLevel = IntelligentAlgorithm.analyzeUserLevel(userBehavior)
+        
+        // Créer le contexte du message
+        const messageContext = {
+          userQuery: content,
+          userHistory: [],
+          userLevel,
+          supportNeeded: content.toLowerCase().includes('problème') || content.toLowerCase().includes('erreur')
+        }
+        
+        // Générer une réponse intelligente
+        const intelligentResponse = IntelligentAlgorithm.generateIntelligentResponse(messageContext)
+        
+        // Créer la réponse automatique
+        await IntelligentAlgorithm.createMessage(receiverId, senderId, intelligentResponse)
+        
+        // Retourner le message original + la réponse automatique
+        return NextResponse.json({ 
+          message: data,
+          autoReply: {
+            content: intelligentResponse,
+            timestamp: new Date().toISOString()
+          }
+        })
+      } catch (error) {
+        console.error('Erreur génération réponse intelligente:', error)
+        // En cas d'erreur, retourner juste le message original
+        return NextResponse.json({ message: data })
+      }
+    }
+
+    return NextResponse.json({ message: data })
   } catch (error) {
-    console.error('Erreur POST /api/messages:', error);
-    return NextResponse.json({ error: 'Erreur lors de l\'envoi du message' }, { status: 500 });
+    console.error('Erreur API messages:', error)
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 } 

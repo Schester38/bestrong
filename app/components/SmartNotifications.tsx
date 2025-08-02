@@ -20,48 +20,8 @@ interface SmartNotificationsProps {
 }
 
 const SmartNotifications = ({ userId, className = '' }: SmartNotificationsProps) => {
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      type: 'task',
-      title: 'Nouvelle tâche disponible',
-      message: 'Une nouvelle tâche TikTok est disponible pour vous !',
-      priority: 'high',
-      read: false,
-      createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 min ago
-      actionUrl: '/dashboard?tab=tasks'
-    },
-    {
-      id: '2',
-      type: 'achievement',
-      title: 'Badge débloqué !',
-      message: 'Félicitations ! Vous avez débloqué le badge "Première Tâche"',
-      priority: 'medium',
-      read: false,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2h ago
-      actionUrl: '/dashboard?tab=badges'
-    },
-    {
-      id: '3',
-      type: 'reminder',
-      title: 'Rappel quotidien',
-      message: 'N\'oubliez pas de compléter vos tâches quotidiennes !',
-      priority: 'low',
-      read: true,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 6), // 6h ago
-      actionUrl: '/dashboard'
-    },
-    {
-      id: '4',
-      type: 'social',
-      title: 'Nouveau message',
-      message: 'Vous avez reçu un nouveau message de la communauté',
-      priority: 'medium',
-      read: false,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12), // 12h ago
-      actionUrl: '/dashboard?tab=messages'
-    }
-  ])
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   const [showSettings, setShowSettings] = useState(false)
   const [settings, setSettings] = useState({
@@ -77,18 +37,78 @@ const SmartNotifications = ({ userId, className = '' }: SmartNotificationsProps)
 
   const [isOpen, setIsOpen] = useState(false)
 
-  const unreadCount = notifications.filter(n => !n.read).length
+  // Charger les notifications depuis l'API
+  useEffect(() => {
+    if (userId) {
+      loadNotifications()
+    }
+  }, [userId])
 
-  const markAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(n => n.id === id ? { ...n, read: true } : n)
-    )
+  const loadNotifications = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch(`/api/notifications?userId=${userId}`)
+      const data = await response.json()
+      
+      if (data.notifications) {
+        const formattedNotifications = data.notifications.map((n: any) => ({
+          id: n.id,
+          type: n.type,
+          title: n.title,
+          message: n.message,
+          priority: n.priority,
+          read: n.read,
+          createdAt: new Date(n.created_at),
+          actionUrl: n.action_url
+        }))
+        setNotifications(formattedNotifications)
+      }
+    } catch (error) {
+      console.error('Erreur chargement notifications:', error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(n => ({ ...n, read: true }))
-    )
+  const unreadCount = notifications.filter(n => !n.read).length
+
+  const markAsRead = async (id: string) => {
+    try {
+      const response = await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notificationId: id, read: true })
+      })
+      
+      if (response.ok) {
+        setNotifications(prev => 
+          prev.map(n => n.id === id ? { ...n, read: true } : n)
+        )
+      }
+    } catch (error) {
+      console.error('Erreur marquer comme lu:', error)
+    }
+  }
+
+  const markAllAsRead = async () => {
+    try {
+      const unreadNotifications = notifications.filter(n => !n.read)
+      await Promise.all(
+        unreadNotifications.map(n => 
+          fetch('/api/notifications', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ notificationId: n.id, read: true })
+          })
+        )
+      )
+      
+      setNotifications(prev => 
+        prev.map(n => ({ ...n, read: true }))
+      )
+    } catch (error) {
+      console.error('Erreur marquer tout comme lu:', error)
+    }
   }
 
   const deleteNotification = (id: string) => {

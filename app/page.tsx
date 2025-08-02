@@ -26,6 +26,8 @@ import ToastComponent from "./components/Toast";
 import BadgeSystem from "./components/BadgeSystem";
 import AdvancedStats from "./components/AdvancedStats";
 import SmartNotifications from "./components/SmartNotifications";
+import ChatSystem from "./components/ChatSystem";
+import InteractiveTutorial from "./components/InteractiveTutorial";
 
 const PhoneAuthModal = dynamic(() => import("./components/PhoneAuthModal"), { 
   ssr: false 
@@ -169,7 +171,8 @@ export default function Home() {
             >
               <Search className="w-5 h-5" />
             </button>
-            <SmartNotifications />
+                          <SmartNotifications userId={currentUser?.id} />
+                          <ChatSystem userId={currentUser?.id} />
             <ThemeToggle />
             {currentUser ? (
               <>
@@ -460,6 +463,46 @@ export default function Home() {
           onRemove={removeToast}
         />
       ))}
+
+      {/* Tutoriel interactif */}
+      <InteractiveTutorial
+        tutorialId="welcome-tutorial"
+        steps={[
+          {
+            id: 'welcome',
+            title: 'Bienvenue sur BE STRONG !',
+            description: 'Découvrez comment utiliser notre plateforme pour maximiser votre présence TikTok.',
+            position: 'bottom'
+          },
+          {
+            id: 'features',
+            title: 'Fonctionnalités principales',
+            description: 'Explorez nos outils de création de contenu, d\'analyse et de gamification.',
+            target: '.features-section',
+            position: 'top'
+          },
+          {
+            id: 'dashboard',
+            title: 'Tableau de bord',
+            description: 'Accédez à vos statistiques, badges et tâches depuis le tableau de bord.',
+            target: 'a[href="/dashboard"]',
+            position: 'bottom'
+          },
+          {
+            id: 'chat',
+            title: 'Support en ligne',
+            description: 'Besoin d\'aide ? Notre équipe est disponible 24/7 via le chat.',
+            target: '.chat-button',
+            position: 'left'
+          }
+        ]}
+        onComplete={() => {
+          success('Tutoriel terminé !', 'Vous êtes maintenant prêt à utiliser BE STRONG.')
+        }}
+        onSkip={() => {
+          info('Tutoriel ignoré', 'Vous pouvez le relancer à tout moment depuis le bouton d\'aide.')
+        }}
+      />
     </div>
   );
 }
