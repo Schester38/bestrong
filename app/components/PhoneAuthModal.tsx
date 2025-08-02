@@ -284,10 +284,17 @@ export default function PhoneAuthModal({ open, onClose, mode, onModeChange }: { 
             }
             router.push("/thank-you");
           } else {
+            // Pour la connexion, s'assurer que l'utilisateur a accès au dashboard
+            if (data.hasAccess) {
+              localStorage.setItem("dashboardAccessGranted", "true");
+            }
             setTimeout(() => {
               setSuccess("");
               onClose();
-              window.location.href = "/dashboard";
+              // Rediriger vers le dashboard avec un délai pour s'assurer que les données sont sauvegardées
+              setTimeout(() => {
+                window.location.href = "/dashboard";
+              }, 500);
             }, 1500);
           }
         }

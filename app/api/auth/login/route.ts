@@ -50,6 +50,30 @@ export async function POST(request: NextRequest) {
       abonnementValide = new Date() < dateFin;
     }
 
+    // Vérifier la période d'essai (45 jours après inscription)
+    let periodeEssaiValide = false;
+    if (user.date_inscription) {
+      const dateInscription = new Date(user.date_inscription);
+      const dateFinEssai = new Date(dateInscription);
+      dateFinEssai.setDate(dateFinEssai.getDate() + 45);
+      periodeEssaiValide = new Date() < dateFinEssai;
+    }
+
+    // Vérifier l'accès admin
+    let hasAdminAccess = false;
+    if (user.dashboard_access) {
+      if (user.dashboard_access_expires_at) {
+        const now = new Date();
+        const expiresAt = new Date(user.dashboard_access_expires_at);
+        hasAdminAccess = now < expiresAt;
+      } else {
+        hasAdminAccess = true;
+      }
+    }
+
+    // L'utilisateur a accès s'il a un abonnement valide, une période d'essai valide, ou un accès admin
+    const hasAccess = abonnementValide || periodeEssaiValide || hasAdminAccess;
+
     // Enregistrer l'activité de connexion
     await logActivity({
       userId: user.id,
@@ -67,13 +91,19 @@ export async function POST(request: NextRequest) {
       pseudo: user.pseudo,
       createdAt: user.created_at,
       updatedAt: user.updated_at,
-      dateDernierPaiement: dateDernierPaiement
+      dateDernierPaiement: dateDernierPaiement,
+      dateInscription: user.date_inscription,
+      dashboardAccess: hasAdminAccess,
+      dashboardAccessExpiresAt: user.dashboard_access_expires_at
     };
 
     return NextResponse.json({
       message: 'Connexion réussie',
       user: userWithoutPassword,
-      abonnementValide
+      abonnementValide,
+      periodeEssaiValide,
+      hasAdminAccess,
+      hasAccess
     });
   } catch (error) {
     console.error('Erreur lors de la connexion:', error);
