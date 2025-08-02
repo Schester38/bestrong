@@ -295,25 +295,8 @@ export default function PhoneAuthModal({ open, onClose, mode, onModeChange }: { 
             setTimeout(() => {
               setSuccess("");
               onClose();
-              // Redirection différente selon la plateforme
-              if (isAndroid) {
-                // Sur Android PWA, utiliser une page de redirection temporaire
-                setTimeout(() => {
-                  // Vérifier que les données sont bien sauvegardées
-                  const user = localStorage.getItem("currentUser");
-                  const access = localStorage.getItem("dashboardAccessGranted");
-                  if (user && access) {
-                    // Utiliser une page de redirection temporaire pour Android PWA
-                    window.location.replace("/dashboard-redirect");
-                  } else {
-                    // Si les données ne sont pas sauvegardées, rediriger vers l'accueil
-                    window.location.replace("/");
-                  }
-                }, 500);
-              } else {
-                // Sur les autres plateformes, utiliser le router Next.js
-                router.push("/dashboard");
-              }
+              // Utiliser la même méthode que le bouton de la page d'accueil
+              router.push("/dashboard");
             }, 1500);
           }
         }
