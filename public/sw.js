@@ -1,8 +1,8 @@
 // Service Worker optimisé pour BE STRONG PWA
-const CACHE_NAME = 'be-strong-v2.3';
-const STATIC_CACHE = 'be-strong-static-v2.3';
-const DYNAMIC_CACHE = 'be-strong-dynamic-v2.3';
-const API_CACHE = 'be-strong-api-v2.3';
+const CACHE_NAME = 'be-strong-v2.4';
+const STATIC_CACHE = 'be-strong-static-v2.4';
+const DYNAMIC_CACHE = 'be-strong-dynamic-v2.4';
+const API_CACHE = 'be-strong-api-v2.4';
 
 // Ressources à mettre en cache immédiatement
 const STATIC_RESOURCES = [
@@ -248,6 +248,7 @@ async function handleImportantPageRequest(request) {
 // Gestion des requêtes de pages
 async function handlePageRequest(request) {
   const cache = await caches.open(DYNAMIC_CACHE);
+  const url = new URL(request.url);
   
   try {
     // Essayer le réseau en premier
@@ -269,7 +270,13 @@ async function handlePageRequest(request) {
       return cachedResponse;
     }
     
-    // Retourner la page offline
+    // Pour les pages importantes, ne pas retourner la page offline
+    if (isImportantPage(request)) {
+      console.log('Service Worker: Page importante non trouvée, redirection vers accueil');
+      return Response.redirect('/');
+    }
+    
+    // Retourner la page offline seulement pour les autres pages
     const offlineResponse = await caches.match('/offline.html');
     return offlineResponse || new Response('Page non disponible hors ligne');
   }
@@ -289,7 +296,11 @@ function isStaticResource(request) {
 }
 
 function isImportantPage(request) {
-  return IMPORTANT_PAGES.some(page => request.url.includes(page));
+  const url = new URL(request.url);
+  const pathname = url.pathname;
+  const isImportant = IMPORTANT_PAGES.some(page => pathname === page || pathname.startsWith(page + '/'));
+  console.log('Service Worker: Vérification page importante:', pathname, '->', isImportant);
+  return isImportant;
 }
 
 // Gestion des messages
