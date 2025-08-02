@@ -22,75 +22,112 @@ interface BadgeSystemProps {
 }
 
 const BadgeSystem = ({ userId, className = '' }: BadgeSystemProps) => {
-  const [badges, setBadges] = useState<Badge[]>([
-    {
-      id: 'first-task',
-      name: 'Première Tâche',
-      description: 'Complétez votre première tâche',
-      icon: 'target',
-      color: 'bg-blue-500',
-      category: 'achievement',
-      unlocked: false,
-      progress: 0,
-      maxProgress: 1
-    },
-    {
-      id: 'task-master',
-      name: 'Maître des Tâches',
-      description: 'Complétez 50 tâches',
-      icon: 'trophy',
-      color: 'bg-yellow-500',
-      category: 'milestone',
-      unlocked: false,
-      progress: 0,
-      maxProgress: 50
-    },
-    {
-      id: 'streak-7',
-      name: 'Série de 7 Jours',
-      description: 'Connectez-vous 7 jours de suite',
-      icon: 'star',
-      color: 'bg-purple-500',
-      category: 'milestone',
-      unlocked: false,
-      progress: 0,
-      maxProgress: 7
-    },
-    {
-      id: 'early-adopter',
-      name: 'Early Adopter',
-      description: 'Rejoignez BE STRONG dans les premiers',
-      icon: 'crown',
-      color: 'bg-gradient-to-r from-pink-500 to-purple-600',
-      category: 'special',
-      unlocked: true,
-      unlockedAt: new Date()
-    },
-    {
-      id: 'social-butterfly',
-      name: 'Papillon Social',
-      description: 'Partagez 10 fois du contenu',
-      icon: 'heart',
-      color: 'bg-pink-500',
-      category: 'achievement',
-      unlocked: false,
-      progress: 0,
-      maxProgress: 10
-    },
-    {
-      id: 'speed-demon',
-      name: 'Démon de Vitesse',
-      description: 'Complétez 5 tâches en 1 heure',
-      icon: 'zap',
-      color: 'bg-orange-500',
-      category: 'achievement',
-      unlocked: false,
-      progress: 0,
-      maxProgress: 5
-    }
-  ])
-
+  const [badges, setBadges] = useState<Badge[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [showUnlocked, setShowUnlocked] = useState<Badge | null>(null)
+
+  useEffect(() => {
+    if (userId) {
+      fetchBadges()
+    }
+  }, [userId])
+
+  const fetchBadges = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch(`/api/users/${userId}/badges`)
+      const data = await response.json()
+
+      if (response.ok) {
+        // Convertir les dates string en objets Date
+        const badgesWithDates = data.badges.map((badge: any) => ({
+          ...badge,
+          unlockedAt: badge.unlockedAt ? new Date(badge.unlockedAt) : undefined
+        }))
+        setBadges(badgesWithDates)
+      } else {
+        console.error('Erreur récupération badges:', data.error)
+        // Fallback vers les badges par défaut
+        setDefaultBadges()
+      }
+    } catch (error) {
+      console.error('Erreur fetch badges:', error)
+      // Fallback vers les badges par défaut
+      setDefaultBadges()
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const setDefaultBadges = () => {
+    setBadges([
+      {
+        id: 'first-task',
+        name: 'Première Tâche',
+        description: 'Complétez votre première tâche',
+        icon: 'target',
+        color: 'bg-blue-500',
+        category: 'achievement',
+        unlocked: false,
+        progress: 0,
+        maxProgress: 1
+      },
+      {
+        id: 'task-master',
+        name: 'Maître des Tâches',
+        description: 'Complétez 50 tâches',
+        icon: 'trophy',
+        color: 'bg-yellow-500',
+        category: 'milestone',
+        unlocked: false,
+        progress: 0,
+        maxProgress: 50
+      },
+      {
+        id: 'streak-7',
+        name: 'Série de 7 Jours',
+        description: 'Connectez-vous 7 jours de suite',
+        icon: 'star',
+        color: 'bg-purple-500',
+        category: 'milestone',
+        unlocked: false,
+        progress: 0,
+        maxProgress: 7
+      },
+      {
+        id: 'early-adopter',
+        name: 'Early Adopter',
+        description: 'Rejoignez BE STRONG dans les premiers',
+        icon: 'crown',
+        color: 'bg-gradient-to-r from-pink-500 to-purple-600',
+        category: 'special',
+        unlocked: true,
+        unlockedAt: new Date()
+      },
+      {
+        id: 'social-butterfly',
+        name: 'Papillon Social',
+        description: 'Partagez 10 fois du contenu',
+        icon: 'heart',
+        color: 'bg-pink-500',
+        category: 'achievement',
+        unlocked: false,
+        progress: 0,
+        maxProgress: 10
+      },
+      {
+        id: 'speed-demon',
+        name: 'Démon de Vitesse',
+        description: 'Complétez 5 tâches en 1 heure',
+        icon: 'zap',
+        color: 'bg-orange-500',
+        category: 'achievement',
+        unlocked: false,
+        progress: 0,
+        maxProgress: 5
+      }
+    ])
+  }
 
   const getIcon = (iconName: string) => {
     const icons: { [key: string]: any } = {
@@ -108,6 +145,27 @@ const BadgeSystem = ({ userId, className = '' }: BadgeSystemProps) => {
 
   const unlockedCount = badges.filter(b => b.unlocked).length
   const totalCount = badges.length
+
+  if (isLoading) {
+    return (
+      <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 ${className}`}>
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+            Badges & Récompenses
+          </h3>
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            Chargement...
+          </div>
+        </div>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
+            <p className="text-gray-500 dark:text-gray-400">Chargement des badges...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 ${className}`}>

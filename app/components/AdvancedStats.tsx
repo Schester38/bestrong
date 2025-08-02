@@ -19,45 +19,10 @@ interface AdvancedStatsProps {
 }
 
 const AdvancedStats = ({ userId, className = '' }: AdvancedStatsProps) => {
-  const [stats, setStats] = useState<StatCard[]>([
-    {
-      title: 'Tâches Complétées',
-      value: 24,
-      change: 12,
-      changeType: 'increase',
-      icon: Target,
-      color: 'bg-green-500',
-      description: 'Ce mois'
-    },
-    {
-      title: 'Temps Moyen',
-      value: '2h 15m',
-      change: -8,
-      changeType: 'decrease',
-      icon: Clock,
-      color: 'bg-blue-500',
-      description: 'Par tâche'
-    },
-    {
-      title: 'Score Total',
-      value: 1247,
-      change: 23,
-      changeType: 'increase',
-      icon: Award,
-      color: 'bg-yellow-500',
-      description: 'Points gagnés'
-    },
-    {
-      title: 'Série Actuelle',
-      value: 5,
-      change: 2,
-      changeType: 'increase',
-      icon: Activity,
-      color: 'bg-purple-500',
-      description: 'Jours consécutifs'
-    }
-  ])
-
+  const [stats, setStats] = useState<StatCard[]>([])
+  const [weekProgress, setWeekProgress] = useState<number[]>([])
+  const [insights, setInsights] = useState<{ positive: string; goal: string }>({ positive: '', goal: '' })
+  const [isLoading, setIsLoading] = useState(true)
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'year'>('month')
 
   const periods = [
@@ -65,6 +30,84 @@ const AdvancedStats = ({ userId, className = '' }: AdvancedStatsProps) => {
     { key: 'month', label: '30 jours' },
     { key: 'year', label: '1 an' }
   ]
+
+  useEffect(() => {
+    if (userId) {
+      fetchStats()
+    }
+  }, [userId, selectedPeriod])
+
+  const fetchStats = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch(`/api/users/${userId}/stats`)
+      const data = await response.json()
+
+      if (response.ok) {
+        const newStats: StatCard[] = [
+          {
+            title: 'Tâches Complétées',
+            value: data.tasksThisMonth,
+            change: data.taskChange,
+            changeType: data.taskChange >= 0 ? 'increase' : 'decrease',
+            icon: Target,
+            color: 'bg-green-500',
+            description: 'Ce mois'
+          },
+          {
+            title: 'Temps Moyen',
+            value: data.averageTime,
+            change: -8, // À calculer si nécessaire
+            changeType: 'decrease',
+            icon: Clock,
+            color: 'bg-blue-500',
+            description: 'Par tâche'
+          },
+          {
+            title: 'Score Total',
+            value: data.totalScore,
+            change: data.taskChange,
+            changeType: 'increase',
+            icon: Award,
+            color: 'bg-yellow-500',
+            description: 'Points gagnés'
+          },
+          {
+            title: 'Série Actuelle',
+            value: data.currentStreak,
+            change: 2, // À calculer si nécessaire
+            changeType: 'increase',
+            icon: Activity,
+            color: 'bg-purple-500',
+            description: 'Jours consécutifs'
+          }
+        ]
+
+        setStats(newStats)
+        setWeekProgress(data.weekProgress || [])
+        setInsights(data.insights || { positive: '', goal: '' })
+      } else {
+        console.error('Erreur récupération stats:', data.error)
+      }
+    } catch (error) {
+      console.error('Erreur fetch stats:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 ${className}`}>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
+            <p className="text-gray-500 dark:text-gray-400">Chargement des statistiques...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 ${className}`}>
@@ -141,13 +184,13 @@ const AdvancedStats = ({ userId, className = '' }: AdvancedStatsProps) => {
         
         <div className="space-y-3">
           {[
-            { label: 'Lundi', value: 80, color: 'bg-green-500' },
-            { label: 'Mardi', value: 65, color: 'bg-blue-500' },
-            { label: 'Mercredi', value: 90, color: 'bg-purple-500' },
-            { label: 'Jeudi', value: 75, color: 'bg-yellow-500' },
-            { label: 'Vendredi', value: 85, color: 'bg-pink-500' },
-            { label: 'Samedi', value: 60, color: 'bg-indigo-500' },
-            { label: 'Dimanche', value: 70, color: 'bg-orange-500' }
+            { label: 'Lundi', color: 'bg-green-500' },
+            { label: 'Mardi', color: 'bg-blue-500' },
+            { label: 'Mercredi', color: 'bg-purple-500' },
+            { label: 'Jeudi', color: 'bg-yellow-500' },
+            { label: 'Vendredi', color: 'bg-pink-500' },
+            { label: 'Samedi', color: 'bg-indigo-500' },
+            { label: 'Dimanche', color: 'bg-orange-500' }
           ].map((day, index) => (
             <div key={index} className="flex items-center space-x-3">
               <span className="text-sm text-gray-600 dark:text-gray-300 w-16">
@@ -156,11 +199,11 @@ const AdvancedStats = ({ userId, className = '' }: AdvancedStatsProps) => {
               <div className="flex-1 bg-gray-200 dark:bg-gray-600 rounded-full h-3">
                 <div
                   className={`${day.color} h-3 rounded-full transition-all duration-1000`}
-                  style={{ width: `${day.value}%` }}
+                  style={{ width: `${weekProgress[index] || 0}%` }}
                 />
               </div>
               <span className="text-sm text-gray-500 dark:text-gray-400 w-8 text-right">
-                {day.value}%
+                {weekProgress[index] || 0}%
               </span>
             </div>
           ))}
@@ -168,25 +211,27 @@ const AdvancedStats = ({ userId, className = '' }: AdvancedStatsProps) => {
       </div>
 
       {/* Insights */}
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg p-4">
-          <h4 className="font-semibold text-green-800 dark:text-green-300 mb-2">
-            💡 Insight Positif
-          </h4>
-          <p className="text-sm text-green-700 dark:text-green-200">
-            Votre productivité a augmenté de 23% ce mois-ci ! Vous êtes sur la bonne voie.
-          </p>
+      {insights.positive && insights.goal && (
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg p-4">
+            <h4 className="font-semibold text-green-800 dark:text-green-300 mb-2">
+              💡 Insight Positif
+            </h4>
+            <p className="text-sm text-green-700 dark:text-green-200">
+              {insights.positive}
+            </p>
+          </div>
+          
+          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-lg p-4">
+            <h4 className="font-semibold text-yellow-800 dark:text-yellow-300 mb-2">
+              🎯 Objectif
+            </h4>
+            <p className="text-sm text-yellow-700 dark:text-yellow-200">
+              {insights.goal}
+            </p>
+          </div>
         </div>
-        
-        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-lg p-4">
-          <h4 className="font-semibold text-yellow-800 dark:text-yellow-300 mb-2">
-            🎯 Objectif
-          </h4>
-          <p className="text-sm text-yellow-700 dark:text-yellow-200">
-            Complétez 3 tâches de plus pour débloquer le badge "Productif" !
-          </p>
-        </div>
-      </div>
+      )}
     </div>
   )
 }
