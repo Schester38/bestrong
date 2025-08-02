@@ -20,18 +20,34 @@ export default function InstallPWAButton({
 }: InstallPWAButtonProps) {
   const { isInstallable, isInstalled, isStandalone, installApp } = usePWA()
   const [isClient, setIsClient] = useState(false)
+  const [hasBeenInstalled, setHasBeenInstalled] = useState(false)
 
   useEffect(() => {
     setIsClient(true)
+    
+    // Vérifier si l'app est en mode standalone (installée)
+    const checkIfInstalled = () => {
+      if (typeof window !== 'undefined') {
+        const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches
+        const isInApp = (window.navigator as any).standalone === true
+        return isStandaloneMode || isInApp
+      }
+      return false
+    }
+    
+    setHasBeenInstalled(checkIfInstalled())
   }, [])
 
-  // Ne pas afficher si l'app est déjà installée ou si l'installation n'est pas disponible
-  if (!isClient || isInstalled || isStandalone || !isInstallable) {
+  // Ne pas afficher si l'app est déjà installée, en mode standalone, ou si l'installation n'est pas disponible
+  if (!isClient || isInstalled || isStandalone || hasBeenInstalled || !isInstallable) {
     return null
   }
 
   const handleInstall = async () => {
-    await installApp()
+    const success = await installApp()
+    if (success) {
+      setHasBeenInstalled(true)
+    }
   }
 
   const getButtonClasses = () => {

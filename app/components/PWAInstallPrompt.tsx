@@ -4,15 +4,15 @@ import { useState, useEffect } from 'react'
 import { usePWA } from '../hooks/usePWA'
 
 export default function PWAInstallPrompt() {
-  const { isInstallable, isInstalled, installApp, dismissInstallPrompt } = usePWA()
+  const { isInstallable, isInstalled, isStandalone, installApp, dismissInstallPrompt } = usePWA()
   const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
     setIsClient(true)
   }, [])
 
-  // Ne pas afficher si l'app est déjà installée ou si le bouton ne doit pas être affiché
-  if (!isClient || isInstalled || !isInstallable) {
+  // Ne pas afficher si l'app est déjà installée, en mode standalone, ou si l'installation automatique n'est pas disponible
+  if (!isClient || isInstalled || isStandalone || !isInstallable) {
     return null
   }
 
