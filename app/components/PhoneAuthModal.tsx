@@ -297,18 +297,19 @@ export default function PhoneAuthModal({ open, onClose, mode, onModeChange }: { 
               onClose();
               // Redirection différente selon la plateforme
               if (isAndroid) {
-                // Sur Android, attendre plus longtemps et forcer un rechargement complet
+                // Sur Android PWA, utiliser une page de redirection temporaire
                 setTimeout(() => {
                   // Vérifier que les données sont bien sauvegardées
                   const user = localStorage.getItem("currentUser");
                   const access = localStorage.getItem("dashboardAccessGranted");
                   if (user && access) {
-                    window.location.href = "/dashboard";
+                    // Utiliser une page de redirection temporaire pour Android PWA
+                    window.location.replace("/dashboard-redirect");
                   } else {
-                    // Si les données ne sont pas sauvegardées, réessayer
-                    window.location.reload();
+                    // Si les données ne sont pas sauvegardées, rediriger vers l'accueil
+                    window.location.replace("/");
                   }
-                }, 1000);
+                }, 500);
               } else {
                 // Sur les autres plateformes, utiliser le router Next.js
                 router.push("/dashboard");
