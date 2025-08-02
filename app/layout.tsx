@@ -73,6 +73,9 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="color-scheme" content="light" />
         <meta name="background-color" content="#ec4899" />
+        <meta name="splash-screen" content="disabled" />
+        <meta name="startup-image" content="disabled" />
+        <meta name="mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="apple-touch-icon" href="/icon-512.png" />
         <link rel="mask-icon" href="/icon-maskable.png" color="#ec4899" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
