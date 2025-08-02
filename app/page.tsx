@@ -223,7 +223,7 @@ export default function Home() {
           </p>
           
           {/* Boutons d'action centrés */}
-          <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center items-center px-2">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center items-stretch px-2">
             <a href="https://youtu.be/Uwh_izubcEw" target="_blank" rel="noopener noreferrer" className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 sm:px-8 lg:px-12 py-3 sm:py-4 rounded-full text-lg sm:text-xl lg:text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto">
               <span className="hidden sm:inline">Présentation BE STRONG</span>
               <span className="sm:hidden">Présentation</span>
@@ -235,22 +235,18 @@ export default function Home() {
               <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
             </Link>
             
-            <Link href="/download-apk" className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 sm:px-8 lg:px-12 py-3 sm:py-4 rounded-full text-lg sm:text-xl lg:text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto">
-              <span className="hidden sm:inline">Télécharger l&apos;App Android</span>
-              <span className="sm:hidden">App Android</span>
-              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
-            </Link>
-            
-            <ShareButton 
-              className="bg-gradient-to-r from-green-400 to-blue-500 text-white px-6 sm:px-8 lg:px-12 py-3 sm:py-4 rounded-full text-lg sm:text-xl lg:text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M18 12l3-3m0 0l-3-3m3 3H9" />
-              </svg>
-              <span className="hidden sm:inline">Partager BE STRONG</span>
-              <span className="sm:hidden">Partager</span>
-            </ShareButton>
+            <div className="w-full sm:w-auto">
+              <ShareButton 
+                className="bg-gradient-to-r from-green-400 to-blue-500 text-white px-6 sm:px-8 lg:px-12 py-3 sm:py-4 rounded-full text-lg sm:text-xl lg:text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap w-full h-full"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 12l3-3m0 0l-3-3m3 3H9" />
+                </svg>
+                <span className="hidden sm:inline">Partager BE STRONG</span>
+                <span className="sm:hidden">Partager</span>
+              </ShareButton>
+            </div>
           </div>
 
           {/* Compteur d'utilisateurs centré */}
@@ -394,7 +390,6 @@ export default function Home() {
                 <li><Link href="/help" className="hover:text-white transition-colors">Aide</Link></li>
                 <li><a href="https://wa.me/672886348" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Contact</a></li>
                 <li><Link href="/privacy" className="hover:text-white transition-colors">Confidentialité</Link></li>
-                <li><Link href="/maintenance" className="hover:text-white transition-colors">Maintenance</Link></li>
               </ul>
             </div>
             <div className="flex flex-col">
@@ -409,7 +404,6 @@ export default function Home() {
               <h4 className="font-semibold mb-2 text-sm sm:text-base">Administration</h4>
               <ul className="space-y-1 text-gray-400 text-xs sm:text-sm">
                 <li><Link href="/admin" className="hover:text-white transition-colors">Gestion utilisateurs</Link></li>
-                <li><Link href="/test-supabase" className="hover:text-white transition-colors">Diagnostic Supabase</Link></li>
               </ul>
             </div>
           </div>
