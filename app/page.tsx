@@ -116,16 +116,16 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative overflow-x-hidden flex flex-col items-center">
       {isClient && <AnimatedBackground />}
       
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 dark:bg-gray-900/80 dark:border-gray-700 sticky top-0 z-50 relative">
+      <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 dark:bg-gray-900/80 dark:border-gray-700 sticky top-0 z-50 relative w-full">
         {/* Header centré avec mr-auto/ml-auto pour un alignement parfait */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-12 sm:h-16">
-            {/* Logo et titre - à gauche */}
-            <div className="flex items-center mr-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="flex items-center justify-center h-12 sm:h-16 w-full">
+            {/* Logo et titre - centré */}
+            <div className="flex items-center">
               <img 
                 src="/icon-512.png" 
                 alt="BE STRONG Logo" 
@@ -136,7 +136,7 @@ export default function Home() {
               </h1>
             </div>
             
-            {/* Boutons de navigation - à droite */}
+            {/* Boutons de navigation - centrés à droite */}
             <div className="flex items-center space-x-1 sm:space-x-2 ml-auto">
               {/* Sélecteur de thème */}
               <ThemeToggle />
@@ -180,16 +180,20 @@ export default function Home() {
           </div>
         </div>
       </header>
+
       {/* Bouton ESSAIE GRATUIT pour 45 jours en haut de la page */}
       <div className="w-full flex justify-center mt-6">
-        <button
-          onClick={() => setModalOpen("register")}
-          className="bg-white text-pink-600 px-8 py-4 rounded-full text-lg font-semibold hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2"
-        >
-          ESSAIE GRATUIT pour 45 jours
-          <ArrowRight className="w-5 h-5" />
-        </button>
+        <div className="max-w-7xl px-4 sm:px-6 lg:px-8">
+          <button
+            onClick={() => setModalOpen("register")}
+            className="bg-white text-pink-600 px-8 py-4 rounded-full text-lg font-semibold hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2"
+          >
+            ESSAIE GRATUIT pour 45 jours
+            <ArrowRight className="w-5 h-5" />
+          </button>
+        </div>
       </div>
+
       {modalOpen && (
         <PhoneAuthModal
           open={!!modalOpen}
@@ -198,9 +202,10 @@ export default function Home() {
           onModeChange={(newMode) => setModalOpen(newMode)}
         />
       )}
+
       {/* Hero Section */}
-      <section className="relative py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
+      <section className="relative py-20 px-4 sm:px-6 lg:px-8 w-full flex justify-center">
+        <div className="max-w-7xl text-center">
           <h1 className="text-5xl md:text-7xl font-bold mb-6">
             <span className="bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
               Boostez votre
@@ -211,27 +216,24 @@ export default function Home() {
           <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
             Augmentez vos abonnés, vues et likes de manière éthique grâce à notre plateforme d&apos;échanges organiques et nos outils d&apos;optimisation.
           </p>
-          <div className="flex flex-row flex-wrap gap-4 justify-center">
+          
+          {/* Boutons d'action centrés */}
+          <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center items-center">
             <a href="https://youtu.be/Uwh_izubcEw" target="_blank" rel="noopener noreferrer" className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-12 py-4 rounded-full text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap">
               Présentation BE STRONG
               <ArrowRight className="w-5 h-5" />
             </a>
-          </div>
-          {/* Ajout du bouton Faire un don */}
-          <div className="flex flex-row flex-wrap gap-4 justify-center mt-4">
+            
             <Link href="/don" className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-12 py-4 rounded-full text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap">
               Faire un don
               <ArrowRight className="w-5 h-5" />
             </Link>
-          </div>
-          {/* Bouton de téléchargement APK */}
-          <div className="flex flex-row flex-wrap gap-4 justify-center mt-4">
+            
             <Link href="/download-apk" className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-12 py-4 rounded-full text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap">
               Télécharger l&apos;App Android
               <ArrowRight className="w-5 h-5" />
             </Link>
-          </div>
-          <div className="flex justify-center mt-2">
+            
             <ShareButton 
               className="bg-gradient-to-r from-green-400 to-blue-500 text-white px-12 py-4 rounded-full text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap"
             >
@@ -242,6 +244,8 @@ export default function Home() {
               Partager BE STRONG
             </ShareButton>
           </div>
+
+          {/* Compteur d'utilisateurs centré */}
           <div className="mt-8 flex justify-center">
             <div className="relative px-8 py-5 rounded-2xl shadow-xl bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 flex flex-col items-center border-4 border-white dark:border-gray-900 animate-fade-in-up">
               <div className="flex items-center gap-2 mb-1">
@@ -255,8 +259,8 @@ export default function Home() {
       </section>
 
       {/* Statistiques en temps réel */}
-      <section className="py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-pink-500 to-purple-600 relative">
-        <div className="max-w-7xl mx-auto">
+      <section className="py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-pink-500 to-purple-600 relative w-full flex justify-center">
+        <div className="max-w-7xl">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-white mb-4">
               Statistiques en temps réel
@@ -265,13 +269,15 @@ export default function Home() {
               Découvrez l'impact de BE STRONG sur la communauté TikTok
             </p>
           </div>
-                         <LiveStats />
+          <div className="flex justify-center">
+            <LiveStats />
+          </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900">
-        <div className="max-w-7xl mx-auto">
+      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900 w-full flex justify-center">
+        <div className="max-w-7xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
               Fonctionnalités principales
@@ -334,21 +340,23 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-pink-500 to-purple-600">
-        <div className="max-w-4xl mx-auto text-center">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-pink-500 to-purple-600 w-full flex justify-center">
+        <div className="max-w-4xl text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
             Prêt à booster votre visibilité TikTok ?
           </h2>
           <p className="text-xl text-pink-100 mb-8">
             Rejoignez des milliers de créateurs qui ont déjà augmenté leur audience de manière éthique
           </p>
-          <button
-            onClick={() => setModalOpen("register")}
-            className="bg-white text-pink-600 px-8 py-4 rounded-full text-lg font-semibold hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2"
-          >
-            ESSAIE GRATUIT pour 45 jours
-            <ArrowRight className="w-5 h-5" />
-          </button>
+          <div className="flex justify-center">
+            <button
+              onClick={() => setModalOpen("register")}
+              className="bg-white text-pink-600 px-8 py-4 rounded-full text-lg font-semibold hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2"
+            >
+              ESSAIE GRATUIT pour 45 jours
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </section>
 
