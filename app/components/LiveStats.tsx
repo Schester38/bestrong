@@ -136,20 +136,11 @@ export default function LiveStats() {
   };
 
   return (
-    <section className="live-stats-section py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent mb-4">
-            Statistiques en Temps Réel
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 text-lg">
-            Rejoignez notre communauté dynamique
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 shadow-xl">
-            <div className="flex items-center justify-center mb-4">
+    <section className="live-stats-section py-2 px-3 sm:px-4 lg:px-6">
+      <div className="max-w-6xl mx-auto">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div className="bg-white/10 backdrop-blur-lg rounded-md p-6 border border-white/20 shadow-sm">
+            <div className="flex items-center justify-center mb-2">
               <Users className="w-8 h-8 text-pink-500" />
             </div>
             <div className="text-center">
@@ -162,8 +153,8 @@ export default function LiveStats() {
             </div>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 shadow-xl">
-            <div className="flex items-center justify-center mb-4">
+          <div className="bg-white/10 backdrop-blur-lg rounded-md p-6 border border-white/20 shadow-sm">
+            <div className="flex items-center justify-center mb-2">
               <TrendingUp className="w-8 h-8 text-purple-500" />
             </div>
             <div className="text-center">
@@ -174,8 +165,8 @@ export default function LiveStats() {
             </div>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 shadow-xl">
-            <div className="flex items-center justify-center mb-4">
+          <div className="bg-white/10 backdrop-blur-lg rounded-md p-6 border border-white/20 shadow-sm">
+            <div className="flex items-center justify-center mb-2">
               <Heart className="w-8 h-8 text-red-500" />
             </div>
             <div className="text-center">
@@ -186,8 +177,8 @@ export default function LiveStats() {
             </div>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 shadow-xl">
-            <div className="flex items-center justify-center mb-4">
+          <div className="bg-white/10 backdrop-blur-lg rounded-md p-6 border border-white/20 shadow-sm">
+            <div className="flex items-center justify-center mb-2">
               <Eye className="w-8 h-8 text-blue-500" />
             </div>
             <div className="text-center">
@@ -199,10 +190,10 @@ export default function LiveStats() {
           </div>
         </div>
 
-        <div className="mt-8 text-center">
-          <div className="inline-flex items-center space-x-2 bg-green-500/20 backdrop-blur-lg rounded-full px-4 py-2 border border-green-500/30">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-green-400 text-sm font-medium">
+        <div className="mt-2 text-center">
+          <div className="inline-flex items-center space-x-1 bg-green-500/20 backdrop-blur-lg rounded-full px-1.5 py-0.5 border border-green-500/30">
+            <div className="w-1 h-1 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-green-400 text-xs font-medium">
               Engagement: {stats.engagement}%
             </span>
           </div>

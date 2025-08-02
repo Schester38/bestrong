@@ -62,13 +62,7 @@ const ToastComponent = dynamic(() => import("./components/Toast"), {
   ssr: false
 });
 
-const BadgeSystem = dynamic(() => import("./components/BadgeSystem"), {
-  ssr: false
-});
 
-const AdvancedStats = dynamic(() => import("./components/AdvancedStats"), {
-  ssr: false
-});
 
 const SmartNotifications = dynamic(() => import("./components/SmartNotifications"), {
   ssr: false
@@ -209,8 +203,7 @@ export default function Home() {
           </div>
           
           <div className="flex items-center space-x-2 sm:space-x-4 ml-auto">
-            <SmartNotifications userId={currentUser?.id} />
-            <ChatSystem userId={currentUser?.id} />
+            {currentUser && <SmartNotifications userId={currentUser?.id} />}
             <ThemeToggle />
             {currentUser ? (
               <>
@@ -343,15 +336,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Section Gamification pour utilisateurs connectés */}
-      {currentUser && (
-        <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <BadgeSystem userId={currentUser.phone} />
-            <AdvancedStats userId={currentUser.phone} />
-          </div>
-        </section>
-      )}
+
 
       {/* Features Section */}
       <section id="features" className="py-12 sm:py-16 lg:py-20 px-2 sm:px-4 lg:px-8 bg-white dark:bg-gray-900 w-full flex justify-center">
@@ -493,6 +478,11 @@ export default function Home() {
       <PWAInstallInstructions />
       <PWAStatus />
       <ScrollToTop />
+      
+      {/* Chat System en position fixe à gauche */}
+      <div className="fixed bottom-24 left-4 z-50">
+        {currentUser && <ChatSystem userId={currentUser?.id} />}
+      </div>
       
       {/* Toast notifications */}
       {toasts.map((toast) => (

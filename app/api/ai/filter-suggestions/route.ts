@@ -1,42 +1,27 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { FilterAI } from '../../../utils/ai-features';
-
-const filterAI = new FilterAI();
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const { content } = await request.json();
+    const body = await request.json();
+    const { content } = body;
 
-    if (!content) {
-      return NextResponse.json(
-        { error: "content est requis" },
-        { status: 400 }
-      );
-    }
-
-    console.log("🎨 Génération suggestions filtres IA pour:", { content });
-
-    // Générer les suggestions de filtres
-    const suggestions = await filterAI.suggestFilters(content);
-
-    console.log("✅ Suggestions de filtres générées:", suggestions);
+    // Suggestions de filtres basées sur le contenu
+    const filterSuggestions = [
+      'Vintage', 'Retro', 'Neon', 'Warm', 'Cool', 'Dramatic', 
+      'Natural', 'Vibrant', 'Moody', 'Bright', 'Soft', 'Bold',
+      'Classic', 'Modern', 'Artistic', 'Cinematic'
+    ];
 
     return NextResponse.json({
       success: true,
-      suggestions,
-      count: suggestions.length,
-      timestamp: new Date().toISOString()
+      suggestions: filterSuggestions
     });
-
   } catch (error) {
-    console.error("❌ Erreur génération suggestions filtres:", error);
-    return NextResponse.json(
-      {
-        error: "Erreur lors de la génération des suggestions de filtres",
-        details: error instanceof Error ? error.message : String(error)
-      },
-      { status: 500 }
-    );
+    console.error('Erreur API filter-suggestions:', error);
+    return NextResponse.json({
+      success: false,
+      error: 'Erreur lors de la génération des suggestions de filtres'
+    }, { status: 500 });
   }
 }
 

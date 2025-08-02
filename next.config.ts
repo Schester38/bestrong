@@ -4,6 +4,15 @@ const nextConfig: NextConfig = {
   /* config options here */
   experimental: {
     optimizePackageImports: ['lucide-react'],
+    // Optimisations Turbopack pour Next.js 15
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
   },
   images: {
     formats: ['image/webp', 'image/avif'],
@@ -11,7 +20,6 @@ const nextConfig: NextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  swcMinify: true,
   compress: true,
   poweredByHeader: false,
   generateEtags: false,
@@ -23,27 +31,6 @@ const nextConfig: NextConfig = {
   },
   typescript: {
     ignoreBuildErrors: true,
-  },
-  
-  // Optimisations pour les performances
-  webpack: (config, { dev, isServer }) => {
-    // Optimisations pour la production
-    if (!dev && !isServer) {
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          chunks: 'all',
-          cacheGroups: {
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: 'vendors',
-              chunks: 'all',
-            },
-          },
-        },
-      };
-    }
-    return config;
   },
 };
 

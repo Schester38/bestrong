@@ -8,10 +8,9 @@ export default function NavigationArrows() {
   const router = useRouter();
   const pathname = usePathname();
   
-  // Ne s'afficher que sur le dashboard
-  if (pathname !== '/dashboard') {
-    return null;
-  }
+  // Tous les Hooks doivent être appelés avant tout return conditionnel
+  const [currentTab, setCurrentTab] = useState('exchange');
+  const [tabHistory, setTabHistory] = useState<string[]>(['exchange']);
 
   // Configuration des onglets du dashboard
   const dashboardTabs = [
@@ -22,11 +21,11 @@ export default function NavigationArrows() {
     { id: 'ai', label: 'IA' }
   ];
 
-  const [currentTab, setCurrentTab] = useState('exchange');
-  const [tabHistory, setTabHistory] = useState<string[]>(['exchange']);
-
   // Détecter l'onglet actuel basé sur les classes CSS
   useEffect(() => {
+    // Ne s'exécuter que sur le dashboard
+    if (pathname !== '/dashboard') return;
+
     const detectCurrentTab = () => {
       // Chercher le bouton actif par sa classe bg-pink-500
       const activeButton = document.querySelector('button.bg-pink-500') as HTMLElement;
@@ -73,7 +72,74 @@ export default function NavigationArrows() {
     });
     
     return () => observer.disconnect();
-  }, [currentTab]);
+  }, [currentTab, pathname]);
+
+  // Navigation par clavier seulement
+  useEffect(() => {
+    // Ne s'exécuter que sur le dashboard
+    if (pathname !== '/dashboard') return;
+
+    const currentIndex = dashboardTabs.findIndex(tab => tab.id === currentTab);
+    const nextTab = currentIndex < dashboardTabs.length - 1 ? dashboardTabs[currentIndex + 1] : null;
+
+    const navigateToTab = (tabId: string) => {
+      // Chercher le bouton par son texte
+      const buttons = document.querySelectorAll('button');
+      for (const button of buttons) {
+        const buttonText = button.textContent?.trim().toLowerCase();
+        if (buttonText) {
+          if (tabId === 'overview' && (buttonText.includes('vue') || buttonText.includes('ensemble'))) {
+            button.click();
+            break;
+          } else if (tabId === 'exchange' && buttonText.includes('échanges')) {
+            button.click();
+            break;
+          } else if (tabId === 'boost' && buttonText.includes('boosting')) {
+            button.click();
+            break;
+          } else if (tabId === 'messages' && buttonText.includes('messages')) {
+            button.click();
+            break;
+          } else if (tabId === 'ai' && buttonText.includes('ia')) {
+            button.click();
+            break;
+          }
+        }
+      }
+    };
+
+    const goToPreviousTab = () => {
+      if (tabHistory.length > 1) {
+        const previousTab = tabHistory[tabHistory.length - 2];
+        navigateToTab(previousTab);
+        setTabHistory(prev => prev.slice(0, -1));
+      }
+    };
+
+    const goToNextTab = () => {
+      if (nextTab) {
+        navigateToTab(nextTab.id);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'ArrowLeft' && tabHistory.length > 1) {
+        event.preventDefault();
+        goToPreviousTab();
+      } else if (event.key === 'ArrowRight' && nextTab) {
+        event.preventDefault();
+        goToNextTab();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [tabHistory, currentTab, pathname]);
+
+  // Ne s'afficher que sur le dashboard
+  if (pathname !== '/dashboard') {
+    return null;
+  }
 
   const currentIndex = dashboardTabs.findIndex(tab => tab.id === currentTab);
   const prevTab = currentIndex > 0 ? dashboardTabs[currentIndex - 1] : null;
@@ -118,22 +184,6 @@ export default function NavigationArrows() {
       navigateToTab(nextTab.id);
     }
   };
-
-  // Navigation par clavier seulement
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'ArrowLeft' && tabHistory.length > 1) {
-        event.preventDefault();
-        goToPreviousTab();
-      } else if (event.key === 'ArrowRight' && nextTab) {
-        event.preventDefault();
-        goToNextTab();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [tabHistory, nextTab]);
 
   return (
     <div className="fixed bottom-4 sm:bottom-6 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-2 sm:gap-4">

@@ -200,32 +200,117 @@ export default function AdminPage() {
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/auth/delete-user");
+      setError("");
+      
+      const response = await fetch("/api/admin/users", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        signal: AbortSignal.timeout(10000) // 10 secondes de timeout
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Erreur HTTP:', response.status, errorText);
+        
+        if (response.status === 401) {
+          setError("Accès non autorisé - Vérifiez vos identifiants admin");
+        } else if (response.status === 500) {
+          setError("Erreur serveur - Vérifiez la configuration de la base de données");
+        } else {
+          setError(`Erreur serveur: ${response.status} - ${errorText}`);
+        }
+        return;
+      }
+      
       const data = await response.json();
       
       if (data.error) {
         setError(data.error);
-      } else {
-        // S'assurer que tous les utilisateurs ont le champ dashboardAccess
-        const usersWithAccess = await Promise.all((data.users || []).map(async (user: User) => {
+        return;
+      }
+      
+      if (!Array.isArray(data.users)) {
+        console.warn('⚠️ Données reçues ne sont pas un tableau:', data);
+        setUsers([]);
+        return;
+      }
+      
+      console.log(`✅ ${data.users.length} utilisateurs récupérés`);
+      
+      // S'assurer que tous les utilisateurs ont le champ dashboardAccess
+      const usersWithAccess = await Promise.all((data.users || []).map(async (user: User) => {
+        try {
           if (user.dashboardAccess) {
             // Appel API pour récupérer dashboardAccessDaysLeft
-            const infoRes = await fetch(`/api/auth/user-info?userId=${user.id}`);
+            const infoRes = await fetch(`/api/auth/user-info?userId=${user.id}`, {
+              signal: AbortSignal.timeout(5000) // 5 secondes pour l'enrichissement
+            });
             if (infoRes.ok) {
               const infoData = await infoRes.json();
               return {
                 ...user,
-                dashboardAccessExpiresAt: infoData.user.dashboardAccessExpiresAt,
+                dashboardAccessExpiresAt: infoData.user?.dashboardAccessExpiresAt,
                 dashboardAccessDaysLeft: infoData.dashboardAccessDaysLeft
               };
             }
           }
           return user;
-        }));
-        setUsers(usersWithAccess);
+        } catch (enrichmentError) {
+          console.warn('⚠️ Erreur enrichissement utilisateur:', user.id, enrichmentError);
+          return user;
+        }
+      }));
+      
+      setUsers(usersWithAccess);
+      setFilteredUsers(usersWithAccess);
+      console.log('✅ Utilisateurs enrichis et mis à jour');
+      
+    } catch (error) {
+      console.error('❌ Erreur lors du chargement des utilisateurs:', error);
+      
+      let errorMessage = 'Erreur lors du chargement des utilisateurs';
+      
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          errorMessage = 'Délai d\'attente dépassé - Vérifiez votre connexion';
+        } else if (error.message.includes('Failed to fetch')) {
+          errorMessage = 'Impossible de contacter le serveur - Vérifiez votre connexion internet';
+        } else {
+          errorMessage = error.message;
+        }
       }
-    } catch {
-      setError("Erreur lors du chargement des utilisateurs");
+      
+      setError(errorMessage);
+      
+      // Utiliser des données de démonstration en cas d'erreur
+      const demoUsers = [
+        {
+          id: 'demo-1',
+          phone: '+237699486146',
+          credits: 150,
+          pseudo: 'Admin Demo',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          dashboardAccess: true,
+          dashboardAccessDaysLeft: 30
+        },
+        {
+          id: 'demo-2',
+          phone: '+237612345678',
+          credits: 75,
+          pseudo: 'User Demo',
+          createdAt: new Date(Date.now() - 86400000).toISOString(),
+          updatedAt: new Date().toISOString(),
+          dashboardAccess: false
+        }
+      ];
+      
+      setUsers(demoUsers);
+      setFilteredUsers(demoUsers);
+      console.log('📱 Utilisation des données de démonstration');
+      
     } finally {
       setLoading(false);
     }
