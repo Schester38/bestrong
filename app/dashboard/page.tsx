@@ -157,7 +157,7 @@ export default function Dashboard() {
   const [searchUser, setSearchUser] = useState("");
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [unreadMessages, setUnreadMessages] = useState<{[key: string]: number}>({});
-  const [connectionStatus, setConnectionStatus] = useState<'online' | 'offline' | 'checking'>('checking');
+  // Supprimé - plus de gestion du statut de connexion
   const [isInitializing, setIsInitializing] = useState(true);
   
   // Fonction pour créer des données de démonstration
@@ -429,34 +429,7 @@ export default function Dashboard() {
         return;
       }
       
-      // Test de connectivité d'abord
-      try {
-        setConnectionStatus('checking');
-        
-        // Timeout de sécurité pour éviter le blocage
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Timeout')), 3000);
-        });
-        
-        const testPromise = fetch("/api/test", {
-          method: 'GET',
-          signal: AbortSignal.timeout(2000) // 2 secondes au lieu de 3
-        });
-        
-        const testRes = await Promise.race([testPromise, timeoutPromise]) as Response;
-        
-        if (!testRes.ok) {
-          throw new Error('Serveur non disponible');
-        }
-        setConnectionStatus('online');
-      } catch (testError) {
-        console.warn('⚠️ Test de connectivité échoué, utilisation des données de démonstration');
-        setConnectionStatus('offline');
-        // Utiliser directement les données de démonstration
-        const demoTasks = getDemoTasks();
-        setTasks(demoTasks);
-        return;
-      }
+      // Supprimé - plus de gestion du statut de connexion
       
       // Appel API avec gestion d'erreur robuste
       let res;
@@ -470,6 +443,7 @@ export default function Dashboard() {
         });
       } catch (fetchError) {
         console.error('❌ Erreur fetch:', fetchError);
+        // Supprimé - plus de gestion du statut de connexion
         // Utiliser directement les données de démonstration sans erreur
         const demoTasks = getDemoTasks();
         setTasks(demoTasks);
@@ -478,6 +452,7 @@ export default function Dashboard() {
       
       if (!res.ok) {
         console.warn('⚠️ Réponse API non OK, utilisation des données de démonstration');
+        // Supprimé - plus de gestion du statut de connexion
         const demoTasks = getDemoTasks();
         setTasks(demoTasks);
         return;
@@ -488,6 +463,7 @@ export default function Dashboard() {
         data = await res.json();
       } catch (jsonError) {
         console.warn('⚠️ Erreur parsing JSON, utilisation des données de démonstration');
+        // Supprimé - plus de gestion du statut de connexion
         const demoTasks = getDemoTasks();
         setTasks(demoTasks);
         return;
@@ -507,11 +483,13 @@ export default function Dashboard() {
         console.log('✅ Tâches mises à jour');
       } else {
         console.warn('⚠️ Données reçues ne sont pas un tableau, utilisation des données de démonstration');
+        // Supprimé - plus de gestion du statut de connexion
         const demoTasks = getDemoTasks();
         setTasks(demoTasks);
       }
     } catch (error) {
       console.warn('⚠️ Erreur générale, utilisation des données de démonstration:', error);
+      // Supprimé - plus de gestion du statut de connexion
       
       // Utiliser des données de démonstration en cas d'erreur
       const demoTasks = getDemoTasks();
@@ -524,24 +502,6 @@ export default function Dashboard() {
   const refreshCredits = useCallback(async () => {
     const currentUser = getCurrentUser() as User | null;
     if (!currentUser) return;
-    
-    // Test de connectivité d'abord
-    try {
-      setConnectionStatus('checking');
-      const testRes = await fetch("/api/test", {
-        method: 'GET',
-        signal: AbortSignal.timeout(3000) // 3 secondes
-      });
-      if (!testRes.ok) {
-        throw new Error('Serveur non disponible');
-      }
-      setConnectionStatus('online');
-    } catch (testError) {
-      console.warn('⚠️ Test de connectivité échoué, utilisation des crédits locaux');
-      setConnectionStatus('offline');
-      setCredits(currentUser.credits);
-      return;
-    }
     
     try {
       const response = await fetch(`/api/auth/user-info?userId=${currentUser.id}`, {
@@ -1073,23 +1033,7 @@ export default function Dashboard() {
               <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent truncate max-w-[120px] sm:max-w-none">
                 BE STRONG
               </h1>
-              {/* Indicateur de statut de connexion */}
-              <div className="flex items-center gap-1">
-                <div className={`w-2 h-2 rounded-full ${
-                  connectionStatus === 'online' ? 'bg-green-500 animate-pulse' :
-                  connectionStatus === 'offline' ? 'bg-yellow-500' :
-                  'bg-yellow-500 animate-spin'
-                }`} />
-                <span className={`text-xs font-medium ${
-                  connectionStatus === 'online' ? 'text-green-600 dark:text-green-400' :
-                  connectionStatus === 'offline' ? 'text-yellow-600 dark:text-yellow-400' :
-                  'text-yellow-600 dark:text-yellow-400'
-                }`}>
-                  {connectionStatus === 'online' ? 'En ligne' :
-                   connectionStatus === 'offline' ? 'Limité' :
-                   'Vérification...'}
-                </span>
-              </div>
+              {/* Supprimé - plus d'indicateur de statut de connexion */}
             </div>
             <div className="flex items-center flex-nowrap gap-2 sm:gap-4 min-w-0 overflow-x-auto scrollbar-thin scrollbar-thumb-pink-300 scrollbar-track-transparent">
               {/* Notifications */}
@@ -1242,23 +1186,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Message d'alerte pour l'état hors ligne */}
-      {connectionStatus === 'offline' && (
-        <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-4 mx-4 mt-4 rounded-lg">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-yellow-700 dark:text-yellow-200">
-                <strong>Connexion limitée :</strong> Certaines données peuvent ne pas être synchronisées. Vérifiez votre connexion internet.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Supprimé - plus de message d'alerte de connexion */}
 
       {/* Supprimé - plus d'indicateur de chargement initial */}
 
