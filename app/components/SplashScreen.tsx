@@ -3,34 +3,42 @@
 import { useState, useEffect } from 'react'
 
 export default function SplashScreen() {
-  const [isVisible, setIsVisible] = useState(true)
+  const [isVisible, setIsVisible] = useState(false)
   const [loadingText, setLoadingText] = useState('Initialisation...')
 
   useEffect(() => {
-    // Textes de chargement dynamiques
-    const loadingTexts = [
-      'Initialisation...',
-      'Chargement des données...',
-      'Connexion au serveur...',
-      'Préparation de l\'interface...',
-      'Presque prêt...',
-      'Finalisation...'
-    ]
+    // Vérifier si c'est le premier chargement de la session
+    const hasSeenSplash = sessionStorage.getItem('hasSeenSplash')
+    
+    if (!hasSeenSplash) {
+      setIsVisible(true)
+      sessionStorage.setItem('hasSeenSplash', 'true')
+      
+      // Textes de chargement dynamiques
+      const loadingTexts = [
+        'Initialisation...',
+        'Chargement des données...',
+        'Connexion au serveur...',
+        'Préparation de l\'interface...',
+        'Presque prêt...',
+        'Finalisation...'
+      ]
 
-    let currentIndex = 0
-    const textInterval = setInterval(() => {
-      currentIndex = (currentIndex + 1) % loadingTexts.length
-      setLoadingText(loadingTexts[currentIndex])
-    }, 500)
+      let currentIndex = 0
+      const textInterval = setInterval(() => {
+        currentIndex = (currentIndex + 1) % loadingTexts.length
+        setLoadingText(loadingTexts[currentIndex])
+      }, 500)
 
-    // Masquer le splash screen après 4 secondes (durée augmentée)
-    const hideTimeout = setTimeout(() => {
-      setIsVisible(false)
-    }, 4000)
+      // Masquer le splash screen après 4 secondes (durée augmentée)
+      const hideTimeout = setTimeout(() => {
+        setIsVisible(false)
+      }, 4000)
 
-    return () => {
-      clearInterval(textInterval)
-      clearTimeout(hideTimeout)
+      return () => {
+        clearInterval(textInterval)
+        clearTimeout(hideTimeout)
+      }
     }
   }, [])
 
