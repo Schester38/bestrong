@@ -73,12 +73,12 @@ export default function SplashScreen() {
         <p className="text-sm sm:text-base opacity-90 font-medium mb-12">
           {loadingText}
         </p>
-
-        {/* Crédit en bas */}
-        <p className="text-xs sm:text-sm opacity-60 font-light absolute bottom-8 left-1/2 transform -translate-x-1/2">
-          App créée par Gadar Perets
-        </p>
       </div>
+
+      {/* Crédit tout en bas de l'écran */}
+      <p className="text-xs sm:text-sm opacity-60 font-light absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20">
+        App créée par Gadar Perets
+      </p>
 
       <style jsx>{`
         @keyframes fadeIn {
