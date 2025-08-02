@@ -23,7 +23,7 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
   generateEtags: false,
-  reactStrictMode: true,
+  reactStrictMode: false, // Désactivé temporairement pour éviter les redirections infinies
   
   // Ignorer les erreurs ESLint et TypeScript pendant le build
   eslint: {

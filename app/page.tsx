@@ -194,9 +194,6 @@ export default function Home() {
       <header className="w-full flex justify-center items-center py-4 px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="flex justify-center items-center space-x-4 w-full max-w-7xl">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-lg sm:text-xl">BS</span>
-            </div>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
               BE STRONG
             </h1>

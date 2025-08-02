@@ -429,72 +429,51 @@ export default function Dashboard() {
         return;
       }
       
-      // Supprimé - plus de gestion du statut de connexion
+      // Appel API réel avec gestion d'erreur robuste
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
       
-      // Appel API avec gestion d'erreur robuste
-      let res;
       try {
-        res = await fetch("/api/exchange/tasks", {
+        const res = await fetch("/api/exchange/tasks", {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
-          signal: AbortSignal.timeout(10000) // 10 secondes
+          signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
+        
+        if (!res.ok) {
+          throw new Error(`Erreur HTTP: ${res.status} ${res.statusText}`);
+        }
+        
+        const data = await res.json();
+        
+        if (Array.isArray(data)) {
+          console.log(`✅ ${data.length} tâches récupérées`);
+          
+          // Enrichissement simplifié des tâches
+          const enrichedTasks = data.map(t => ({
+            ...t,
+            createurCredits: 0,
+            createurPseudo: t.createur
+          }));
+          
+          setTasks(enrichedTasks);
+          console.log('✅ Tâches mises à jour');
+        } else {
+          throw new Error('Format de données invalide - attendu un tableau');
+        }
+        
       } catch (fetchError) {
-        console.error('❌ Erreur fetch:', fetchError);
-        // Supprimé - plus de gestion du statut de connexion
-        // Utiliser directement les données de démonstration sans erreur
-        const demoTasks = getDemoTasks();
-        setTasks(demoTasks);
-        return;
+        clearTimeout(timeoutId);
+        throw fetchError;
       }
       
-      if (!res.ok) {
-        console.warn('⚠️ Réponse API non OK, utilisation des données de démonstration');
-        // Supprimé - plus de gestion du statut de connexion
-        const demoTasks = getDemoTasks();
-        setTasks(demoTasks);
-        return;
-      }
-      
-      let data;
-      try {
-        data = await res.json();
-      } catch (jsonError) {
-        console.warn('⚠️ Erreur parsing JSON, utilisation des données de démonstration');
-        // Supprimé - plus de gestion du statut de connexion
-        const demoTasks = getDemoTasks();
-        setTasks(demoTasks);
-        return;
-      }
-      
-      if (Array.isArray(data)) {
-        console.log(`✅ ${data.length} tâches récupérées`);
-        
-        // Enrichissement simplifié des tâches
-        const enrichedTasks = data.map(t => ({
-          ...t,
-          createurCredits: 0,
-          createurPseudo: t.createur
-        }));
-        
-        setTasks(enrichedTasks);
-        console.log('✅ Tâches mises à jour');
-      } else {
-        console.warn('⚠️ Données reçues ne sont pas un tableau, utilisation des données de démonstration');
-        // Supprimé - plus de gestion du statut de connexion
-        const demoTasks = getDemoTasks();
-        setTasks(demoTasks);
-      }
     } catch (error) {
-      console.warn('⚠️ Erreur générale, utilisation des données de démonstration:', error);
-      // Supprimé - plus de gestion du statut de connexion
-      
-      // Utiliser des données de démonstration en cas d'erreur
-      const demoTasks = getDemoTasks();
-      setTasks(demoTasks);
-      console.log('📱 Utilisation des données de démonstration');
+      console.error('❌ Erreur lors du chargement des tâches:', error);
+      setTasks([]);
     }
   }, []); // Pas de dépendances car on utilise getCurrentUser()
 
@@ -504,41 +483,42 @@ export default function Dashboard() {
     if (!currentUser) return;
     
     try {
-      const response = await fetch(`/api/auth/user-info?userId=${currentUser.id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        signal: AbortSignal.timeout(5000) // 5 secondes
-      });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
       
-      if (!response.ok) {
-        console.warn('⚠️ Réponse API non OK, utilisation des crédits locaux');
-        setCredits(currentUser.credits);
-        return;
-      }
-      
-      let data;
       try {
-        data = await response.json();
-      } catch (jsonError) {
-        console.warn('⚠️ Erreur parsing JSON, utilisation des crédits locaux');
-        setCredits(currentUser.credits);
-        return;
+        const response = await fetch(`/api/auth/user-info?userId=${currentUser.id}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          throw new Error(`Erreur HTTP: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.user) {
+          localStorage.setItem('currentUser', JSON.stringify(data.user));
+          setCredits(data.user.credits);
+          console.log('✅ Crédits mis à jour:', data.user.credits);
+        } else {
+          throw new Error('Données utilisateur manquantes dans la réponse');
+        }
+        
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        throw fetchError;
       }
       
-      if (data.user) {
-        localStorage.setItem('currentUser', JSON.stringify(data.user));
-        setCredits(data.user.credits);
-        console.log('✅ Crédits mis à jour:', data.user.credits);
-      } else {
-        setCredits(currentUser.credits);
-        console.log('⚠️ Pas de données utilisateur, utilisation des crédits locaux');
-      }
     } catch (error) {
-      // Gestion douce : fallback sur les crédits locaux
-      console.warn("⚠️ Impossible de rafraîchir les crédits depuis l'API, fallback local.", error);
-      setCredits(currentUser.credits);
+      console.error('❌ Erreur lors du rafraîchissement des crédits:', error);
+      // Garder les crédits actuels en cas d'erreur
     }
   }, []); // Pas de dépendances car on utilise getCurrentUser()
 
