@@ -76,7 +76,7 @@ export default function SplashScreen() {
       </div>
 
       {/* Crédit tout en bas de l'écran */}
-      <p className="text-xs sm:text-sm opacity-60 font-light absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20">
+      <p className="text-xs sm:text-sm opacity-80 font-bold absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 text-black">
         App créée par Gadar Perets
       </p>
 
