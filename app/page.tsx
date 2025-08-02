@@ -8,6 +8,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import ThemeToggle from "./components/ThemeToggle";
 import MotivationalPopup from "./components/MotivationalPopup";
 import ShareButton from "./components/ShareButton";
+import SplashScreen from "./components/SplashScreen";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useAlert } from "./components/CustomAlert";
@@ -117,6 +118,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative overflow-x-hidden flex flex-col items-center">
+      <SplashScreen />
       {isClient && <AnimatedBackground />}
       
       {/* Header */}
