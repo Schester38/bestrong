@@ -1,8 +1,8 @@
 // Service Worker optimisé pour BE STRONG PWA
-const CACHE_NAME = 'be-strong-v1.4';
-const STATIC_CACHE = 'be-strong-static-v1.4';
-const DYNAMIC_CACHE = 'be-strong-dynamic-v1.4';
-const API_CACHE = 'be-strong-api-v1.4';
+const CACHE_NAME = 'be-strong-v1.5';
+const STATIC_CACHE = 'be-strong-static-v1.5';
+const DYNAMIC_CACHE = 'be-strong-dynamic-v1.5';
+const API_CACHE = 'be-strong-api-v1.5';
 
 // Ressources à mettre en cache immédiatement
 const STATIC_RESOURCES = [
