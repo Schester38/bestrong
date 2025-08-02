@@ -23,6 +23,9 @@ import ScrollToTop from "./components/ScrollToTop";
 import LoadingSpinner from "./components/LoadingSpinner";
 import GlobalSearch from "./components/GlobalSearch";
 import ToastComponent from "./components/Toast";
+import BadgeSystem from "./components/BadgeSystem";
+import AdvancedStats from "./components/AdvancedStats";
+import SmartNotifications from "./components/SmartNotifications";
 
 const PhoneAuthModal = dynamic(() => import("./components/PhoneAuthModal"), { 
   ssr: false 
@@ -166,6 +169,7 @@ export default function Home() {
             >
               <Search className="w-5 h-5" />
             </button>
+            <SmartNotifications />
             <ThemeToggle />
             {currentUser ? (
               <>
@@ -297,6 +301,16 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Section Gamification pour utilisateurs connectés */}
+      {currentUser && (
+        <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <BadgeSystem userId={currentUser.phone} />
+            <AdvancedStats userId={currentUser.phone} />
+          </div>
+        </section>
+      )}
 
       {/* Features Section */}
       <section id="features" className="py-12 sm:py-16 lg:py-20 px-2 sm:px-4 lg:px-8 bg-white dark:bg-gray-900 w-full flex justify-center">

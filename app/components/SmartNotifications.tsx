@@ -1,0 +1,273 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Bell, Settings, Clock, Target, Award, Users, MessageCircle, X, Check, Volume2, VolumeX } from 'lucide-react'
+
+interface Notification {
+  id: string
+  type: 'task' | 'achievement' | 'reminder' | 'social' | 'system'
+  title: string
+  message: string
+  priority: 'low' | 'medium' | 'high'
+  read: boolean
+  createdAt: Date
+  actionUrl?: string
+}
+
+interface SmartNotificationsProps {
+  userId?: string
+  className?: string
+}
+
+const SmartNotifications = ({ userId, className = '' }: SmartNotificationsProps) => {
+  const [notifications, setNotifications] = useState<Notification[]>([
+    {
+      id: '1',
+      type: 'task',
+      title: 'Nouvelle tâche disponible',
+      message: 'Une nouvelle tâche TikTok est disponible pour vous !',
+      priority: 'high',
+      read: false,
+      createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 min ago
+      actionUrl: '/dashboard?tab=tasks'
+    },
+    {
+      id: '2',
+      type: 'achievement',
+      title: 'Badge débloqué !',
+      message: 'Félicitations ! Vous avez débloqué le badge "Première Tâche"',
+      priority: 'medium',
+      read: false,
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2h ago
+      actionUrl: '/dashboard?tab=badges'
+    },
+    {
+      id: '3',
+      type: 'reminder',
+      title: 'Rappel quotidien',
+      message: 'N\'oubliez pas de compléter vos tâches quotidiennes !',
+      priority: 'low',
+      read: true,
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 6), // 6h ago
+      actionUrl: '/dashboard'
+    },
+    {
+      id: '4',
+      type: 'social',
+      title: 'Nouveau message',
+      message: 'Vous avez reçu un nouveau message de la communauté',
+      priority: 'medium',
+      read: false,
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12), // 12h ago
+      actionUrl: '/dashboard?tab=messages'
+    }
+  ])
+
+  const [showSettings, setShowSettings] = useState(false)
+  const [settings, setSettings] = useState({
+    pushEnabled: true,
+    emailEnabled: false,
+    soundEnabled: true,
+    taskNotifications: true,
+    achievementNotifications: true,
+    reminderNotifications: true,
+    socialNotifications: true,
+    systemNotifications: false
+  })
+
+  const [isOpen, setIsOpen] = useState(false)
+
+  const unreadCount = notifications.filter(n => !n.read).length
+
+  const markAsRead = (id: string) => {
+    setNotifications(prev => 
+      prev.map(n => n.id === id ? { ...n, read: true } : n)
+    )
+  }
+
+  const markAllAsRead = () => {
+    setNotifications(prev => 
+      prev.map(n => ({ ...n, read: true }))
+    )
+  }
+
+  const deleteNotification = (id: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== id))
+  }
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'border-l-red-500'
+      case 'medium': return 'border-l-yellow-500'
+      case 'low': return 'border-l-green-500'
+      default: return 'border-l-gray-500'
+    }
+  }
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'task': return Target
+      case 'achievement': return Award
+      case 'reminder': return Clock
+      case 'social': return Users
+      case 'system': return Settings
+      default: return Bell
+    }
+  }
+
+  const formatTime = (date: Date) => {
+    const now = new Date()
+    const diff = now.getTime() - date.getTime()
+    const minutes = Math.floor(diff / (1000 * 60))
+    const hours = Math.floor(diff / (1000 * 60 * 60))
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+
+    if (minutes < 60) return `il y a ${minutes} min`
+    if (hours < 24) return `il y a ${hours}h`
+    return `il y a ${days}j`
+  }
+
+  return (
+    <div className={`relative ${className}`}>
+      {/* Bouton de notification */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="relative p-2 text-gray-600 dark:text-gray-300 hover:text-pink-500 dark:hover:text-pink-400 transition-colors"
+      >
+        <Bell className="w-6 h-6" />
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
+        )}
+      </button>
+
+      {/* Panneau de notifications */}
+      {isOpen && (
+        <div className="absolute right-0 top-12 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-gray-900 dark:text-white">
+                Notifications
+              </h3>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setShowSettings(!showSettings)}
+                  className="p-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                >
+                  <Settings className="w-4 h-4" />
+                </button>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllAsRead}
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    Tout marquer comme lu
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Paramètres */}
+          {showSettings && (
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
+              <h4 className="font-medium text-gray-900 dark:text-white mb-3">
+                Paramètres
+              </h4>
+              <div className="space-y-2">
+                {Object.entries(settings).map(([key, value]) => (
+                  <label key={key} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={value}
+                      onChange={(e) => setSettings(prev => ({ ...prev, [key]: e.target.checked }))}
+                      className="rounded text-pink-500 focus:ring-pink-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Liste des notifications */}
+          <div className="max-h-96 overflow-y-auto">
+            {notifications.length === 0 ? (
+              <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+                Aucune notification
+              </div>
+            ) : (
+              notifications.map((notification) => {
+                const Icon = getTypeIcon(notification.type)
+                return (
+                  <div
+                    key={notification.id}
+                    className={`p-4 border-l-4 ${getPriorityColor(notification.priority)} ${
+                      !notification.read ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-white dark:bg-gray-800'
+                    } hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors`}
+                  >
+                    <div className="flex items-start space-x-3">
+                      <Icon className={`w-5 h-5 mt-0.5 ${
+                        notification.type === 'task' ? 'text-blue-500' :
+                        notification.type === 'achievement' ? 'text-yellow-500' :
+                        notification.type === 'reminder' ? 'text-green-500' :
+                        notification.type === 'social' ? 'text-purple-500' :
+                        'text-gray-500'
+                      }`} />
+                      
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between">
+                          <h4 className={`font-medium text-sm ${
+                            !notification.read ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'
+                          }`}>
+                            {notification.title}
+                          </h4>
+                          <div className="flex items-center space-x-1">
+                            {!notification.read && (
+                              <button
+                                onClick={() => markAsRead(notification.id)}
+                                className="p-1 text-gray-400 hover:text-green-500"
+                              >
+                                <Check className="w-3 h-3" />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => deleteNotification(notification.id)}
+                              className="p-1 text-gray-400 hover:text-red-500"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                          {notification.message}
+                        </p>
+                        
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {formatTime(notification.createdAt)}
+                          </span>
+                          {notification.actionUrl && (
+                            <button className="text-xs text-blue-600 dark:text-blue-400 hover:underline">
+                              Voir
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default SmartNotifications 
