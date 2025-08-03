@@ -36,7 +36,7 @@ import ChallengeSystem from "../components/ChallengeSystem";
 import ContentRecommendations from "../components/ContentRecommendations";
 import ContentScheduler from "../components/ContentScheduler";
 import UserStats from "../components/UserStats";
-import UserBadges from "../components/UserBadges";
+
 import BadgeSystem from "../components/BadgeSystem";
 import AdvancedStats from "../components/AdvancedStats";
 
@@ -1327,8 +1327,7 @@ export default function Dashboard() {
             {/* Statistiques utilisateur */}
             <UserStats userId={user?.id} className="mb-6" />
 
-            {/* Badges et récompenses */}
-            <UserBadges userId={user?.id} className="mb-6" />
+
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">

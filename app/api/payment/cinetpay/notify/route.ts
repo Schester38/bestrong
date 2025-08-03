@@ -129,29 +129,7 @@ export async function POST(request: NextRequest) {
               console.error('Erreur mise à jour utilisateur:', updateUserError);
             }
 
-            // Ajout : crédit du parrain si présent
-            if (user.parrain) {
-              const { data: parrain, error: parrainError } = await supabase
-                .from('users')
-                .select('*')
-                .eq('phone', user.parrain)
-                .single();
 
-              if (!parrainError && parrain) {
-                const { error: updateParrainError } = await supabase
-                  .from('users')
-                  .update({ 
-                    credits: (parrain.credits || 0) + 1000
-                  })
-                  .eq('id', parrain.id);
-
-                if (updateParrainError) {
-                  console.error('Erreur mise à jour parrain:', updateParrainError);
-                } else {
-                  console.log(`[${new Date().toISOString()}] Parrain ${parrain.phone} crédité de 1000 crédits`);
-                }
-              }
-            }
 
             console.log(`[${new Date().toISOString()}] Abonnement mis à jour pour ${phone}`);
           }

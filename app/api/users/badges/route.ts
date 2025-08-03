@@ -1,11 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { NotificationService } from '@/app/utils/notification-service';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+// Vérifier que les variables d'environnement sont définies
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Variables Supabase manquantes dans badges:', {
+    supabaseUrl: !!supabaseUrl,
+    supabaseAnonKey: !!supabaseAnonKey
+  });
+}
+
+const supabase = createClient(
+  supabaseUrl || 'https://jdemxmntzsetwrhzzknl.supabase.co',
+  supabaseAnonKey || 'sb_publishable_W8PK0Nvw_TBQkPfvJKoOTw_CYTRacwN'
+);
 
 // Définition des badges disponibles
 const BADGES = {
@@ -159,15 +169,128 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User ID requis' }, { status: 400 });
     }
 
-    // Récupérer les statistiques de l'utilisateur
-    const statsResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/users/stats?userId=${userId}`);
-    const statsData = await statsResponse.json();
+    // Récupérer les statistiques de base de l'utilisateur
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
 
-    if (!statsResponse.ok) {
-      return NextResponse.json({ error: 'Erreur récupération statistiques' }, { status: 500 });
+    if (userError || !user) {
+      // Retourner des badges de démonstration si l'utilisateur n'existe pas
+      const demoBadges = Object.values(BADGES).map(badge => ({
+        ...badge,
+        earned: false,
+        earnedAt: null
+      }));
+      
+      return NextResponse.json({
+        badges: {
+          earned: [],
+          all: demoBadges,
+          totalEarned: 0,
+          totalAvailable: demoBadges.length,
+          score: 0,
+          rank: 'Bronze'
+        }
+      });
     }
 
-    const stats = statsData.stats;
+    // Récupérer les activités de l'utilisateur
+    const { data: activities, error: activitiesError } = await supabase
+      .from('activities')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (activitiesError) {
+      console.error('Erreur récupération activités:', activitiesError);
+    }
+
+    // Récupérer les défis complétés
+    const { data: completedChallenges, error: challengesError } = await supabase
+      .from('user_completions')
+      .select('*')
+      .eq('user_id', userId)
+      .not('completed_at', 'is', null);
+
+    if (challengesError) {
+      console.error('Erreur récupération défis complétés:', challengesError);
+    }
+
+    // Calculer les statistiques
+    const stats = {
+      // Statistiques de base
+      user: {
+        id: user.id,
+        phone: user.phone,
+        pseudo: user.pseudo,
+        credits: user.credits || 0,
+        experience: user.experience || 0,
+        dateInscription: user.createdAt,
+        derniereActivite: user.updatedAt
+      },
+
+      // Statistiques d'activité
+      activite: {
+        totalActivites: activities?.length || 0,
+        activitesCetteSemaine: activities?.filter(a => {
+          const date = new Date(a.created_at);
+          const semaine = new Date();
+          semaine.setDate(semaine.getDate() - 7);
+          return date >= semaine;
+        }).length || 0,
+        activitesCeMois: activities?.filter(a => {
+          const date = new Date(a.created_at);
+          const mois = new Date();
+          mois.setMonth(mois.getMonth() - 1);
+          return date >= mois;
+        }).length || 0,
+        derniereActivite: activities?.[0]?.created_at || null
+      },
+
+      // Statistiques des défis
+      defis: {
+        totalCompletes: completedChallenges?.length || 0,
+        defisCetteSemaine: completedChallenges?.filter(c => {
+          const date = new Date(c.completed_at);
+          const semaine = new Date();
+          semaine.setDate(semaine.getDate() - 7);
+          return date >= semaine;
+        }).length || 0,
+        defisCeMois: completedChallenges?.filter(c => {
+          const date = new Date(c.completed_at);
+          const mois = new Date();
+          mois.setMonth(mois.getMonth() - 1);
+          return date >= mois;
+        }).length || 0,
+        tauxCompletion: completedChallenges?.length ? Math.round((completedChallenges.length / (completedChallenges.length + 5)) * 100) : 0
+      },
+
+      // Progression
+      progression: {
+        niveau: Math.floor((user.experience || 0) / 100) + 1,
+        experienceActuelle: (user.experience || 0) % 100,
+        experienceProchainNiveau: 100,
+        pourcentageNiveau: Math.round(((user.experience || 0) % 100))
+      },
+
+      // Récompenses
+      recompenses: {
+        totalCreditsGagnes: user.credits || 0,
+        totalExperienceGagnee: user.experience || 0,
+        creditsCetteSemaine: 0,
+        experienceCetteSemaine: 0
+      },
+
+      // Performance
+      performance: {
+        streakActuel: calculateStreak(activities || []),
+        meilleurStreak: calculateBestStreak(activities || []),
+        joursActifs: calculateActiveDays(activities || []),
+        moyenneActivitesParJour: activities?.length ? Math.round(activities.length / 30) : 0
+      }
+    };
 
     // Calculer les badges mérités
     const earnedBadges = [];
@@ -195,15 +318,8 @@ export async function GET(request: NextRequest) {
       if (isEarned) {
         earnedBadges.push(badgeInfo);
         
-        // Créer une notification pour les nouveaux badges
+        // Enregistrer le nouveau badge dans la base de données
         if (isNewBadge) {
-          await NotificationService.createBadgeNotification(
-            userId,
-            badge.name,
-            badge.description
-          );
-          
-          // Enregistrer le nouveau badge dans la base de données
           await supabase
             .from('user_badges')
             .insert({
@@ -247,6 +363,82 @@ export async function GET(request: NextRequest) {
     console.error('Erreur API badges:', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
+}
+
+// Fonctions utilitaires pour calculer les statistiques
+function calculateStreak(activities: any[]): number {
+  if (!activities || activities.length === 0) return 0;
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  let streak = 0;
+  let currentDate = new Date(today);
+  
+  while (true) {
+    const hasActivityOnDate = activities.some(activity => {
+      const activityDate = new Date(activity.created_at);
+      activityDate.setHours(0, 0, 0, 0);
+      return activityDate.getTime() === currentDate.getTime();
+    });
+    
+    if (hasActivityOnDate) {
+      streak++;
+      currentDate.setDate(currentDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  
+  return streak;
+}
+
+function calculateBestStreak(activities: any[]): number {
+  if (!activities || activities.length === 0) return 0;
+  
+  const sortedActivities = activities.sort((a, b) => 
+    new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  );
+  
+  let bestStreak = 0;
+  let currentStreak = 0;
+  let lastDate: Date | null = null;
+  
+  for (const activity of sortedActivities) {
+    const activityDate = new Date(activity.created_at);
+    activityDate.setHours(0, 0, 0, 0);
+    
+    if (lastDate === null) {
+      currentStreak = 1;
+    } else {
+      const diffDays = Math.floor((activityDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+      if (diffDays === 1) {
+        currentStreak++;
+      } else if (diffDays > 1) {
+        bestStreak = Math.max(bestStreak, currentStreak);
+        currentStreak = 1;
+      }
+    }
+    
+    lastDate = activityDate;
+  }
+  
+  bestStreak = Math.max(bestStreak, currentStreak);
+  return bestStreak;
+}
+
+function calculateActiveDays(activities: any[]): number {
+  if (!activities || activities.length === 0) return 0;
+  
+  const uniqueDates = new Set();
+  
+  activities.forEach(activity => {
+    const date = new Date(activity.created_at);
+    date.setHours(0, 0, 0, 0);
+    uniqueDates.add(date.getTime());
+  });
+  
+  return uniqueDates.size;
 }
 
 export async function POST(request: NextRequest) {

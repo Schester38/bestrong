@@ -161,7 +161,18 @@ export async function POST(request: NextRequest) {
           if (updateError) {
             console.error('Erreur crédit parrain:', updateError);
           } else {
-            console.log('Parrain crédité de 1000 crédits');
+            console.log(`✅ Parrain ${parrainData.pseudo} crédité de 1000 crédits (${parrainData.credits} → ${parrainData.credits + 1000})`);
+            
+            // Enregistrer l'activité de parrainage
+            await logActivity({
+              userId: parrainData.id,
+              userPhone: parrainData.phone,
+              userPseudo: parrainData.pseudo,
+              type: 'credits_earned',
+              description: `Parrainage de ${data.pseudo}`,
+              details: { filleul: data.pseudo, creditsGagnes: 1000 },
+              credits: 1000
+            });
           }
         } else {
           console.log('Parrain non trouvé:', parrain);
