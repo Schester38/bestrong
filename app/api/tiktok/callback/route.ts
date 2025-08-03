@@ -1,106 +1,61 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { TIKTOK_CONFIG } from '../../../config/tiktok';
 
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams;
+    const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
-    const state = searchParams.get('state'); // Format: "username|accountType"
+    const state = searchParams.get('state');
     const error = searchParams.get('error');
 
-    // Parser le state pour extraire username et accountType
-    const [username, accountType] = (state || '').split('|');
-
+    // Vérifier s'il y a une erreur
     if (error) {
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?error=tiktok_auth_failed&message=${encodeURIComponent('Erreur lors de l\'authentification TikTok')}`
-      );
+      console.error('Erreur TikTok OAuth:', error);
+      return NextResponse.redirect(new URL('/dashboard?error=tiktok_auth_failed', request.url));
     }
 
+    // Vérifier que le code est présent
     if (!code) {
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?error=tiktok_auth_failed&message=${encodeURIComponent('Code d\'autorisation manquant')}`
-      );
+      console.error('Code d\'autorisation manquant');
+      return NextResponse.redirect(new URL('/dashboard?error=no_auth_code', request.url));
     }
 
-    // Configuration selon le type de compte
-    const clientId = accountType === 'business' 
-      ? process.env.TIKTOK_BUSINESS_CLIENT_ID!
-      : process.env.TIKTOK_PERSONAL_CLIENT_ID!;
-    
-    const clientSecret = accountType === 'business'
-      ? process.env.TIKTOK_BUSINESS_CLIENT_SECRET!
-      : process.env.TIKTOK_PERSONAL_CLIENT_SECRET!;
-
-    // Échanger le code contre un token d'accès
-    const tokenResponse = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
+    // Échanger le code contre un token
+    const tokenResponse = await fetch(TIKTOK_CONFIG.TOKEN_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Cache-Control': 'no-cache'
       },
       body: new URLSearchParams({
-        client_key: clientId,
-        client_secret: clientSecret,
+        client_key: TIKTOK_CONFIG.CLIENT_KEY,
+        client_secret: TIKTOK_CONFIG.CLIENT_SECRET,
         code: code,
         grant_type: 'authorization_code',
-        redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/api/tiktok/callback`
+        redirect_uri: TIKTOK_CONFIG.REDIRECT_URI
       })
     });
 
     if (!tokenResponse.ok) {
-      console.error('Erreur lors de l\'échange du token:', await tokenResponse.text());
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?error=tiktok_auth_failed&message=${encodeURIComponent('Erreur lors de l\'obtention du token')}`
-      );
+      const errorData = await tokenResponse.text();
+      console.error('Erreur lors de l\'échange du token:', errorData);
+      return NextResponse.redirect(new URL('/dashboard?error=token_exchange_failed', request.url));
     }
 
     const tokenData = await tokenResponse.json();
-    const accessToken = tokenData.data?.access_token;
-    const refreshToken = tokenData.data?.refresh_token;
-
-    if (!accessToken) {
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?error=tiktok_auth_failed&message=${encodeURIComponent('Token d\'accès non reçu')}`
-      );
-    }
-
-    // Stocker le token de manière sécurisée (session, base de données, etc.)
-    // Pour cet exemple, nous utilisons un cookie sécurisé
-    const response = NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=tiktok_connected&username=${encodeURIComponent(username || '')}&accountType=${accountType || 'personal'}`
-    );
-
-    // Stocker le token dans un cookie sécurisé
-    response.cookies.set('tiktok_access_token', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7 // 7 jours
+    
+    // Stocker le token (dans un vrai projet, utilisez une base de données)
+    console.log('Token TikTok obtenu:', {
+      access_token: tokenData.access_token?.substring(0, 10) + '...',
+      expires_in: tokenData.expires_in,
+      open_id: tokenData.open_id
     });
 
-    // Stocker le type de compte
-    response.cookies.set('tiktok_account_type', accountType || 'personal', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7 // 7 jours
-    });
-
-    if (refreshToken) {
-      response.cookies.set('tiktok_refresh_token', refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 30 // 30 jours
-      });
-    }
-
-    return response;
+    // Rediriger vers le dashboard avec succès
+    return NextResponse.redirect(new URL('/dashboard?success=tiktok_auth&tab=tiktok', request.url));
 
   } catch (error) {
-    console.error('Erreur lors du callback TikTok:', error);
-    return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?error=tiktok_auth_failed&message=${encodeURIComponent('Erreur inattendue lors de l\'authentification')}`
-    );
+    console.error('Erreur dans le callback TikTok:', error);
+    return NextResponse.redirect(new URL('/dashboard?error=callback_error', request.url));
   }
 } 

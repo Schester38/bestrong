@@ -19,8 +19,8 @@ export const TIKTOK_CONFIG = {
     'business.get'
   ].join(','),
   
-  // Redirect URI (à configurer selon votre domaine)
-  REDIRECT_URI: process.env.TIKTOK_REDIRECT_URI || 'https://your-domain.com/api/tiktok/callback',
+  // Redirect URI (configuré avec votre domaine Netlify)
+  REDIRECT_URI: process.env.TIKTOK_REDIRECT_URI || 'https://mybestrong.netlify.app/api/tiktok/callback',
   
   // Business ID (à configurer)
   BUSINESS_ID: process.env.TIKTOK_BUSINESS_ID || 'your_business_id',
