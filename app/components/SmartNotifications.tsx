@@ -41,43 +41,7 @@ const SmartNotifications = ({ userId, className = '' }: SmartNotificationsProps)
   // Charger les notifications depuis l'API
   useEffect(() => {
     if (userId) {
-      // Temporairement désactivé pour éviter les erreurs de fetch
-      // loadNotifications()
-      
-      // Utiliser des données de démonstration à la place
-      setNotifications([
-        {
-          id: 'demo-1',
-          type: 'achievement' as const,
-          title: 'Bienvenue sur BE STRONG !',
-          message: 'Vous avez rejoint notre communauté avec succès',
-          priority: 'medium' as const,
-          read: false,
-          createdAt: new Date(),
-          actionUrl: '/dashboard'
-        },
-        {
-          id: 'demo-2',
-          type: 'task' as const,
-          title: 'Première tâche disponible',
-          message: 'Commencez par compléter votre profil pour gagner des points',
-          priority: 'high' as const,
-          read: false,
-          createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-          actionUrl: '/dashboard?tab=profile'
-        },
-        {
-          id: 'demo-3',
-          type: 'social' as const,
-          title: 'Nouveau membre',
-          message: 'Un nouveau membre a rejoint la communauté',
-          priority: 'low' as const,
-          read: true,
-          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-          actionUrl: '/dashboard?tab=community'
-        }
-      ])
-      setIsLoading(false)
+      loadNotifications()
     }
   }, [userId])
 
