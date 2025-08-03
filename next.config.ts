@@ -26,12 +26,12 @@ const nextConfig: NextConfig = {
   reactStrictMode: false, // Désactivé temporairement pour éviter les redirections infinies
   
   // Ignorer les erreurs ESLint et TypeScript pendant le build
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+	eslint: {
+		ignoreDuringBuilds: true,
+	},
+	typescript: {
+		ignoreBuildErrors: true,
+	},
 };
 
 export default nextConfig;

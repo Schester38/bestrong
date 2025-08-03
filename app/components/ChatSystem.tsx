@@ -39,39 +39,22 @@ const ChatSystem = ({ userId, className = '' }: ChatSystemProps) => {
 
   // Charger les contacts depuis l'API
   useEffect(() => {
-    if (userId) {
-      // Temporairement désactivé pour éviter les erreurs de fetch
-      // loadContacts()
-      
-      // Utiliser des contacts de démonstration à la place
-      setContacts([
-        {
-          id: 'support',
-          name: 'Support BE STRONG',
-          avatar: '/support-avatar.png',
-          lastMessage: 'Bonjour ! Comment puis-je vous aider ?',
-          lastMessageTime: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-          unreadCount: 1,
-          isOnline: true
-        },
-        {
-          id: 'community',
-          name: 'Communauté BE STRONG',
-          avatar: '/community-avatar.png',
-          lastMessage: 'Nouveau défi disponible !',
-          lastMessageTime: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-          unreadCount: 0,
-          isOnline: false
-        }
-      ])
-      setIsLoading(false)
-    }
+    loadContacts()
   }, [userId])
 
   const loadContacts = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch(`/api/messages?userId=${userId}`)
+      
+      // Si pas d'userId, utiliser un ID par défaut
+      const currentUserId = userId || 'guest-user'
+      
+      const response = await fetch(`/api/messages?userId=${currentUserId}`)
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
       const data = await response.json()
       
       if (data.contacts) {
@@ -88,6 +71,27 @@ const ChatSystem = ({ userId, className = '' }: ChatSystemProps) => {
       }
     } catch (error) {
       console.error('Erreur chargement contacts:', error)
+      // Fallback vers les contacts de démonstration en cas d'erreur
+      setContacts([
+        {
+          id: 'support',
+          name: 'Support BE STRONG',
+          avatar: '/support-avatar.png',
+          lastMessage: 'Bonjour ! Comment puis-je vous aider ?',
+          lastMessageTime: new Date(Date.now() - 1000 * 60 * 30),
+          unreadCount: 1,
+          isOnline: true
+        },
+        {
+          id: 'community',
+          name: 'Communauté BE STRONG',
+          avatar: '/community-avatar.png',
+          lastMessage: 'Nouveau défi disponible !',
+          lastMessageTime: new Date(Date.now() - 1000 * 60 * 60 * 2),
+          unreadCount: 0,
+          isOnline: false
+        }
+      ])
     } finally {
       setIsLoading(false)
     }
@@ -156,14 +160,17 @@ const ChatSystem = ({ userId, className = '' }: ChatSystemProps) => {
   }
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !selectedContact || !userId) return
+    if (!newMessage.trim() || !selectedContact) return
 
     const messageContent = newMessage
     setNewMessage('')
 
+    // Utiliser un userId par défaut si pas disponible
+    const currentUserId = userId || 'guest-user'
+
     const message: Message = {
       id: Date.now().toString(),
-      senderId: userId,
+      senderId: currentUserId,
       senderName: 'Vous',
       content: messageContent,
       timestamp: new Date(),
@@ -179,7 +186,7 @@ const ChatSystem = ({ userId, className = '' }: ChatSystemProps) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          senderId: userId,
+          senderId: currentUserId,
           receiverId: selectedContact.id,
           content: messageContent,
           type: 'text'
@@ -191,12 +198,33 @@ const ChatSystem = ({ userId, className = '' }: ChatSystemProps) => {
       // Si une réponse automatique est générée, l'ajouter
       if (data.autoReply) {
         setTimeout(() => {
+          // Gérer la date correctement
+          let timestamp: Date;
+          try {
+            // Essayer d'abord created_at, puis timestamp, puis maintenant
+            if (data.autoReply.created_at) {
+              timestamp = new Date(data.autoReply.created_at);
+            } else if (data.autoReply.timestamp) {
+              timestamp = new Date(data.autoReply.timestamp);
+            } else {
+              timestamp = new Date();
+            }
+            
+            // Vérifier si la date est valide
+            if (isNaN(timestamp.getTime())) {
+              timestamp = new Date();
+            }
+          } catch (error) {
+            console.error('Erreur parsing date:', error);
+            timestamp = new Date();
+          }
+
           const autoReply: Message = {
             id: (Date.now() + 1).toString(),
             senderId: selectedContact.id,
             senderName: selectedContact.name,
-            content: data.autoReply.content,
-            timestamp: new Date(data.autoReply.timestamp),
+            content: data.autoReply.message || data.autoReply.content || 'Réponse automatique',
+            timestamp: timestamp,
             type: 'text',
             isRead: false
           }

@@ -239,8 +239,8 @@ export default function AdminPage() {
       
       console.log(`✅ ${data.users.length} utilisateurs récupérés`);
       
-      // S'assurer que tous les utilisateurs ont le champ dashboardAccess
-      const usersWithAccess = await Promise.all((data.users || []).map(async (user: User) => {
+        // S'assurer que tous les utilisateurs ont le champ dashboardAccess
+        const usersWithAccess = await Promise.all((data.users || []).map(async (user: User) => {
         try {
           if (user.dashboardAccess) {
             // Appel API pour récupérer dashboardAccessDaysLeft
@@ -261,9 +261,9 @@ export default function AdminPage() {
           console.warn('⚠️ Erreur enrichissement utilisateur:', user.id, enrichmentError);
           return user;
         }
-      }));
+        }));
       
-      setUsers(usersWithAccess);
+        setUsers(usersWithAccess);
       setFilteredUsers(usersWithAccess);
       console.log('✅ Utilisateurs enrichis et mis à jour');
       

@@ -370,7 +370,7 @@ export async function GET() {
     
     // S'assurer que les tables existent
     try {
-      await ensureTablesExist();
+    await ensureTablesExist();
     } catch (tableError) {
       console.error('❌ Erreur lors de l\'initialisation des tables:', tableError);
       return NextResponse.json({ error: 'Erreur lors de l\'initialisation des tables' }, { status: 500 });
@@ -391,30 +391,30 @@ export async function GET() {
     // Récupérer les complétions pour chaque tâche
     const tasksWithCompletions = await Promise.all((tasks || []).map(async (task) => {
       try {
-        const { data: completions, error: completionsError } = await supabase
-          .from('task_completions')
-          .select('*')
-          .eq('exchange_task_id', task.id);
+      const { data: completions, error: completionsError } = await supabase
+        .from('task_completions')
+        .select('*')
+        .eq('exchange_task_id', task.id);
 
-        if (completionsError) {
+      if (completionsError) {
           console.error('⚠️ Erreur récupération complétions pour tâche', task.id, ':', completionsError);
-        }
+      }
 
-        return {
-          id: task.id,
-          type: task.type,
-          url: task.url,
-          credits: task.credits,
-          actionsRestantes: task.actions_restantes, // Transformation snake_case vers camelCase
-          createur: task.createur,
-          createdAt: task.created_at,
-          updatedAt: task.updated_at,
-          completions: completions?.map(comp => ({
-            id: comp.id,
-            userId: comp.user_id,
-            completedAt: comp.completed_at
-          })) || []
-        };
+      return {
+        id: task.id,
+        type: task.type,
+        url: task.url,
+        credits: task.credits,
+        actionsRestantes: task.actions_restantes, // Transformation snake_case vers camelCase
+        createur: task.createur,
+        createdAt: task.created_at,
+        updatedAt: task.updated_at,
+        completions: completions?.map(comp => ({
+          id: comp.id,
+          userId: comp.user_id,
+          completedAt: comp.completed_at
+        })) || []
+      };
       } catch (error) {
         console.error('⚠️ Erreur lors du traitement de la tâche', task.id, ':', error);
         return {

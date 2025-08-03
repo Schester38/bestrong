@@ -443,14 +443,14 @@ export default function Dashboard() {
         });
         
         clearTimeout(timeoutId);
-        
-        if (!res.ok) {
+      
+      if (!res.ok) {
           throw new Error(`Erreur HTTP: ${res.status} ${res.statusText}`);
-        }
-        
-        const data = await res.json();
-        
-        if (Array.isArray(data)) {
+      }
+      
+    const data = await res.json();
+      
+    if (Array.isArray(data)) {
           console.log(`✅ ${data.length} tâches récupérées`);
           
           // Enrichissement simplifié des tâches
@@ -462,9 +462,9 @@ export default function Dashboard() {
           
           setTasks(enrichedTasks);
           console.log('✅ Tâches mises à jour');
-        } else {
+    } else {
           throw new Error('Format de données invalide - attendu un tableau');
-        }
+      }
         
       } catch (fetchError) {
         clearTimeout(timeoutId);
@@ -501,15 +501,15 @@ export default function Dashboard() {
           throw new Error(`Erreur HTTP: ${response.status} ${response.statusText}`);
         }
         
-        const data = await response.json();
+      const data = await response.json();
         
-        if (data.user) {
-          localStorage.setItem('currentUser', JSON.stringify(data.user));
-          setCredits(data.user.credits);
+      if (data.user) {
+        localStorage.setItem('currentUser', JSON.stringify(data.user));
+        setCredits(data.user.credits);
           console.log('✅ Crédits mis à jour:', data.user.credits);
-        } else {
+      } else {
           throw new Error('Données utilisateur manquantes dans la réponse');
-        }
+      }
         
       } catch (fetchError) {
         clearTimeout(timeoutId);

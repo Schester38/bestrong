@@ -81,7 +81,7 @@ const AIDashboardWidget = dynamic(() => import("./components/AIDashboardWidget")
 });
 
 const AINotification = dynamic(() => import("./components/AINotification"), {
-  ssr: false
+  ssr: false 
 });
 
 export default function Home() {

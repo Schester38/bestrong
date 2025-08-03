@@ -140,7 +140,7 @@ export default function LiveStats() {
       <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           <div className="bg-white/10 backdrop-blur-lg rounded-md p-6 border border-white/20 shadow-sm">
-            <div className="flex items-center justify-center mb-2">
+        <div className="flex items-center justify-center mb-2">
               <Users className="w-8 h-8 text-pink-500" />
             </div>
             <div className="text-center">
@@ -150,40 +150,40 @@ export default function LiveStats() {
               <div className="text-sm text-gray-300">
                 {userCount ? getUserStatusText(userCount) : 'Chargement...'}
               </div>
-            </div>
-          </div>
+        </div>
+      </div>
 
           <div className="bg-white/10 backdrop-blur-lg rounded-md p-6 border border-white/20 shadow-sm">
-            <div className="flex items-center justify-center mb-2">
+        <div className="flex items-center justify-center mb-2">
               <TrendingUp className="w-8 h-8 text-purple-500" />
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-white mb-2">
-                {formatNumber(stats.followers)}
+            {formatNumber(stats.followers)}
               </div>
               <div className="text-sm text-gray-300">Nouveaux abonnés</div>
-            </div>
-          </div>
+        </div>
+      </div>
 
           <div className="bg-white/10 backdrop-blur-lg rounded-md p-6 border border-white/20 shadow-sm">
-            <div className="flex items-center justify-center mb-2">
+        <div className="flex items-center justify-center mb-2">
               <Heart className="w-8 h-8 text-red-500" />
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-white mb-2">
-                {formatNumber(stats.likes)}
+            {formatNumber(stats.likes)}
               </div>
               <div className="text-sm text-gray-300">J'aime générés</div>
-            </div>
-          </div>
+        </div>
+      </div>
 
           <div className="bg-white/10 backdrop-blur-lg rounded-md p-6 border border-white/20 shadow-sm">
-            <div className="flex items-center justify-center mb-2">
+        <div className="flex items-center justify-center mb-2">
               <Eye className="w-8 h-8 text-blue-500" />
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-white mb-2">
-                {formatNumber(stats.views)}
+            {formatNumber(stats.views)}
               </div>
               <div className="text-sm text-gray-300">Vues totales</div>
             </div>
@@ -195,7 +195,7 @@ export default function LiveStats() {
             <div className="w-1 h-1 bg-green-500 rounded-full animate-pulse"></div>
             <span className="text-green-400 text-xs font-medium">
               Engagement: {stats.engagement}%
-            </span>
+          </span>
           </div>
         </div>
       </div>
