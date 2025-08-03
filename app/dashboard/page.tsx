@@ -36,6 +36,7 @@ import ChallengeSystem from "../components/ChallengeSystem";
 import ContentRecommendations from "../components/ContentRecommendations";
 import ContentScheduler from "../components/ContentScheduler";
 import UserStats from "../components/UserStats";
+import TikTokAnalytics from "../components/TikTokAnalytics";
 
 import BadgeSystem from "../components/BadgeSystem";
 import AdvancedStats from "../components/AdvancedStats";
@@ -1253,76 +1254,23 @@ export default function Dashboard() {
             <Target className="w-4 h-4 mr-1" />
             Création
           </button>
+
+          <button
+            onClick={() => setActiveTab("tiktok")}
+            className={`flex-shrink-0 px-3 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base min-w-[120px] sm:min-w-0 ${
+              activeTab === "tiktok"
+                ? "bg-pink-500 text-white"
+                : "text-gray-600 dark:text-gray-300 hover:text-pink-500"
+            }`}
+          >
+            <BarChart3 className="w-4 h-4 mr-1" />
+            TikTok IA
+          </button>
         </nav>
 
         {activeTab === "overview" && (
           <div data-tab="overview" className="space-y-8">
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Abonnés</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.followers.toLocaleString()}</p>
-                  </div>
-                  <div className="p-3 bg-pink-100 dark:bg-pink-900 rounded-lg">
-                    <Users className="w-6 h-6 text-pink-600 dark:text-pink-400" />
-                  </div>
-                </div>
-                <div className="mt-4 flex items-center text-sm">
-                  <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                  <span className="text-green-600 dark:text-green-400">+{stats.growth}% ce mois</span>
-                </div>
-              </div>
 
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Vues</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.views.toLocaleString()}</p>
-                  </div>
-                  <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                    <Eye className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                  </div>
-                </div>
-                <div className="mt-4 flex items-center text-sm">
-                  <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                  <span className="text-green-600 dark:text-green-400">+8.2% ce mois</span>
-                </div>
-              </div>
-
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Likes</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.likes.toLocaleString()}</p>
-                  </div>
-                  <div className="p-3 bg-red-100 dark:bg-red-900 rounded-lg">
-                    <Heart className="w-6 h-6 text-red-600 dark:text-red-400" />
-                  </div>
-                </div>
-                <div className="mt-4 flex items-center text-sm">
-                  <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                  <span className="text-green-600 dark:text-green-400">+15.3% ce mois</span>
-                </div>
-              </div>
-
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Commentaires</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.comments.toLocaleString()}</p>
-                  </div>
-                  <div className="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
-                    <MessageCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
-                  </div>
-                </div>
-                <div className="mt-4 flex items-center text-sm">
-                  <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                  <span className="text-green-600 dark:text-green-400">+22.1% ce mois</span>
-                </div>
-              </div>
-            </div>
 
             {/* Statistiques utilisateur */}
             <UserStats userId={user?.id} className="mb-6" />
@@ -1667,6 +1615,12 @@ export default function Dashboard() {
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
               <AdvancedStats userId={user?.phone || ''} />
             </div>
+          </div>
+        )}
+
+        {activeTab === "tiktok" && (
+          <div className="space-y-6">
+            <TikTokAnalytics />
           </div>
         )}
 
