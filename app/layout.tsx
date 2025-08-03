@@ -94,6 +94,8 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <Providers>
           <GlobalAnimations>
+            {/* Fond constellation global */}
+            <div className="fixed inset-0 constellation-bg pointer-events-none z-0"></div>
             {children}
             <NavigationArrows />
             <PWAInstallPrompt />

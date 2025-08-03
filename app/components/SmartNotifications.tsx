@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Bell, Settings, Clock, Target, Award, Users, MessageCircle, X, Check, Volume2, VolumeX } from 'lucide-react'
+import { createPortal } from 'react-dom'
 
 interface Notification {
   id: string
@@ -52,19 +53,26 @@ const SmartNotifications = ({ userId, className = '' }: SmartNotificationsProps)
       setIsLoading(true)
       setHasError(false)
       
+      // Ajouter un timestamp pour éviter le cache
+      const timestamp = Date.now()
+      
       // Récupérer les notifications de l'admin
-      const adminResponse = await fetch(`/api/admin/notifications?userId=${userId}`, {
+      const adminResponse = await fetch(`/api/admin/notifications?userId=${userId}&t=${timestamp}`, {
         method: 'GET',
         headers: {
-          'Cache-Control': 'max-age=60',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
         },
       })
       
       // Récupérer les notifications système
-      const systemResponse = await fetch(`/api/notifications?userId=${userId}`, {
+      const systemResponse = await fetch(`/api/notifications?userId=${userId}&t=${timestamp}`, {
         method: 'GET',
         headers: {
-          'Cache-Control': 'max-age=60',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
         },
       })
       
@@ -94,14 +102,14 @@ const SmartNotifications = ({ userId, className = '' }: SmartNotificationsProps)
         if (systemData.notifications) {
           const systemNotifications = systemData.notifications.map((n: any) => ({
             id: `system-${n.id}`,
-          type: n.type,
-          title: n.title,
-          message: n.message,
-          priority: n.priority,
-          read: n.read,
-          createdAt: new Date(n.created_at),
-          actionUrl: n.action_url
-        }))
+            type: n.type,
+            title: n.title,
+            message: n.message,
+            priority: n.priority,
+            read: n.read,
+            createdAt: new Date(n.created_at),
+            actionUrl: n.action_url
+          }))
           allNotifications.push(...systemNotifications)
         }
       }
@@ -110,23 +118,11 @@ const SmartNotifications = ({ userId, className = '' }: SmartNotificationsProps)
       allNotifications.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
       
       setNotifications(allNotifications)
-      
     } catch (error) {
       console.error('Erreur chargement notifications:', error)
       setHasError(true)
-      // En cas d'erreur, on affiche des notifications de démonstration
-      setNotifications([
-        {
-          id: 'demo-1',
-          type: 'achievement' as const,
-          title: 'Bienvenue !',
-          message: 'Vous avez rejoint BE STRONG avec succès',
-          priority: 'medium' as const,
-          read: false,
-          createdAt: new Date(),
-          actionUrl: '/dashboard'
-        }
-      ])
+      // En cas d'erreur, on n'affiche pas de notifications de démo
+      setNotifications([])
     } finally {
       setIsLoading(false)
     }
@@ -203,8 +199,69 @@ const SmartNotifications = ({ userId, className = '' }: SmartNotificationsProps)
     }
   }
 
-  const deleteNotification = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id))
+  const deleteNotification = async (notification: Notification) => {
+    try {
+      console.log('Suppression notification:', notification)
+      
+      // Extraire le vrai ID de la base de données
+      let realId = notification.id
+      
+      // Si c'est une notification admin, enlever le préfixe
+      if (notification.id.startsWith('admin-')) {
+        realId = notification.id.replace('admin-', '')
+        console.log('Notification admin détectée, ID réel:', realId)
+      }
+      // Si c'est une notification système, enlever le préfixe
+      else if (notification.id.startsWith('system-')) {
+        realId = notification.id.replace('system-', '')
+        console.log('Notification système détectée, ID réel:', realId)
+      }
+      // Si c'est une notification de démo, ne pas supprimer
+      else if (notification.id.startsWith('demo-')) {
+        console.log('Notification de démo détectée, suppression locale uniquement')
+        setNotifications(prev => prev.filter(n => n.id !== notification.id))
+        return
+      }
+      
+      console.log('ID à supprimer:', realId)
+      
+      // Utiliser une seule route pour toutes les notifications
+      const response = await fetch(`/api/notifications/${realId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      console.log('Réponse suppression:', response.status, response.statusText)
+
+      if (!response.ok) {
+        const responseText = await response.text()
+        console.error('Réponse brute:', responseText)
+        
+        let errorData
+        try {
+          errorData = JSON.parse(responseText)
+        } catch (e) {
+          errorData = { error: 'Réponse non-JSON', text: responseText }
+        }
+        
+        console.error('Erreur suppression notification:', errorData)
+        console.error('Status:', response.status)
+        console.error('Status text:', response.statusText)
+        // Recharger les notifications en cas d'erreur
+        loadNotifications()
+      } else {
+        console.log('✅ Notification supprimée avec succès')
+        // Recharger les notifications après suppression
+        setTimeout(() => {
+          loadNotifications()
+        }, 100)
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error)
+      loadNotifications()
+    }
   }
 
   const getPriorityColor = (priority: string) => {
@@ -255,17 +312,17 @@ const SmartNotifications = ({ userId, className = '' }: SmartNotificationsProps)
         )}
       </button>
 
-      {/* Modal des notifications */}
-      {isOpen && (
-        <div className="notifications-popup fixed inset-0 flex items-center justify-center p-4">
+      {/* Modal des notifications - Rendu dans un portail */}
+      {isOpen && typeof window !== 'undefined' && createPortal(
+        <div className="notifications-popup fixed inset-0 flex items-center justify-center p-4" style={{ zIndex: 999999999 }}>
           {/* Overlay sombre */}
           <div 
-            className="absolute inset-0 bg-black bg-opacity-50"
+            className="notifications-overlay absolute inset-0"
             onClick={() => setIsOpen(false)}
           />
           
           {/* Popup centré */}
-          <div className="relative w-full max-w-sm bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 max-h-[80vh] overflow-hidden">
+          <div className="relative w-full max-w-sm bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 max-h-[80vh] overflow-hidden" style={{ zIndex: 999999999 }}>
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
               <h3 className="font-medium text-gray-900 dark:text-white">
@@ -359,7 +416,7 @@ const SmartNotifications = ({ userId, className = '' }: SmartNotificationsProps)
                               </button>
                             )}
                             <button
-                              onClick={() => deleteNotification(notification.id)}
+                              onClick={() => deleteNotification(notification)}
                               className="p-1 text-gray-400 hover:text-red-500"
                             >
                               <X className="w-3 h-3" />
@@ -389,7 +446,8 @@ const SmartNotifications = ({ userId, className = '' }: SmartNotificationsProps)
             )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

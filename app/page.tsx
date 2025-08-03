@@ -64,9 +64,7 @@ const ToastComponent = dynamic(() => import("./components/Toast"), {
 
 
 
-const SmartNotifications = dynamic(() => import("./components/SmartNotifications"), {
-  ssr: false
-});
+
 
 const ChatSystem = dynamic(() => import("./components/ChatSystem"), {
   ssr: false
@@ -222,7 +220,6 @@ export default function Home() {
           </div>
           
           <div className="flex items-center space-x-2 sm:space-x-4 ml-auto">
-            {currentUser && <SmartNotifications userId={currentUser?.id} />}
             <ThemeToggle />
             {currentUser ? (
               <>
@@ -285,25 +282,38 @@ export default function Home() {
       )}
 
       {/* Hero Section avec animations avancées */}
-      <section className="relative py-10 sm:py-16 lg:py-20 px-2 sm:px-4 lg:px-8 w-full flex justify-center overflow-hidden">
+      <section className="relative py-10 sm:py-16 lg:py-20 px-2 sm:px-4 lg:px-8 w-full flex justify-center overflow-hidden bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 dark:from-gray-900 dark:via-purple-900 dark:to-blue-900">
+        {/* Fond constellation */}
+        <div className="absolute inset-0 constellation-bg opacity-25"></div>
+        
         {/* Particules interactives en arrière-plan */}
         {isClient && (
           <div className="absolute inset-0 pointer-events-none">
             <div className="particle-field">
-              {[...Array(20)].map((_, i) => (
-                <div
-                  key={i}
-                  className="particle"
-                  style={{
-                    left: `${Math.random() * 100}%`,
-                    top: `${Math.random() * 100}%`,
-                    width: `${Math.random() * 4 + 2}px`,
-                    height: `${Math.random() * 4 + 2}px`,
-                    animationDelay: `${Math.random() * 6}s`,
-                    animationDuration: `${6 + Math.random() * 4}s`
-                  }}
-                />
-              ))}
+              {[...Array(40)].map((_, i) => {
+                const colors = [
+                  'linear-gradient(45deg, #ff0080, #8b5cf6, #00d4ff)',
+                  'linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1)',
+                  'linear-gradient(45deg, #a8edea, #fed6e3, #ff9a9e)',
+                  'linear-gradient(45deg, #ffecd2, #fcb69f, #ff9a9e)'
+                ];
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                return (
+                  <div
+                    key={i}
+                    className="particle"
+                    style={{
+                      left: `${Math.random() * 100}%`,
+                      top: `${Math.random() * 100}%`,
+                      width: `${Math.random() * 10 + 8}px`,
+                      height: `${Math.random() * 10 + 8}px`,
+                      background: randomColor,
+                      animationDelay: `${Math.random() * 6}s`,
+                      animationDuration: `${6 + Math.random() * 4}s`
+                    }}
+                  />
+                );
+              })}
             </div>
           </div>
         )}
@@ -362,7 +372,9 @@ export default function Home() {
 
       {/* Statistiques en temps réel */}
       <section className="py-8 sm:py-10 lg:py-12 px-2 sm:px-4 lg:px-8 bg-gradient-to-r from-pink-500 to-purple-600 relative w-full flex justify-center">
-        <div className="max-w-7xl">
+        {/* Fond constellation */}
+        <div className="absolute inset-0 constellation-bg opacity-30"></div>
+        <div className="max-w-7xl relative z-10">
           <div className="text-center mb-6 sm:mb-8">
             <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3 sm:mb-4">
               Statistiques en temps réel
@@ -380,8 +392,10 @@ export default function Home() {
 
 
       {/* Features Section */}
-      <section id="features" className="py-12 sm:py-16 lg:py-20 px-2 sm:px-4 lg:px-8 bg-white dark:bg-gray-900 w-full flex justify-center">
-        <div className="max-w-7xl">
+      <section id="features" className="py-12 sm:py-16 lg:py-20 px-2 sm:px-4 lg:px-8 bg-white dark:bg-gray-900 w-full flex justify-center relative">
+        {/* Fond constellation */}
+        <div className="absolute inset-0 constellation-bg opacity-20"></div>
+        <div className="max-w-7xl relative z-10">
           <div className="text-center mb-12 sm:mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
               Fonctionnalités principales
@@ -444,8 +458,10 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-12 sm:py-16 lg:py-20 px-2 sm:px-4 lg:px-8 bg-gradient-to-r from-pink-500 to-purple-600 w-full flex justify-center">
-        <div className="max-w-4xl text-center">
+      <section className="py-12 sm:py-16 lg:py-20 px-2 sm:px-4 lg:px-8 bg-gradient-to-r from-pink-500 to-purple-600 w-full flex justify-center relative">
+        {/* Fond constellation */}
+        <div className="absolute inset-0 constellation-bg opacity-30"></div>
+        <div className="max-w-4xl text-center relative z-10">
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4 sm:mb-6">
             Prêt à booster votre visibilité TikTok ?
           </h2>
@@ -466,8 +482,10 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+      <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8 relative">
+        {/* Fond constellation */}
+        <div className="absolute inset-0 constellation-bg opacity-10"></div>
+        <div className="max-w-7xl mx-auto relative z-10">
           <div className="flex flex-row flex-wrap justify-between gap-4 w-full">
             <div>
               <h3 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent mb-4">
