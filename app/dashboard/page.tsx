@@ -38,6 +38,7 @@ import ContentScheduler from "../components/ContentScheduler";
 import UserStats from "../components/UserStats";
 import TikTokAnalytics from "../components/TikTokAnalytics";
 import TikTokSparkAdsManager from "../components/TikTokSparkAdsManager";
+import TikTokLatencyInfo from "../components/TikTokLatencyInfo";
 
 import BadgeSystem from "../components/BadgeSystem";
 import AdvancedStats from "../components/AdvancedStats";
@@ -1624,6 +1625,14 @@ export default function Dashboard() {
             <TikTokAnalytics />
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
               <TikTokSparkAdsManager businessId="your_business_id" />
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+              <TikTokLatencyInfo 
+                dataType="video"
+                realTimeFields={['item_id', 'create_time', 'thumbnail_url', 'share_url', 'embed_url', 'caption']}
+                delayedFields={['video_views', 'likes', 'comments', 'shares', 'reach', 'video_duration', 'full_video_watched_rate', 'total_time_watched', 'average_time_watched', 'impression_sources', 'audience_countries']}
+                lastUpdate={new Date().toISOString()}
+              />
             </div>
           </div>
         )}
