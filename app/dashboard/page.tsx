@@ -41,6 +41,7 @@ import TikTokSparkAdsManager from "../components/TikTokSparkAdsManager";
 import TikTokLatencyInfo from "../components/TikTokLatencyInfo";
 import TikTokWebhookManager from "../components/TikTokWebhookManager";
 import TikTokAuthTester from "../components/TikTokAuthTester";
+import TikTokApiTester from "../components/TikTokApiTester";
 
 import BadgeSystem from "../components/BadgeSystem";
 import AdvancedStats from "../components/AdvancedStats";
@@ -1641,6 +1642,9 @@ export default function Dashboard() {
             </div>
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
               <TikTokAuthTester />
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+              <TikTokApiTester />
             </div>
           </div>
         )}
