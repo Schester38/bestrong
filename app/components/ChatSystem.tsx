@@ -406,7 +406,7 @@ const ChatSystem = ({ userId, className = '' }: ChatSystemProps) => {
       {/* Bouton de chat flottant */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110"
+        className="relative bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110"
         title="Support en ligne"
       >
         <MessageCircle className="w-6 h-6" />
@@ -421,7 +421,7 @@ const ChatSystem = ({ userId, className = '' }: ChatSystemProps) => {
       {isOpen && (
         <div className="absolute bottom-16 left-0 w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">
           {/* Header avec gradient */}
-          <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-4 text-white">
+          <div className="bg-gradient-to-r from-blue-500 to-blue-700 p-4 text-white">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-lg">
                 💬 Support BE STRONG
@@ -448,7 +448,7 @@ const ChatSystem = ({ userId, className = '' }: ChatSystemProps) => {
                 >
                   <div className="flex items-center space-x-3">
                     <div className="relative">
-                      <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                      <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-700 rounded-full flex items-center justify-center shadow-lg">
                         <span className="text-white font-bold text-lg">
                           {contact.name.charAt(0)}
                         </span>
@@ -489,7 +489,7 @@ const ChatSystem = ({ userId, className = '' }: ChatSystemProps) => {
                   >
                     <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
                       message.senderId === (userId || 'guest-user')
-                        ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white'
+                        ? 'bg-gradient-to-r from-blue-500 to-blue-700 text-white'
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
                     }`}>
                       <div className="whitespace-pre-wrap">{message.content}</div>
@@ -533,7 +533,7 @@ const ChatSystem = ({ userId, className = '' }: ChatSystemProps) => {
                   />
                   <button
                     onClick={sendMessage}
-                    className="p-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full hover:from-pink-600 hover:to-purple-700 transition-colors"
+                    className="p-2 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-full hover:from-blue-600 hover:to-blue-800 transition-colors"
                   >
                     <Send className="w-4 h-4" />
                   </button>
