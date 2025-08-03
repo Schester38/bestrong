@@ -84,6 +84,11 @@ const AINotification = dynamic(() => import("./components/AINotification"), {
   ssr: false 
 });
 
+// Composants d'animations avancées
+const AnimationWrapper = dynamic(() => import("./components/AnimationWrapper"), {
+  ssr: false
+});
+
 export default function Home() {
   const { isDark } = useTheme();
   const { showAlert, showConfirm } = useAlert();
@@ -94,6 +99,20 @@ export default function Home() {
   const [userCount, setUserCount] = useState(0);
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  // Effet de scroll pour la barre de progression
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrollPercent = scrollTop / docHeight;
+      setScrollProgress(Math.min(scrollPercent, 1));
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Fonction de fallback pour le partage
   const fallbackShare = useCallback((shareData: { title: string; text: string; url: string }) => {
@@ -187,6 +206,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative overflow-x-hidden flex flex-col items-center">
+      {/* Barre de progression de scroll */}
+      <div className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-pink-500 to-purple-500 origin-left z-50 transition-transform duration-100" 
+           style={{ transform: `scaleX(${scrollProgress})` }} />
       
       {isClient && <AnimatedBackground />}
       
@@ -262,36 +284,56 @@ export default function Home() {
         />
       )}
 
-      {/* Hero Section */}
-      <section className="relative py-10 sm:py-16 lg:py-20 px-2 sm:px-4 lg:px-8 w-full flex justify-center">
-        <div className="max-w-7xl text-center">
+      {/* Hero Section avec animations avancées */}
+      <section className="relative py-10 sm:py-16 lg:py-20 px-2 sm:px-4 lg:px-8 w-full flex justify-center overflow-hidden">
+        {/* Particules interactives en arrière-plan */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="particle-field">
+            {[...Array(20)].map((_, i) => (
+              <div
+                key={i}
+                className="particle"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  width: `${Math.random() * 4 + 2}px`,
+                  height: `${Math.random() * 4 + 2}px`,
+                  animationDelay: `${Math.random() * 6}s`,
+                  animationDuration: `${6 + Math.random() * 4}s`
+                }}
+              />
+            ))}
+          </div>
+        </div>
+        
+        <div className="max-w-7xl text-center relative z-10">
           <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold mb-4 sm:mb-6">
-            <span className="bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+            <span className="text-shimmer">
               Boostez votre
             </span>
             <br />
-            <span className="text-gray-900 dark:text-white">visibilité TikTok</span>
+            <span className="text-gray-900 dark:text-white neon-glow">visibilité TikTok</span>
           </h1>
-          <p className="text-lg sm:text-xl lg:text-2xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto px-2">
+          <p className="text-lg sm:text-xl lg:text-2xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto px-2 scroll-reveal">
             Augmentez vos abonnés, vues et likes de manière éthique grâce à notre plateforme d&apos;échanges organiques et nos outils d&apos;optimisation.
           </p>
           
-          {/* Boutons d'action centrés */}
+          {/* Boutons d'action centrés avec animations */}
           <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center items-stretch px-2">
-            <a href="https://youtu.be/Uwh_izubcEw" target="_blank" rel="noopener noreferrer" className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 sm:px-8 lg:px-12 py-3 sm:py-4 rounded-full text-lg sm:text-xl lg:text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto">
+            <a href="https://youtu.be/Uwh_izubcEw" target="_blank" rel="noopener noreferrer" className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 sm:px-8 lg:px-12 py-3 sm:py-4 rounded-full text-lg sm:text-xl lg:text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto hover-lift morph-button">
               <span className="hidden sm:inline">Présentation BE STRONG</span>
               <span className="sm:hidden">Présentation</span>
-              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 bounce-smooth" />
             </a>
             
-            <Link href="/don" className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 sm:px-8 lg:px-12 py-3 sm:py-4 rounded-full text-lg sm:text-xl lg:text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto">
+            <Link href="/don" className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 sm:px-8 lg:px-12 py-3 sm:py-4 rounded-full text-lg sm:text-xl lg:text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto hover-lift morph-button">
               Faire un don
-              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 bounce-smooth" />
             </Link>
             
             <div className="w-full sm:w-auto">
               <ShareButton 
-                className="bg-gradient-to-r from-green-400 to-blue-500 text-white px-6 sm:px-8 lg:px-12 py-3 sm:py-4 rounded-full text-lg sm:text-xl lg:text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap w-full h-full"
+                className="bg-gradient-to-r from-green-400 to-blue-500 text-white px-6 sm:px-8 lg:px-12 py-3 sm:py-4 rounded-full text-lg sm:text-xl lg:text-2xl font-semibold hover:shadow-xl transition-all duration-1000 flex items-center justify-center gap-2 whitespace-nowrap w-full h-full hover-lift morph-button"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15" />
@@ -348,11 +390,11 @@ export default function Home() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-            <div className="bg-gradient-to-br from-pink-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 p-6 sm:p-8 rounded-2xl border border-gray-200 dark:border-gray-600">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
+            <div className="bg-gradient-to-br from-pink-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 p-6 sm:p-8 rounded-2xl border border-gray-200 dark:border-gray-600 depth-card hover-lift">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 sm:mb-6 floating-element">
                 <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 text-shimmer">
                 Échanges organiques
               </h3>
               <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
@@ -360,11 +402,11 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-pink-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 p-6 sm:p-8 rounded-2xl border border-gray-200 dark:border-gray-600">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
+            <div className="bg-gradient-to-br from-pink-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 p-6 sm:p-8 rounded-2xl border border-gray-200 dark:border-gray-600 depth-card hover-lift">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 sm:mb-6 floating-element">
                 <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 text-shimmer">
                 100% Sécurisé
               </h3>
               <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
@@ -372,11 +414,11 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-pink-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 p-6 sm:p-8 rounded-2xl border border-gray-200 dark:border-gray-600">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
+            <div className="bg-gradient-to-br from-pink-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 p-6 sm:p-8 rounded-2xl border border-gray-200 dark:border-gray-600 depth-card hover-lift">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 sm:mb-6 floating-element">
                 <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 text-shimmer">
                 Communauté active
               </h3>
               <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
@@ -384,11 +426,11 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-pink-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 p-6 sm:p-8 rounded-2xl border border-gray-200 dark:border-gray-600">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
+            <div className="bg-gradient-to-br from-pink-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 p-6 sm:p-8 rounded-2xl border border-gray-200 dark:border-gray-600 depth-card hover-lift">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 sm:mb-6 floating-element">
                 <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 text-shimmer">
                 Recommandations IA
               </h3>
               <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">

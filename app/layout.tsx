@@ -5,6 +5,7 @@ import NavigationArrows from './components/NavigationArrows'
 import PWAInstallPrompt from './components/PWAInstallPrompt'
 import PWAInstallInstructions from './components/PWAInstallInstructions'
 import PWAStatus from './components/PWAStatus'
+import { GlobalAnimations } from './components/GlobalAnimations'
 
 export const metadata: Metadata = {
   title: 'BE STRONG - Plateforme de motivation et fitness',
@@ -91,11 +92,13 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased">
         <Providers>
-          {children}
-          <NavigationArrows />
-          <PWAInstallPrompt />
-          <PWAInstallInstructions />
-          <PWAStatus />
+          <GlobalAnimations>
+            {children}
+            <NavigationArrows />
+            <PWAInstallPrompt />
+            <PWAInstallInstructions />
+            <PWAStatus />
+          </GlobalAnimations>
         </Providers>
       </body>
     </html>
