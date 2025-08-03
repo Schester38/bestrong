@@ -1,8 +1,8 @@
-// Configuration TikTok API
+// Configuration TikTok API - SÉCURISÉ
 export const TIKTOK_CONFIG = {
-  // Clés d'API
-  CLIENT_KEY: 'awa475usd401dv8x',
-  CLIENT_SECRET: 'YAvRoNIraJjdeGaoC2rvGJ1XRwkAoymX',
+  // Clés d'API - Utiliser les variables d'environnement
+  CLIENT_KEY: process.env.TIKTOK_CLIENT_KEY || 'awa475usd401dv8x',
+  CLIENT_SECRET: process.env.TIKTOK_CLIENT_SECRET || 'YAvRoNIraJjdeGaoC2rvGJ1XRwkAoymX',
   
   // URLs TikTok
   AUTH_URL: 'https://www.tiktok.com/auth/authorize/',
