@@ -1,21 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { NotificationService } from '@/app/utils/notification-service';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-// Vérifier que les variables d'environnement sont définies
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Variables Supabase manquantes dans challenges/progress:', {
-    supabaseUrl: !!supabaseUrl,
-    supabaseAnonKey: !!supabaseAnonKey
-  });
-}
-
-const supabase = createClient(
-  supabaseUrl || 'https://jdemxmntzsetwrhzzknl.supabase.co',
-  supabaseAnonKey || 'sb_publishable_W8PK0Nvw_TBQkPfvJKoOTw_CYTRacwN'
-);
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // POST: Mettre à jour la progression d'un défi
 export async function POST(request: NextRequest) {
@@ -95,6 +85,17 @@ export async function POST(request: NextRequest) {
               experience: newExperience 
             })
             .eq('id', userId);
+
+          // Créer une notification de défi complété
+          const rewardText = challenge.reward_credits || challenge.reward_experience 
+            ? `${challenge.reward_credits || 0} crédits et ${challenge.reward_experience || 0} XP`
+            : undefined;
+          
+          await NotificationService.createChallengeNotification(
+            userId, 
+            challenge.title || 'Défi', 
+            rewardText
+          );
         }
       } catch (rewardError) {
         console.log('Système de récompenses non disponible:', rewardError);

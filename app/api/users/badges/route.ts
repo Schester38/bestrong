@@ -1,21 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { NotificationService } from '@/app/utils/notification-service';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-// Vérifier que les variables d'environnement sont définies
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Variables Supabase manquantes dans badges:', {
-    supabaseUrl: !!supabaseUrl,
-    supabaseAnonKey: !!supabaseAnonKey
-  });
-}
-
-const supabase = createClient(
-  supabaseUrl || 'https://jdemxmntzsetwrhzzknl.supabase.co',
-  supabaseAnonKey || 'sb_publishable_W8PK0Nvw_TBQkPfvJKoOTw_CYTRacwN'
-);
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Définition des badges disponibles
 const BADGES = {
@@ -183,8 +173,18 @@ export async function GET(request: NextRequest) {
     const earnedBadges = [];
     const allBadges = [];
 
+    // Récupérer les badges précédemment gagnés pour détecter les nouveaux
+    const { data: existingBadges } = await supabase
+      .from('user_badges')
+      .select('badge_id, earned_at')
+      .eq('user_id', userId);
+
+    const existingBadgeIds = existingBadges?.map(b => b.badge_id) || [];
+
     for (const [key, badge] of Object.entries(BADGES)) {
       const isEarned = badge.condition(stats);
+      const isNewBadge = isEarned && !existingBadgeIds.includes(badge.id);
+      
       const badgeInfo = {
         ...badge,
         earned: isEarned,
@@ -194,6 +194,25 @@ export async function GET(request: NextRequest) {
       allBadges.push(badgeInfo);
       if (isEarned) {
         earnedBadges.push(badgeInfo);
+        
+        // Créer une notification pour les nouveaux badges
+        if (isNewBadge) {
+          await NotificationService.createBadgeNotification(
+            userId,
+            badge.name,
+            badge.description
+          );
+          
+          // Enregistrer le nouveau badge dans la base de données
+          await supabase
+            .from('user_badges')
+            .insert({
+              user_id: userId,
+              badge_id: badge.id,
+              earned_at: new Date().toISOString()
+            })
+            .single();
+        }
       }
     }
 

@@ -5,9 +5,9 @@ import { logActivity } from '../../../utils/activities';
 import fs from 'fs';
 import path from 'path';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 // Client Supabase côté serveur avec nouvelle syntaxe
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -114,6 +114,23 @@ export async function POST(request: NextRequest) {
       type: 'register',
       description: 'Inscription réussie'
     });
+
+    // Envoyer une notification de bienvenue
+    try {
+      const welcomeResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/notifications/welcome`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: data.id })
+      });
+      
+      if (welcomeResponse.ok) {
+        console.log('Notification de bienvenue envoyée');
+      } else {
+        console.error('Erreur envoi notification bienvenue');
+      }
+    } catch (error) {
+      console.error('Erreur notification bienvenue:', error);
+    }
 
     // Gestion du parrainage si un parrain est fourni
     if (parrain && parrain.trim()) {

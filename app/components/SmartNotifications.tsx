@@ -88,32 +88,65 @@ const SmartNotifications = ({ userId, className = '' }: SmartNotificationsProps)
       setIsLoading(true)
       setHasError(false)
       
-      const response = await fetch(`/api/notifications?userId=${userId}`, {
+      // Récupérer les notifications de l'admin
+      const adminResponse = await fetch(`/api/admin/notifications?userId=${userId}`, {
         method: 'GET',
         headers: {
           'Cache-Control': 'max-age=60',
         },
       })
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+      // Récupérer les notifications système
+      const systemResponse = await fetch(`/api/notifications?userId=${userId}`, {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'max-age=60',
+        },
+      })
+      
+      let allNotifications: Notification[] = []
+      
+      // Traiter les notifications de l'admin
+      if (adminResponse.ok) {
+        const adminData = await adminResponse.json()
+        if (Array.isArray(adminData)) {
+          const adminNotifications = adminData.map((n: any) => ({
+            id: `admin-${n.id}`,
+            type: 'system' as const,
+            title: 'Message de l\'équipe',
+            message: n.message,
+            priority: 'medium' as const,
+            read: n.lu,
+            createdAt: new Date(n.date),
+            actionUrl: undefined
+          }))
+          allNotifications.push(...adminNotifications)
+        }
       }
       
-      const data = await response.json()
-      
-      if (data.notifications) {
-        const formattedNotifications = data.notifications.map((n: any) => ({
-          id: n.id,
-          type: n.type,
-          title: n.title,
-          message: n.message,
-          priority: n.priority,
-          read: n.read,
-          createdAt: new Date(n.created_at),
-          actionUrl: n.action_url
-        }))
-        setNotifications(formattedNotifications)
+      // Traiter les notifications système
+      if (systemResponse.ok) {
+        const systemData = await systemResponse.json()
+        if (systemData.notifications) {
+          const systemNotifications = systemData.notifications.map((n: any) => ({
+            id: `system-${n.id}`,
+            type: n.type,
+            title: n.title,
+            message: n.message,
+            priority: n.priority,
+            read: n.read,
+            createdAt: new Date(n.created_at),
+            actionUrl: n.action_url
+          }))
+          allNotifications.push(...systemNotifications)
+        }
       }
+      
+      // Trier par date de création (plus récent en premier)
+      allNotifications.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      
+      setNotifications(allNotifications)
+      
     } catch (error) {
       console.error('Erreur chargement notifications:', error)
       setHasError(true)
@@ -139,16 +172,36 @@ const SmartNotifications = ({ userId, className = '' }: SmartNotificationsProps)
 
   const markAsRead = async (id: string) => {
     try {
-      const response = await fetch('/api/notifications', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notificationId: id, read: true })
-      })
+      // Déterminer le type de notification basé sur l'ID
+      const isAdminNotification = id.startsWith('admin-')
+      const actualId = id.replace(/^(admin-|system-)/, '')
       
-      if (response.ok) {
-        setNotifications(prev => 
-          prev.map(n => n.id === id ? { ...n, read: true } : n)
-        )
+      if (isAdminNotification) {
+        // Marquer comme lu pour les notifications admin
+        const response = await fetch('/api/admin/notifications', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notifId: actualId, userId })
+        })
+        
+        if (response.ok) {
+          setNotifications(prev => 
+            prev.map(n => n.id === id ? { ...n, read: true } : n)
+          )
+        }
+      } else {
+        // Marquer comme lu pour les notifications système
+        const response = await fetch('/api/notifications', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notificationId: actualId, read: true })
+        })
+        
+        if (response.ok) {
+          setNotifications(prev => 
+            prev.map(n => n.id === id ? { ...n, read: true } : n)
+          )
+        }
       }
     } catch (error) {
       console.error('Erreur marquer comme lu:', error)
@@ -158,15 +211,25 @@ const SmartNotifications = ({ userId, className = '' }: SmartNotificationsProps)
   const markAllAsRead = async () => {
     try {
       const unreadNotifications = notifications.filter(n => !n.read)
-      await Promise.all(
-        unreadNotifications.map(n => 
-          fetch('/api/notifications', {
+      
+      for (const notification of unreadNotifications) {
+        const isAdminNotification = notification.id.startsWith('admin-')
+        const actualId = notification.id.replace(/^(admin-|system-)/, '')
+        
+        if (isAdminNotification) {
+          await fetch('/api/admin/notifications', {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ notificationId: n.id, read: true })
+            body: JSON.stringify({ notifId: actualId, userId })
           })
-        )
-      )
+        } else {
+          await fetch('/api/notifications', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ notificationId: actualId, read: true })
+          })
+        }
+      }
       
       setNotifications(prev => 
         prev.map(n => ({ ...n, read: true }))
