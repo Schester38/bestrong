@@ -6,6 +6,7 @@ import PWAInstallPrompt from './components/PWAInstallPrompt'
 import PWAInstallInstructions from './components/PWAInstallInstructions'
 import PWAStatus from './components/PWAStatus'
 import { GlobalAnimations } from './components/GlobalAnimations'
+import ScrollToTop from './components/ScrollToTop'
 
 export const metadata: Metadata = {
   title: 'BE STRONG - Plateforme de motivation et fitness',
@@ -98,6 +99,7 @@ export default function RootLayout({
             <PWAInstallPrompt />
             <PWAInstallInstructions />
             <PWAStatus />
+            <ScrollToTop />
           </GlobalAnimations>
         </Providers>
       </body>

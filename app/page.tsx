@@ -86,7 +86,7 @@ const AINotification = dynamic(() => import("./components/AINotification"), {
 
 // Composants d'animations avancées
 const AnimationWrapper = dynamic(() => import("./components/AnimationWrapper"), {
-  ssr: false
+  ssr: false 
 });
 
 export default function Home() {
@@ -287,24 +287,26 @@ export default function Home() {
       {/* Hero Section avec animations avancées */}
       <section className="relative py-10 sm:py-16 lg:py-20 px-2 sm:px-4 lg:px-8 w-full flex justify-center overflow-hidden">
         {/* Particules interactives en arrière-plan */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="particle-field">
-            {[...Array(20)].map((_, i) => (
-              <div
-                key={i}
-                className="particle"
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  width: `${Math.random() * 4 + 2}px`,
-                  height: `${Math.random() * 4 + 2}px`,
-                  animationDelay: `${Math.random() * 6}s`,
-                  animationDuration: `${6 + Math.random() * 4}s`
-                }}
-              />
-            ))}
+        {isClient && (
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="particle-field">
+              {[...Array(20)].map((_, i) => (
+                <div
+                  key={i}
+                  className="particle"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`,
+                    width: `${Math.random() * 4 + 2}px`,
+                    height: `${Math.random() * 4 + 2}px`,
+                    animationDelay: `${Math.random() * 6}s`,
+                    animationDuration: `${6 + Math.random() * 4}s`
+                  }}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
         
         <div className="max-w-7xl text-center relative z-10">
           <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold mb-4 sm:mb-6">
@@ -516,7 +518,6 @@ export default function Home() {
       <PWAInstallPrompt />
       <PWAInstallInstructions />
       <PWAStatus />
-      <ScrollToTop />
       
       {/* Chat System en position fixe à gauche */}
       <div className="fixed bottom-24 left-4 z-50">

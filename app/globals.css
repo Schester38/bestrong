@@ -419,6 +419,17 @@ input, textarea, select {
 
 /* ===== ANIMATIONS AVANCÉES ===== */
 
+/* Fix pour le popup de notifications */
+.notifications-popup {
+  z-index: 999999 !important;
+  position: fixed !important;
+}
+
+.notifications-overlay {
+  z-index: 999998 !important;
+  position: fixed !important;
+}
+
 /* Parallax scrolling */
 .parallax-container {
   perspective: 1000px;
