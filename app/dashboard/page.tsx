@@ -37,6 +37,7 @@ import ContentRecommendations from "../components/ContentRecommendations";
 import ContentScheduler from "../components/ContentScheduler";
 import UserStats from "../components/UserStats";
 import TikTokAnalytics from "../components/TikTokAnalytics";
+import TikTokSparkAdsManager from "../components/TikTokSparkAdsManager";
 
 import BadgeSystem from "../components/BadgeSystem";
 import AdvancedStats from "../components/AdvancedStats";
@@ -1621,6 +1622,9 @@ export default function Dashboard() {
         {activeTab === "tiktok" && (
           <div className="space-y-6">
             <TikTokAnalytics />
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+              <TikTokSparkAdsManager businessId="your_business_id" />
+            </div>
           </div>
         )}
 
