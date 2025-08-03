@@ -39,6 +39,7 @@ import UserStats from "../components/UserStats";
 import TikTokAnalytics from "../components/TikTokAnalytics";
 import TikTokSparkAdsManager from "../components/TikTokSparkAdsManager";
 import TikTokLatencyInfo from "../components/TikTokLatencyInfo";
+import TikTokWebhookManager from "../components/TikTokWebhookManager";
 
 import BadgeSystem from "../components/BadgeSystem";
 import AdvancedStats from "../components/AdvancedStats";
@@ -1633,6 +1634,9 @@ export default function Dashboard() {
                 delayedFields={['video_views', 'likes', 'comments', 'shares', 'reach', 'video_duration', 'full_video_watched_rate', 'total_time_watched', 'average_time_watched', 'impression_sources', 'audience_countries']}
                 lastUpdate={new Date().toISOString()}
               />
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+              <TikTokWebhookManager businessId="your_business_id" />
             </div>
           </div>
         )}
