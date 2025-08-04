@@ -33,10 +33,11 @@ const AdvancedStats = ({ userId, className = '' }: AdvancedStatsProps) => {
 
   useEffect(() => {
     if (userId) {
-      // Temporairement désactivé pour éviter les erreurs de fetch
-      // fetchStats()
+      // Activer la récupération de données réelles
+      fetchStats()
       
-      // Utiliser des statistiques de démonstration à la place
+      // Commenter les données de démonstration
+      /*
       const demoStats: StatCard[] = [
         {
           title: 'Tâches Complétées',
@@ -83,6 +84,7 @@ const AdvancedStats = ({ userId, className = '' }: AdvancedStatsProps) => {
         goal: 'Essayez de compléter au moins 3 tâches par jour.' 
       })
       setIsLoading(false)
+      */
     }
   }, [userId, selectedPeriod])
 
@@ -137,9 +139,17 @@ const AdvancedStats = ({ userId, className = '' }: AdvancedStatsProps) => {
         setInsights(data.insights || { positive: '', goal: '' })
       } else {
         console.error('Erreur récupération stats:', data.error)
+        // En cas d'erreur, utiliser des données par défaut
+        setStats([])
+        setWeekProgress([])
+        setInsights({ positive: 'Erreur de chargement des données', goal: 'Veuillez réessayer plus tard' })
       }
     } catch (error) {
       console.error('Erreur fetch stats:', error)
+      // En cas d'erreur, utiliser des données par défaut
+      setStats([])
+      setWeekProgress([])
+      setInsights({ positive: 'Erreur de connexion', goal: 'Vérifiez votre connexion internet' })
     } finally {
       setIsLoading(false)
     }
