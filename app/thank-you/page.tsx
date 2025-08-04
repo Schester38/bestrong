@@ -204,13 +204,6 @@ export default function ThankYouPage() {
         >
           Payer avec NOUPIA
         </button>
-        
-        <button
-          className="w-full bg-gradient-to-r from-green-500 to-blue-500 text-white py-3 rounded-lg font-semibold text-lg hover:shadow-lg transition-all duration-200 mb-4"
-          onClick={() => window.location.href = "/payment/multi-pays"}
-        >
-          🌍 Paiement Multi-Pays (Orange Money, MTN, etc.)
-        </button>
         <Link href="/" className="text-pink-500 hover:text-pink-600 font-medium">
           Retour à l&apos;accueil
         </Link>
