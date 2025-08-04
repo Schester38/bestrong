@@ -36,12 +36,7 @@ import ChallengeSystem from "../components/ChallengeSystem";
 import ContentRecommendations from "../components/ContentRecommendations";
 import ContentScheduler from "../components/ContentScheduler";
 import UserStats from "../components/UserStats";
-import TikTokAnalytics from "../components/TikTokAnalytics";
-import TikTokSparkAdsManager from "../components/TikTokSparkAdsManager";
-import TikTokLatencyInfo from "../components/TikTokLatencyInfo";
-import TikTokWebhookManager from "../components/TikTokWebhookManager";
-import TikTokAuthTester from "../components/TikTokAuthTester";
-import TikTokApiTester from "../components/TikTokApiTester";
+
 
 import BadgeSystem from "../components/BadgeSystem";
 import AdvancedStats from "../components/AdvancedStats";
@@ -1260,17 +1255,7 @@ export default function Dashboard() {
             Création
           </button>
 
-          <button
-            onClick={() => setActiveTab("tiktok")}
-            className={`flex-shrink-0 px-3 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base min-w-[120px] sm:min-w-0 ${
-              activeTab === "tiktok"
-                ? "bg-pink-500 text-white"
-                : "text-gray-600 dark:text-gray-300 hover:text-pink-500"
-            }`}
-          >
-            <BarChart3 className="w-4 h-4 mr-1" />
-            TikTok IA
-          </button>
+
         </nav>
 
         {activeTab === "overview" && (
@@ -1623,31 +1608,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {activeTab === "tiktok" && (
-          <div className="space-y-6">
-            <TikTokAnalytics />
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-              <TikTokSparkAdsManager businessId="your_business_id" />
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-              <TikTokLatencyInfo 
-                dataType="video"
-                realTimeFields={['item_id', 'create_time', 'thumbnail_url', 'share_url', 'embed_url', 'caption']}
-                delayedFields={['video_views', 'likes', 'comments', 'shares', 'reach', 'video_duration', 'full_video_watched_rate', 'total_time_watched', 'average_time_watched', 'impression_sources', 'audience_countries']}
-                lastUpdate={new Date().toISOString()}
-              />
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-              <TikTokWebhookManager businessId="your_business_id" />
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-              <TikTokAuthTester />
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-              <TikTokApiTester />
-            </div>
-          </div>
-        )}
+
 
         {activeTab === "messages" && (
           <div data-tab="messages" className="flex flex-col md:flex-row gap-6 h-[70vh]">

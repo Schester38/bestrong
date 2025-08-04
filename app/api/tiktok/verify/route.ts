@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
-    // Retourner le nouveau code de vérification TikTok
-    return new NextResponse('b4fjPkzoqcE6s55G6NaONtbtgBHuULzy', {
+    // Retourner le code de vérification TikTok actuel
+    return new NextResponse('MrrkyxAZOWBAYx6Rla9ONr7vhx2zqXzY', {
       status: 200,
       headers: {
         'Content-Type': 'text/plain',
