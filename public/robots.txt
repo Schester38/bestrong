@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# TikTok verification files
+Allow: /tiktok-developers-site-verification*
+Allow: /tiktok-developers-site-verification.txt
+Allow: /tiktok-developers-site-verification=b4fjPkzoqcE6s55G6NaONtbtgBHuULzy 
