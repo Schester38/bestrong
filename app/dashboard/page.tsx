@@ -2291,7 +2291,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask, showAlert
 
     if (hasCompleted) {
       return (
-        <span className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 px-3 py-1 rounded font-medium">
+        <span className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 px-1 py-0.5 rounded text-xs font-medium">
           ✅ Tâche effectuée
         </span>
       );
@@ -2301,7 +2301,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask, showAlert
       return (
         <button 
           onClick={() => handleComplete(task.id)} 
-          className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors"
+          className="bg-blue-500 text-white px-1 py-0.5 rounded text-xs hover:bg-blue-600 transition-colors"
         >
           J'ai fait l'action
         </button>
@@ -2311,7 +2311,7 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask, showAlert
     return (
       <button 
         onClick={() => handleComplete(task.id)} 
-        className="bg-gray-400 text-white px-3 py-1 rounded cursor-not-allowed"
+        className="bg-gray-400 text-white px-1 py-0.5 rounded text-xs cursor-not-allowed"
         disabled
         title="Cliquez d'abord sur 'Voir' pour effectuer la tâche"
       >
@@ -2474,9 +2474,11 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask, showAlert
                 <td className="px-4 py-2">{task.credits}</td>
                 <td className="px-4 py-2">{task.actionsRestantes}</td>
                 <td className="px-4 py-2">{task.createur?.slice(0, 7)}</td>
-                <td className="px-4 py-2 space-x-2">
-                  {renderCompletionButtonOrStatus(task)}
-                  <button onClick={() => handleDelete(task.id)} className="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-600">Supprimer</button>
+                <td className="px-4 py-2">
+                  <div className="flex flex-row gap-2">
+                    {renderCompletionButtonOrStatus(task)}
+                    <button onClick={() => handleDelete(task.id)} className="bg-gray-400 text-white px-1 py-0.5 rounded text-xs hover:bg-gray-600">Supprimer</button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -2521,9 +2523,11 @@ function ExchangeTaskList({ tasks, onRefresh, showOnlyMine, onNewTask, showAlert
                     <span className="text-green-600 dark:text-green-400 font-medium">Vous</span>
                   </span>
                 </td>
-                <td className="px-4 py-2 space-x-2">
-                  {renderCompletionButtonOrStatus(task)}
-                  <button onClick={() => handleDelete(task.id)} className="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-600">Supprimer</button>
+                <td className="px-4 py-2">
+                  <div className="flex flex-row gap-2">
+                    {renderCompletionButtonOrStatus(task)}
+                    <button onClick={() => handleDelete(task.id)} className="bg-gray-400 text-white px-1 py-0.5 rounded text-xs hover:bg-gray-600">Supprimer</button>
+                  </div>
                 </td>
               </tr>
             ))}
