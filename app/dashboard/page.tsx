@@ -1007,29 +1007,28 @@ export default function Dashboard() {
       `}</style>
     <div className="min-h-screen dashboard-container">
       {/* Header */}
-      <header className="border-b w-full overflow-x-hidden py-2 sm:py-0 dashboard-card">
-        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 w-full overflow-x-auto">
-          <div className="flex flex-wrap justify-between items-center h-auto min-h-[44px] gap-1 sm:gap-0">
-            <div className="flex items-center min-w-0 gap-2">
-              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent truncate max-w-[120px] sm:max-w-none">
+      <header className="border-b w-full overflow-x-hidden py-1 sm:py-2 dashboard-card">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 w-full overflow-x-auto">
+          <div className="flex flex-wrap justify-between items-center h-auto min-h-[40px] sm:min-h-[44px] gap-1 sm:gap-2">
+            <div className="flex items-center min-w-0 gap-1 sm:gap-2">
+              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent truncate max-w-[100px] sm:max-w-[120px] lg:max-w-none">
                 BE STRONG
               </h1>
-              {/* Supprimé - plus d'indicateur de statut de connexion */}
             </div>
-            <div className="flex items-center flex-nowrap gap-2 sm:gap-4 min-w-0 overflow-x-auto scrollbar-thin scrollbar-thumb-pink-300 scrollbar-track-transparent">
+            <div className="flex items-center flex-nowrap gap-1 sm:gap-2 lg:gap-4 min-w-0 overflow-x-auto scrollbar-thin scrollbar-thumb-pink-300 scrollbar-track-transparent">
               {/* Notifications */}
               <div className="relative">
                 <button
-                  className="p-2 text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 relative"
+                  className="p-1.5 sm:p-2 text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 relative"
                   title="Messages & Notifications"
                   onClick={() => {
                     setNotifOpen(!notifOpen);
                     setSelectedNotification(null);
                   }}
                 >
-                  <MessageCircle className="w-6 h-6" />
+                  <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
                   {notifUnread > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-pink-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold animate-pulse">
+                    <span className="absolute -top-1 -right-1 bg-pink-500 text-white text-xs rounded-full px-1 py-0.5 font-bold animate-pulse">
                       {notifUnread}
                     </span>
                   )}
@@ -1171,12 +1170,12 @@ export default function Dashboard() {
 
       {/* Supprimé - plus d'indicateur de chargement initial */}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" data-dashboard>
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6" data-dashboard>
         {/* Navigation */}
-        <nav className="flex space-x-2 sm:space-x-8 mb-4 sm:mb-8 overflow-x-auto scrollbar-thin scrollbar-thumb-pink-300 scrollbar-track-transparent -mx-2 sm:mx-0 px-2 sm:px-0">
+        <nav className="flex space-x-1 sm:space-x-4 mb-3 sm:mb-6 overflow-x-auto scrollbar-thin scrollbar-thumb-pink-300 scrollbar-track-transparent -mx-1 sm:mx-0 px-1 sm:px-0">
           <button
             onClick={() => setActiveTab("overview")}
-            className={`flex-shrink-0 px-3 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base min-w-[120px] sm:min-w-0 ${
+            className={`flex-shrink-0 px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg font-medium transition-colors text-xs sm:text-sm min-w-[80px] sm:min-w-[100px] ${
               activeTab === "overview"
                 ? "bg-pink-500 text-white"
                 : "text-gray-600 dark:text-gray-300 hover:text-pink-500"
@@ -1186,7 +1185,7 @@ export default function Dashboard() {
           </button>
           <button
             onClick={() => setActiveTab("exchange")}
-            className={`flex-shrink-0 px-3 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base min-w-[120px] sm:min-w-0 ${
+            className={`flex-shrink-0 px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg font-medium transition-colors text-xs sm:text-sm min-w-[60px] sm:min-w-[80px] ${
               activeTab === "exchange"
                 ? "bg-pink-500 text-white"
                 : "text-gray-600 dark:text-gray-300 hover:text-pink-500"
@@ -1197,19 +1196,19 @@ export default function Dashboard() {
 
           <button
             onClick={() => setActiveTab("ai")}
-            className={`flex-shrink-0 px-3 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base min-w-[120px] sm:min-w-0 ${
+            className={`flex-shrink-0 px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg font-medium transition-colors text-xs sm:text-sm min-w-[40px] sm:min-w-[60px] ${
               activeTab === "ai"
                 ? "bg-pink-500 text-white"
                 : "text-gray-600 dark:text-gray-300 hover:text-pink-500"
             }`}
           >
-            <Brain className="w-4 h-4 mr-1" />
+            <Brain className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
             IA
           </button>
 
           <button
             onClick={() => setActiveTab("boost")}
-            className={`flex-shrink-0 px-3 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base min-w-[120px] sm:min-w-0 ${
+            className={`flex-shrink-0 px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg font-medium transition-colors text-xs sm:text-sm min-w-[70px] sm:min-w-[90px] ${
               activeTab === "boost"
                 ? "bg-pink-500 text-white"
                 : "text-gray-600 dark:text-gray-300 hover:text-pink-500"
@@ -1219,7 +1218,7 @@ export default function Dashboard() {
           </button>
           <button
             onClick={() => setActiveTab("advertising")}
-            className={`flex-shrink-0 px-3 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base min-w-[120px] sm:min-w-0 ${
+            className={`flex-shrink-0 px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg font-medium transition-colors text-xs sm:text-sm min-w-[80px] sm:min-w-[100px] ${
               activeTab === "advertising"
                 ? "bg-pink-500 text-white"
                 : "text-gray-600 dark:text-gray-300 hover:text-pink-500"
@@ -1229,7 +1228,7 @@ export default function Dashboard() {
           </button>
           <button
             onClick={() => setActiveTab("messages")}
-            className={`flex-shrink-0 px-3 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base min-w-[120px] sm:min-w-0 relative ${
+            className={`flex-shrink-0 px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg font-medium transition-colors text-xs sm:text-sm min-w-[70px] sm:min-w-[90px] relative ${
               activeTab === "messages"
                 ? "bg-pink-500 text-white"
                 : "text-gray-600 dark:text-gray-300 hover:text-pink-500"
@@ -1237,7 +1236,7 @@ export default function Dashboard() {
           >
             Messages
             {Object.values(unreadMessages).reduce((total, count) => total + count, 0) > 0 && (
-              <span className="absolute -top-1 -right-1 bg-pink-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold animate-pulse">
+              <span className="absolute -top-1 -right-1 bg-pink-500 text-white text-xs rounded-full px-1 py-0.5 font-bold animate-pulse">
                 {Object.values(unreadMessages).reduce((total, count) => total + count, 0)}
               </span>
             )}
@@ -1245,55 +1244,49 @@ export default function Dashboard() {
 
           <button
             onClick={() => setActiveTab("creation")}
-            className={`flex-shrink-0 px-3 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base min-w-[120px] sm:min-w-0 ${
+            className={`flex-shrink-0 px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg font-medium transition-colors text-xs sm:text-sm min-w-[70px] sm:min-w-[90px] ${
               activeTab === "creation"
                 ? "bg-pink-500 text-white"
                 : "text-gray-600 dark:text-gray-300 hover:text-pink-500"
             }`}
           >
-            <Target className="w-4 h-4 mr-1" />
+            <Target className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
             Création
           </button>
-
-
         </nav>
 
         {activeTab === "overview" && (
-          <div data-tab="overview" className="space-y-8">
-
-
+          <div data-tab="overview" className="space-y-4 sm:space-y-6">
             {/* Statistiques utilisateur */}
-            <UserStats userId={user?.id} className="mb-6" />
-
-
+            <UserStats userId={user?.id} className="mb-4 sm:mb-6" />
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Actions rapides</h3>
-                <div className="space-y-3">
-                  <button onClick={() => setActiveTab('exchange')} className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all duration-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Actions rapides</h3>
+                <div className="space-y-2 sm:space-y-3">
+                  <button onClick={() => setActiveTab('exchange')} className="w-full flex items-center justify-between p-2 sm:p-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all duration-200 text-sm">
                     <span>Consulter mes tâches en cours</span>
-                    <BarChart3 className="w-5 h-5" />
+                    <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
-                  <button onClick={() => setInviteModalOpen(true)} className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-pink-400 to-yellow-500 text-white rounded-lg hover:shadow-lg transition-all duration-200">
+                  <button onClick={() => setInviteModalOpen(true)} className="w-full flex items-center justify-between p-2 sm:p-3 bg-gradient-to-r from-pink-400 to-yellow-500 text-white rounded-lg hover:shadow-lg transition-all duration-200 text-sm">
                     <span>Inviter un ami et gagnez 1000 crédits</span>
-                    <Plus className="w-5 h-5" />
+                    <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                   
-                  <button onClick={() => setActiveTab('messages')} className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all duration-200">
+                  <button onClick={() => setActiveTab('messages')} className="w-full flex items-center justify-between p-2 sm:p-3 bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all duration-200 text-sm">
                     <span>Messagerie Instantanée</span>
-                    <MessageCircle className="w-5 h-5" />
+                    <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                   
-                  <button onClick={() => setNotifOpen(true)} className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-blue-400 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all duration-200">
+                  <button onClick={() => setNotifOpen(true)} className="w-full flex items-center justify-between p-2 sm:p-3 bg-gradient-to-r from-blue-400 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all duration-200 text-sm">
                     <span>Voir les notifications</span>
-                    <MessageCircle className="w-5 h-5" />
+                    <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                   
-                  <button onClick={() => setSettingsOpen(true)} className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-gray-600 to-gray-900 text-white rounded-lg hover:shadow-lg transition-all duration-200">
+                  <button onClick={() => setSettingsOpen(true)} className="w-full flex items-center justify-between p-2 sm:p-3 bg-gradient-to-r from-gray-600 to-gray-900 text-white rounded-lg hover:shadow-lg transition-all duration-200 text-sm">
                     <span>Modifier mon profil</span>
-                    <Settings className="w-5 h-5" />
+                    <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                   <button 
                     onClick={() => {
@@ -1301,34 +1294,34 @@ export default function Dashboard() {
                       fetchTasks();
                       showAlert('Données rafraîchies !', 'success');
                     }} 
-                    className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all duration-200"
+                    className="w-full flex items-center justify-between p-2 sm:p-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all duration-200 text-sm"
                   >
                     <span>Rafraîchir les données</span>
-                    <RefreshCw className="w-5 h-5" />
+                    <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
-                  <button onClick={logoutAndClearAccess} className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-lg hover:shadow-lg transition-all duration-200">
+                  <button onClick={logoutAndClearAccess} className="w-full flex items-center justify-between p-2 sm:p-3 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-lg hover:shadow-lg transition-all duration-200 text-sm">
                     <span>Déconnexion rapide</span>
-                    <LogOut className="w-5 h-5" />
+                    <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
-                    <button onClick={() => setShowSuggestionModal(true)} className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-green-400 to-green-600 text-white rounded-lg hover:shadow-lg transition-all duration-200">
+                    <button onClick={() => setShowSuggestionModal(true)} className="w-full flex items-center justify-between p-2 sm:p-3 bg-gradient-to-r from-green-400 to-green-600 text-white rounded-lg hover:shadow-lg transition-all duration-200 text-sm">
                       <span>Suggestions</span>
-                      <Zap className="w-5 h-5" />
+                      <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
-                    <button onClick={() => setActiveTab('ai')} className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all duration-200">
+                    <button onClick={() => setActiveTab('ai')} className="w-full flex items-center justify-between p-2 sm:p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all duration-200 text-sm">
                       <span>Assistant IA</span>
-                      <Brain className="w-5 h-5" />
+                      <Brain className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
-                    <a href="https://whatsapp.com/channel/0029Vb69KpVLo4hhz4Qnkm1m" target="_blank" rel="noopener noreferrer" className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-green-500 to-green-700 text-white rounded-lg hover:shadow-lg transition-all duration-200">
+                    <a href="https://whatsapp.com/channel/0029Vb69KpVLo4hhz4Qnkm1m" target="_blank" rel="noopener noreferrer" className="w-full flex items-center justify-between p-2 sm:p-3 bg-gradient-to-r from-green-500 to-green-700 text-white rounded-lg hover:shadow-lg transition-all duration-200 text-sm">
                       <span>Rejoindre la communauté</span>
-                      <Users className="w-5 h-5" />
+                      <Users className="w-4 h-4 sm:w-5 sm:h-5" />
                     </a>
-                    <button onClick={() => setActiveTab('badges')} className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-yellow-500 to-orange-600 text-white rounded-lg hover:shadow-lg transition-all duration-200">
+                    <button onClick={() => setActiveTab('badges')} className="w-full flex items-center justify-between p-2 sm:p-3 bg-gradient-to-r from-yellow-500 to-orange-600 text-white rounded-lg hover:shadow-lg transition-all duration-200 text-sm">
                       <span>Badges & Récompenses</span>
-                      <Trophy className="w-5 h-5" />
+                      <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
-                    <button onClick={() => setActiveTab('stats')} className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all duration-200">
+                    <button onClick={() => setActiveTab('stats')} className="w-full flex items-center justify-between p-2 sm:p-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all duration-200 text-sm">
                       <span>Statistiques Avancées</span>
-                      <BarChart3 className="w-5 h-5" />
+                      <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                 </div>
               </div>
@@ -1340,10 +1333,10 @@ export default function Dashboard() {
 
         {/* Section Échange */}
         {activeTab === "exchange" && (
-          <div data-tab="exchange" className="space-y-6">
+          <div data-tab="exchange" className="space-y-4 sm:space-y-6">
             {/* En-tête */}
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Tâches d&apos;échange</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Tâches d&apos;échange</h2>
             </div>
             
             {/* Formulaire de création de tâche */}
@@ -1366,36 +1359,38 @@ export default function Dashboard() {
           </div>
         )}
 
-
-
         {activeTab === "boost" && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Services de boosting</h2>
+          <div className="space-y-4 sm:space-y-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Services de Boosting</h2>
             
-            {/* Notification de développement en cours */}
-            <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-xl shadow-lg">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                  <Target className="w-5 h-5" />
+            {/* Message principal */}
+            <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 sm:p-8 rounded-xl shadow-lg">
+              <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-full flex items-center justify-center">
+                  <Zap className="w-6 h-6 sm:w-7 sm:h-7" />
                 </div>
-                <h3 className="text-lg font-semibold">🚧 Service en cours de développement</h3>
+                <div>
+                  <h3 className="text-lg sm:text-2xl font-bold">🚀 Services de Boosting</h3>
+                  <p className="text-blue-100 text-sm sm:text-lg">Augmentez votre visibilité TikTok</p>
+                </div>
               </div>
-              <p className="text-blue-100 leading-relaxed">
+              
+              <p className="text-blue-100 leading-relaxed text-sm sm:text-base">
                 Les services de boosting payant ne sont pas encore opérationnels. 
                 Notre équipe travaille actuellement sur cette fonctionnalité pour vous offrir 
                 des services de qualité. En attendant, vous pouvez utiliser le système d&apos;échanges 
                 organiques qui est entièrement fonctionnel !
               </p>
-              <div className="mt-4 flex items-center gap-2 text-blue-100 text-sm">
-                <Zap className="w-4 h-4" />
+              <div className="mt-3 sm:mt-4 flex items-center gap-2 text-blue-100 text-xs sm:text-sm">
+                <Zap className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span>Bientôt disponible - Restez connectés !</span>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Followers</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">Augmentez votre nombre d&apos;abonnés</p>
-                <div className="space-y-2 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Followers</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-3 sm:mb-4 text-sm">Augmentez votre nombre d&apos;abonnés</p>
+                <div className="space-y-2 mb-3 sm:mb-4 text-sm">
                   <div className="flex justify-between">
                     <span>100 followers</span>
                     <span className="font-semibold">€9.99</span>
@@ -1409,15 +1404,15 @@ export default function Dashboard() {
                     <span className="font-semibold">€69.99</span>
                   </div>
                 </div>
-                <button className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-200">
+                <button className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-200 text-sm">
                   Commander
                 </button>
               </div>
 
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Vues</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">Boostez vos vues vidéo</p>
-                <div className="space-y-2 mb-4">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Vues</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-3 sm:mb-4 text-sm">Boostez vos vues vidéo</p>
+                <div className="space-y-2 mb-3 sm:mb-4 text-sm">
                   <div className="flex justify-between">
                     <span>1000 vues</span>
                     <span className="font-semibold">€4.99</span>
@@ -1431,15 +1426,15 @@ export default function Dashboard() {
                     <span className="font-semibold">€34.99</span>
                   </div>
                 </div>
-                <button className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-200">
+                <button className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-200 text-sm">
                   Commander
                 </button>
               </div>
 
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Likes</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">Augmentez vos likes</p>
-                <div className="space-y-2 mb-4">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Likes</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-3 sm:mb-4 text-sm">Augmentez vos likes</p>
+                <div className="space-y-2 mb-3 sm:mb-4 text-sm">
                   <div className="flex justify-between">
                     <span>100 likes</span>
                     <span className="font-semibold">€2.99</span>
@@ -1453,7 +1448,7 @@ export default function Dashboard() {
                     <span className="font-semibold">€16.99</span>
                   </div>
                 </div>
-                <button className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-200">
+                <button className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-200 text-sm">
                   Commander
                 </button>
               </div>
