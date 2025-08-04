@@ -9,8 +9,55 @@ import { GlobalAnimations } from './components/GlobalAnimations'
 import ScrollToTop from './components/ScrollToTop'
 
 export const metadata: Metadata = {
-  title: 'BE STRONG - Plateforme de motivation et fitness',
-  description: 'Rejoignez la communauté BE STRONG pour atteindre vos objectifs fitness et motivation',
+  title: 'BE STRONG - Plateforme de motivation et fitness | Développez votre compte TikTok',
+  description: 'Rejoignez la communauté BE STRONG pour atteindre vos objectifs fitness et motivation. Échangez des tâches TikTok, analysez vos performances et développez votre audience organiquement. Plus de 1000+ utilisateurs actifs.',
+  keywords: 'TikTok, fitness, motivation, échange de tâches, croissance organique, communauté, développement personnel, réseaux sociaux, engagement, followers',
+  authors: [{ name: 'BE STRONG Team' }],
+  creator: 'BE STRONG',
+  publisher: 'BE STRONG',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL('https://mybestrong.netlify.app'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'BE STRONG - Développez votre compte TikTok organiquement',
+    description: 'Plateforme éthique pour augmenter votre visibilité TikTok avec des échanges organiques, analytics et conseils d\'optimisation',
+    url: 'https://mybestrong.netlify.app',
+    siteName: 'BE STRONG',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'BE STRONG - Plateforme TikTok',
+      },
+    ],
+    locale: 'fr_FR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'BE STRONG - Développez votre compte TikTok organiquement',
+    description: 'Plateforme éthique pour augmenter votre visibilité TikTok avec des échanges organiques',
+    images: ['/og-image.png'],
+    creator: '@bestrong_app',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
