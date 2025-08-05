@@ -48,6 +48,19 @@ interface SentMessage {
   userId: string;
 }
 
+interface Task {
+  id: string;
+  type: string;
+  url: string;
+  credits: number;
+  actionsRestantes: number;
+  createur: string;
+  createdAt: string;
+  updatedAt: string;
+  completions: any[];
+  completionCount: number;
+}
+
 export default function AdminPage() {
   const { showConfirm } = useAlert();
   const [users, setUsers] = useState<User[]>([]);
@@ -71,6 +84,12 @@ export default function AdminPage() {
   const [bulkCreditsLoading, setBulkCreditsLoading] = useState(false);
   const [bulkCreditsAmount, setBulkCreditsAmount] = useState("");
   const [deleteAllTasksLoading, setDeleteAllTasksLoading] = useState(false);
+  // Gestion des tâches
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasksLoading, setTasksLoading] = useState(false);
+  const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set());
+  const [showTasksModal, setShowTasksModal] = useState(false);
+  const [deleteSelectedTasksLoading, setDeleteSelectedTasksLoading] = useState(false);
   // Suggestions admin (toujours en haut !)
   const [showSuggestionsModal, setShowSuggestionsModal] = useState(false);
   const [suggestionsList, setSuggestionsList] = useState([]);
@@ -541,6 +560,84 @@ export default function AdminPage() {
     );
   };
 
+  // Charger toutes les tâches
+  const loadTasks = async () => {
+    setTasksLoading(true);
+    setError("");
+    try {
+      const res = await fetch('/api/admin/tasks');
+      const data = await res.json();
+      if (data.tasks) {
+        setTasks(data.tasks);
+        setShowTasksModal(true);
+      } else {
+        setError(data.error || "Erreur lors du chargement des tâches");
+      }
+    } catch {
+      setError("Erreur réseau lors du chargement des tâches");
+    } finally {
+      setTasksLoading(false);
+    }
+  };
+
+  // Gérer la sélection/désélection des tâches
+  const toggleTaskSelection = (taskId: string) => {
+    const newSelected = new Set(selectedTasks);
+    if (newSelected.has(taskId)) {
+      newSelected.delete(taskId);
+    } else {
+      newSelected.add(taskId);
+    }
+    setSelectedTasks(newSelected);
+  };
+
+  // Sélectionner toutes les tâches
+  const selectAllTasks = () => {
+    setSelectedTasks(new Set(tasks.map(task => task.id)));
+  };
+
+  // Désélectionner toutes les tâches
+  const deselectAllTasks = () => {
+    setSelectedTasks(new Set());
+  };
+
+  // Supprimer les tâches sélectionnées
+  const deleteSelectedTasks = async () => {
+    if (selectedTasks.size === 0) {
+      setError("Aucune tâche sélectionnée");
+      return;
+    }
+
+    showConfirm(
+      `⚠️ ATTENTION : Êtes-vous sûr de vouloir supprimer ${selectedTasks.size} tâche(s) sélectionnée(s) ? Cette action est irréversible !`,
+      async () => {
+        setDeleteSelectedTasksLoading(true);
+        setError("");
+        setSuccess("");
+        try {
+          const res = await fetch('/api/admin/tasks', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ taskIds: Array.from(selectedTasks) })
+          });
+          const data = await res.json();
+          if (data.success) {
+            setSuccess(data.message);
+            setSelectedTasks(new Set());
+            // Recharger les tâches
+            await loadTasks();
+          } else {
+            setError(data.error || "Erreur lors de la suppression des tâches");
+          }
+        } catch {
+          setError("Erreur réseau lors de la suppression");
+        } finally {
+          setDeleteSelectedTasksLoading(false);
+        }
+      }
+    );
+  };
+
   // Ouvrir le modal d'édition
   const openEditModal = (user: User) => {
     setSelectedUser(user);
@@ -928,10 +1025,24 @@ export default function AdminPage() {
       <div className="max-w-2xl mx-auto mt-8 mb-8 bg-white dark:bg-gray-800 rounded-xl shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
         <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-900 dark:text-white">Gestion des tâches</h2>
         <div className="flex flex-col gap-4">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <h3 className="text-blue-800 dark:text-blue-200 font-semibold mb-2">📋 Gestion sélective des tâches</h3>
+            <p className="text-blue-700 dark:text-blue-300 text-sm mb-4">
+              Consultez toutes les tâches en cours et sélectionnez celles que vous souhaitez supprimer.
+            </p>
+            <button
+              onClick={loadTasks}
+              disabled={tasksLoading}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-200 disabled:opacity-60 text-sm"
+            >
+              {tasksLoading ? "Chargement..." : "📋 Gérer les tâches"}
+            </button>
+          </div>
+          
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
             <h3 className="text-red-800 dark:text-red-200 font-semibold mb-2">⚠️ Zone dangereuse</h3>
             <p className="text-red-700 dark:text-red-300 text-sm mb-4">
-              Cette action supprimera définitivement toutes les tâches en cours et leurs complétions. 
+              Cette action supprimera définitivement TOUTES les tâches en cours et leurs complétions. 
               Cette opération est irréversible !
             </p>
             <button
@@ -1378,6 +1489,131 @@ export default function AdminPage() {
             <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={() => setShowActivitiesModal(false)}
+                className="w-full bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Gestion des Tâches */}
+      {showTasksModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-2 sm:px-0">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-4 sm:p-8 w-full max-w-6xl max-h-[90vh] relative overflow-hidden">
+            <button 
+              onClick={() => setShowTasksModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-pink-500 text-2xl z-10"
+            >
+              ×
+            </button>
+            
+            <div className="flex items-center space-x-3 mb-6">
+              <Activity className="w-6 h-6 text-blue-500" />
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                Gestion des tâches ({tasks.length} tâches)
+              </h3>
+            </div>
+
+            {/* Actions de sélection */}
+            <div className="flex items-center justify-between mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={selectAllTasks}
+                  className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
+                >
+                  Tout sélectionner
+                </button>
+                <button
+                  onClick={deselectAllTasks}
+                  className="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600"
+                >
+                  Tout désélectionner
+                </button>
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  {selectedTasks.size} tâche(s) sélectionnée(s)
+                </span>
+              </div>
+              {selectedTasks.size > 0 && (
+                <button
+                  onClick={deleteSelectedTasks}
+                  disabled={deleteSelectedTasksLoading}
+                  className="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700 disabled:opacity-50"
+                >
+                  {deleteSelectedTasksLoading ? "Suppression..." : `Supprimer ${selectedTasks.size} tâche(s)`}
+                </button>
+              )}
+            </div>
+            
+            <div className="overflow-y-auto max-h-[60vh]">
+              {tasksLoading ? (
+                <div className="text-center py-8">
+                  <RefreshCw className="w-8 h-8 animate-spin mx-auto text-blue-500" />
+                  <p className="mt-2 text-gray-600 dark:text-gray-400">Chargement des tâches...</p>
+                </div>
+              ) : tasks.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-600 dark:text-gray-400">Aucune tâche en cours</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {tasks.map((task) => (
+                    <div key={task.id} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center space-x-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedTasks.has(task.id)}
+                          onChange={() => toggleTaskSelection(task.id)}
+                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                {task.type}
+                              </span>
+                              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                {task.credits} crédits
+                              </span>
+                              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                                {task.actionsRestantes} restantes
+                              </span>
+                              {task.completionCount > 0 && (
+                                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                                  {task.completionCount} complétions
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {formatDate(task.createdAt)}
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                            <strong>Créateur:</strong> {task.createur}
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            <strong>URL:</strong> 
+                            <a 
+                              href={task.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 ml-1"
+                            >
+                              {task.url.length > 50 ? task.url.substring(0, 50) + '...' : task.url}
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => setShowTasksModal(false)}
                 className="w-full bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600"
               >
                 Fermer
