@@ -74,6 +74,12 @@ export default function AdminPage() {
   const [notifSending, setNotifSending] = useState(false);
   const [notifResult, setNotifResult] = useState("");
 
+  // --- Gestion des messages envoyés par l'admin ---
+  const [sentMessages, setSentMessages] = useState<any[]>([]);
+  const [sentMessagesLoading, setSentMessagesLoading] = useState(false);
+  const [showSentMessagesModal, setShowSentMessagesModal] = useState(false);
+  const [deleteMessageLoading, setDeleteMessageLoading] = useState<string | null>(null);
+
   const handleSendNotif = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!notifMessage.trim()) {
@@ -103,6 +109,45 @@ export default function AdminPage() {
       setNotifResult("Erreur lors de l'envoi");
     } finally {
       setNotifSending(false);
+    }
+  };
+
+  // Fonction pour charger les messages envoyés par l'admin
+  const loadSentMessages = async () => {
+    setSentMessagesLoading(true);
+    try {
+      const res = await fetch("/api/admin/notifications/sent");
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setSentMessages(data);
+      } else {
+        console.error('Erreur lors du chargement des messages:', data.error);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des messages:', error);
+    } finally {
+      setSentMessagesLoading(false);
+    }
+  };
+
+  // Fonction pour supprimer un message
+  const deleteMessage = async (messageId: string) => {
+    setDeleteMessageLoading(messageId);
+    try {
+      const res = await fetch(`/api/admin/notifications?id=${messageId}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Recharger les messages après suppression
+        await loadSentMessages();
+      } else {
+        console.error('Erreur lors de la suppression:', data.error);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+    } finally {
+      setDeleteMessageLoading(null);
     }
   };
 
@@ -820,6 +865,25 @@ export default function AdminPage() {
         </form>
       </div>
 
+      {/* Gestion des messages envoyés par l'admin */}
+      <div className="max-w-2xl mx-auto mt-8 mb-8 bg-white dark:bg-gray-800 rounded-xl shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Messages envoyés</h2>
+          <button
+            onClick={() => {
+              setShowSentMessagesModal(true);
+              loadSentMessages();
+            }}
+            className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 text-sm"
+          >
+            Voir les messages
+          </button>
+        </div>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          Consultez et supprimez les messages que vous avez envoyés aux utilisateurs.
+        </p>
+      </div>
+
       {/* Formulaire d'ajout de crédits en masse */}
       <div className="max-w-2xl mx-auto mt-8 mb-8 bg-white dark:bg-gray-800 rounded-xl shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
         <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-900 dark:text-white">Ajouter des crédits à tous les utilisateurs</h2>
@@ -1305,6 +1369,92 @@ export default function AdminPage() {
             <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={() => setShowActivitiesModal(false)}
+                className="w-full bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Messages Envoyés par l'Admin */}
+      {showSentMessagesModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-2 sm:px-0">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-4 sm:p-8 w-full max-w-4xl max-h-[80vh] relative overflow-hidden">
+            <button 
+              onClick={() => setShowSentMessagesModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-pink-500 text-2xl z-10"
+            >
+              ×
+            </button>
+            
+            <div className="flex items-center space-x-3 mb-6">
+              <Activity className="w-6 h-6 text-blue-500" />
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                Messages envoyés par l'admin
+              </h3>
+            </div>
+            
+            <div className="overflow-y-auto max-h-[60vh]">
+              {sentMessagesLoading ? (
+                <div className="text-center py-8">
+                  <RefreshCw className="w-8 h-8 animate-spin mx-auto text-blue-500" />
+                  <p className="mt-2 text-gray-600 dark:text-gray-400">Chargement des messages...</p>
+                </div>
+              ) : sentMessages.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-600 dark:text-gray-400">Aucun message envoyé</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {sentMessages.map((message) => (
+                    <div key={message.id} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                Destinataire: {message.target}
+                              </span>
+                              {message.lu && (
+                                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                                  Lu
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {formatDate(message.date)}
+                              </span>
+                              <button
+                                onClick={() => deleteMessage(message.id)}
+                                disabled={deleteMessageLoading === message.id}
+                                className="text-red-500 hover:text-red-700 disabled:opacity-50 p-1"
+                                title="Supprimer ce message"
+                              >
+                                {deleteMessageLoading === message.id ? (
+                                  <RefreshCw className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <Trash2 className="w-4 h-4" />
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                          <p className="text-gray-700 dark:text-gray-300 text-sm whitespace-pre-wrap">
+                            {message.message}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => setShowSentMessagesModal(false)}
                 className="w-full bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600"
               >
                 Fermer

@@ -66,27 +66,27 @@ export const metadata: Metadata = {
     startupImage: [
       {
         url: '/icon-512.png',
-        media: '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)'
+        media: '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)',
       },
       {
         url: '/icon-512.png',
-        media: '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)'
+        media: '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)',
       },
       {
         url: '/icon-512.png',
-        media: '(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)'
-      }
-    ]
+        media: '(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)',
+      },
+    ],
   },
   icons: {
     icon: [
       { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
-      { url: '/icon-maskable.png', sizes: '192x192', type: 'image/png' }
+      { url: '/icon-maskable.png', sizes: '192x192', type: 'image/png' },
     ],
     apple: [
-      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' }
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
     ],
-    shortcut: '/icon-512.png'
+    shortcut: '/icon-512.png',
   },
   other: {
     'mobile-web-app-capable': 'yes',
@@ -95,8 +95,8 @@ export const metadata: Metadata = {
     'apple-mobile-web-app-title': 'BE STRONG',
     'application-name': 'BE STRONG',
     'msapplication-TileColor': '#ec4899',
-    'msapplication-config': '/browserconfig.xml'
-  }
+    'msapplication-config': '/browserconfig.xml',
+  },
 }
 
 export const viewport: Viewport = {

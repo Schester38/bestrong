@@ -5,8 +5,11 @@ import { usePathname } from 'next/navigation';
 
 declare global {
   interface Window {
-    gtag: (...args: any[]) => void;
-    fbq: (...args: any[]) => void;
+    gtag: (...args: unknown[]) => void;
+    fbq: (...args: unknown[]) => void;
+    ttq: {
+      track: (event: string) => void;
+    };
   }
 }
 
@@ -27,8 +30,8 @@ export default function Analytics() {
     }
 
     // TikTok Pixel
-    if (typeof window !== 'undefined' && (window as any).ttq) {
-      (window as any).ttq.track('PageView');
+    if (typeof window !== 'undefined' && window.ttq) {
+      window.ttq.track('PageView');
     }
   }, [pathname]);
 
@@ -64,7 +67,7 @@ export const AnalyticsScripts = () => (
           if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
           n.queue=[];t=b.createElement(e);t.async=!0;
           t.src=v;s=b.getElementsByTagName(e)[0];
-          s.parentNode.insertBefore(t,s)}(window, document,'script',
+          s.parentNode.insertBefore(s,t)}(window, document,'script',
           'https://connect.facebook.net/en_US/fbevents.js');
           fbq('init', 'XXXXXXXXXX');
           fbq('track', 'PageView');

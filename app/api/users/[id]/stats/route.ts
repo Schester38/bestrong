@@ -8,16 +8,16 @@ const supabase = createClient(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = params.id
+    const { id } = await params;
 
     // 1. Récupérer les tâches complétées
     const { data: completions, error: completionsError } = await supabase
       .from('task_completions')
       .select('*')
-      .eq('user_id', userId)
+      .eq('user_id', id)
 
     if (completionsError) {
       console.error('Erreur récupération completions:', completionsError)
@@ -28,7 +28,7 @@ export async function GET(
     const { data: user, error: userError } = await supabase
       .from('users')
       .select('*')
-      .eq('phone', userId)
+      .eq('phone', id)
       .single()
 
     if (userError) {
@@ -70,7 +70,7 @@ export async function GET(
     const { data: loginHistory, error: loginError } = await supabase
       .from('user_activity_logs')
       .select('created_at')
-      .eq('user_id', userId)
+      .eq('user_id', id)
       .eq('action', 'login')
       .order('created_at', { ascending: false })
       .limit(30)

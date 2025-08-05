@@ -3,18 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-
-// Vérifier que les variables d'environnement sont définies
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Variables Supabase manquantes dans route.ts:', {
-    supabaseUrl: !!supabaseUrl,
-    supabaseAnonKey: !!supabaseAnonKey
-  });
-}
-
-// Client Supabase côté serveur
 const supabase = createClient(
   supabaseUrl || 'https://jdemxmntzsetwrhzzknl.supabase.co',
   supabaseAnonKey || 'sb_publishable_W8PK0Nvw_TBQkPfvJKoOTw_CYTRacwN'
@@ -92,25 +81,51 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
-    const { notifId, userId } = body;
-    if (!notifId || !userId) return NextResponse.json({ error: 'notifId et userId requis' }, { status: 400 });
+    const { notificationId } = body;
+    if (!notificationId) return NextResponse.json({ error: 'notificationId requis' }, { status: 400 });
     
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('notifications')
       .update({ lu: true })
-      .eq('id', notifId)
-      .or(`user_id.eq.${userId},user_id.eq.all`)
-      .select();
+      .eq('id', notificationId);
 
     if (error) {
       console.error('Erreur mise à jour notification:', error);
       return NextResponse.json({ error: 'Erreur lors de la mise à jour' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: data && data.length > 0 });
+    return NextResponse.json({ success: true });
   } catch (e) {
     console.error('Erreur PATCH /api/admin/notifications:', e);
-    return NextResponse.json({ error: 'Erreur PATCH', details: e }, { status: 500 });
+    return NextResponse.json({ error: 'Erreur lors de la mise à jour', details: e }, { status: 500 });
+  }
+}
+
+// DELETE /api/admin/notifications (supprimer un message)
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const notificationId = searchParams.get('id');
+    
+    if (!notificationId) {
+      return NextResponse.json({ error: 'ID de notification requis' }, { status: 400 });
+    }
+    
+    // Supprimer la notification
+    const { error } = await supabase
+      .from('notifications')
+      .delete()
+      .eq('id', notificationId);
+
+    if (error) {
+      console.error('Erreur suppression notification:', error);
+      return NextResponse.json({ error: 'Erreur lors de la suppression' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, message: 'Message supprimé avec succès' });
+  } catch (e) {
+    console.error('Erreur DELETE /api/admin/notifications:', e);
+    return NextResponse.json({ error: 'Erreur lors de la suppression', details: e }, { status: 500 });
   }
 }
 
