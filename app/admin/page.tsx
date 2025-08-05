@@ -1500,107 +1500,109 @@ export default function AdminPage() {
 
       {/* Modal Gestion des Tâches */}
       {showTasksModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-2 sm:px-0">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-4 sm:p-8 w-full max-w-6xl max-h-[90vh] relative overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-2">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full h-full max-w-6xl max-h-[95vh] relative overflow-hidden flex flex-col">
             <button 
               onClick={() => setShowTasksModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-pink-500 text-2xl z-10"
+              className="absolute top-2 right-2 text-gray-400 hover:text-pink-500 text-2xl z-10 p-2"
             >
               ×
             </button>
             
-            <div className="flex items-center space-x-3 mb-6">
-              <Activity className="w-6 h-6 text-blue-500" />
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+            <div className="flex items-center space-x-3 p-4 border-b border-gray-200 dark:border-gray-700">
+              <Activity className="w-5 h-5 text-blue-500 flex-shrink-0" />
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">
                 Gestion des tâches ({tasks.length} tâches)
               </h3>
             </div>
 
             {/* Actions de sélection */}
-            <div className="flex items-center justify-between mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={selectAllTasks}
-                  className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
-                >
-                  Tout sélectionner
-                </button>
-                <button
-                  onClick={deselectAllTasks}
-                  className="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600"
-                >
-                  Tout désélectionner
-                </button>
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  {selectedTasks.size} tâche(s) sélectionnée(s)
-                </span>
+            <div className="p-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={selectAllTasks}
+                    className="bg-blue-500 text-white px-3 py-2 rounded text-xs sm:text-sm hover:bg-blue-600 whitespace-nowrap"
+                  >
+                    Tout sélectionner
+                  </button>
+                  <button
+                    onClick={deselectAllTasks}
+                    className="bg-gray-500 text-white px-3 py-2 rounded text-xs sm:text-sm hover:bg-gray-600 whitespace-nowrap"
+                  >
+                    Tout désélectionner
+                  </button>
+                  <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                    {selectedTasks.size} tâche(s) sélectionnée(s)
+                  </span>
+                </div>
+                {selectedTasks.size > 0 && (
+                  <button
+                    onClick={deleteSelectedTasks}
+                    disabled={deleteSelectedTasksLoading}
+                    className="bg-red-600 text-white px-4 py-2 rounded text-xs sm:text-sm hover:bg-red-700 disabled:opacity-50 whitespace-nowrap"
+                  >
+                    {deleteSelectedTasksLoading ? "Suppression..." : `Supprimer ${selectedTasks.size} tâche(s)`}
+                  </button>
+                )}
               </div>
-              {selectedTasks.size > 0 && (
-                <button
-                  onClick={deleteSelectedTasks}
-                  disabled={deleteSelectedTasksLoading}
-                  className="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700 disabled:opacity-50"
-                >
-                  {deleteSelectedTasksLoading ? "Suppression..." : `Supprimer ${selectedTasks.size} tâche(s)`}
-                </button>
-              )}
             </div>
             
-            <div className="overflow-y-auto max-h-[60vh]">
+            <div className="flex-1 overflow-y-auto p-3">
               {tasksLoading ? (
                 <div className="text-center py-8">
                   <RefreshCw className="w-8 h-8 animate-spin mx-auto text-blue-500" />
-                  <p className="mt-2 text-gray-600 dark:text-gray-400">Chargement des tâches...</p>
+                  <p className="mt-2 text-gray-600 dark:text-gray-400 text-sm">Chargement des tâches...</p>
                 </div>
               ) : tasks.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-600 dark:text-gray-400">Aucune tâche en cours</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">Aucune tâche en cours</p>
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {tasks.map((task) => (
-                    <div key={task.id} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                      <div className="flex items-center space-x-4">
+                    <div key={task.id} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                      <div className="flex items-start space-x-3">
                         <input
                           type="checkbox"
                           checked={selectedTasks.has(task.id)}
                           onChange={() => toggleTaskSelection(task.id)}
-                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 mt-1 flex-shrink-0"
                         />
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center space-x-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-2">
+                            <div className="flex flex-wrap items-center gap-1 sm:gap-2">
                               <span className="text-sm font-medium text-gray-900 dark:text-white">
                                 {task.type}
                               </span>
-                              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full whitespace-nowrap">
                                 {task.credits} crédits
                               </span>
-                              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full whitespace-nowrap">
                                 {task.actionsRestantes} restantes
                               </span>
                               {task.completionCount > 0 && (
-                                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full whitespace-nowrap">
                                   {task.completionCount} complétions
                                 </span>
                               )}
                             </div>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                            <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
                               {formatDate(task.createdAt)}
                             </span>
                           </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                            <strong>Créateur:</strong> {task.createur}
+                          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">
+                            <strong>Créateur:</strong> <span className="break-all">{task.createur}</span>
                           </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                             <strong>URL:</strong> 
                             <a 
                               href={task.url} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="text-blue-600 hover:text-blue-800 ml-1"
+                              className="text-blue-600 hover:text-blue-800 ml-1 break-all"
                             >
-                              {task.url.length > 50 ? task.url.substring(0, 50) + '...' : task.url}
+                              {task.url.length > 40 ? task.url.substring(0, 40) + '...' : task.url}
                             </a>
                           </div>
                         </div>
@@ -1611,10 +1613,10 @@ export default function AdminPage() {
               )}
             </div>
             
-            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="p-3 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={() => setShowTasksModal(false)}
-                className="w-full bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600"
+                className="w-full bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600 text-sm"
               >
                 Fermer
               </button>
