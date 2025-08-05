@@ -126,16 +126,49 @@ export async function subscribeToPushNotifications() {
 export function isPWAInstalled() {
   if (typeof window === 'undefined') return false
   
-  return window.matchMedia('(display-mode: standalone)').matches || 
-         (window.navigator as any).standalone === true;
+  // Vérifier le stockage local pour voir si l'utilisateur a déjà installé
+  const hasInstalled = localStorage.getItem('pwa-installed') === 'true'
+  
+  // Vérifier le mode d'affichage standalone
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+  
+  // Vérifier la propriété standalone sur iOS
+  const isIOSStandalone = (window.navigator as any).standalone === true
+  
+  // Vérifier si l'app est lancée depuis l'écran d'accueil
+  const isFromHomeScreen = window.location.search.includes('source=pwa') || 
+                          window.location.search.includes('utm_source=pwa')
+  
+  return hasInstalled || isStandalone || isIOSStandalone || isFromHomeScreen
+}
+
+export function markPWAAsInstalled() {
+  if (typeof window === 'undefined') return
+  
+  localStorage.setItem('pwa-installed', 'true')
+  console.log('PWA marquée comme installée')
 }
 
 export function isPWAInstallable() {
   if (typeof window === 'undefined') return false
   
-  return 'serviceWorker' in navigator && 
-         'PushManager' in window && 
-         !isPWAInstalled();
+  // Ne pas afficher le prompt si déjà installé
+  if (isPWAInstalled()) return false
+  
+  // Vérifier si l'utilisateur a déjà refusé l'installation récemment
+  const lastDismissed = localStorage.getItem('pwa-dismissed')
+  if (lastDismissed) {
+    const dismissedTime = parseInt(lastDismissed)
+    const now = Date.now()
+    const oneDay = 24 * 60 * 60 * 1000 // 24 heures
+    
+    // Si refusé il y a moins de 24h, ne pas afficher
+    if (now - dismissedTime < oneDay) {
+      return false
+    }
+  }
+  
+  return 'serviceWorker' in navigator && 'PushManager' in window
 }
 
 export function getPWAInstallPrompt() {

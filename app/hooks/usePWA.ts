@@ -1,11 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { initializePWA, getPWAInfo, isPWAInstalled, isPWAInstallable } from '../utils/pwa'
+import { isPWAInstalled, isPWAInstallable, markPWAAsInstalled, initializePWA, getPWAInfo } from '../utils/pwa'
 
 interface BeforeInstallPromptEvent extends Event {
-  readonly platforms: string[]
-  readonly userChoice: Promise<{
+  userChoice: Promise<{
     outcome: 'accepted' | 'dismissed'
     platform: string
   }>
@@ -70,6 +69,7 @@ export function usePWA() {
 
     // Écouter l'événement appinstalled
     const handleAppInstalled = () => {
+      markPWAAsInstalled() // Marquer comme installée dans le stockage local
       setIsInstalled(true)
       setIsInstallable(false)
       setDeferredPrompt(null)
@@ -97,12 +97,15 @@ export function usePWA() {
 
       if (outcome === 'accepted') {
         console.log('Utilisateur a accepté l\'installation')
+        markPWAAsInstalled() // Marquer comme installée
         setIsInstalled(true)
         setIsInstallable(false)
         setDeferredPrompt(null)
         return true
       } else {
         console.log('Utilisateur a refusé l\'installation')
+        // Marquer comme refusé pour ne pas redemander immédiatement
+        localStorage.setItem('pwa-dismissed', Date.now().toString())
         return false
       }
     } catch (error) {
@@ -112,6 +115,8 @@ export function usePWA() {
   }
 
   const dismissInstallPrompt = () => {
+    // Marquer comme refusé pour ne pas redemander immédiatement
+    localStorage.setItem('pwa-dismissed', Date.now().toString())
     setIsInstallable(false)
     setDeferredPrompt(null)
   }
