@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
         id: Date.now().toString(),
         type,
         url,
-        credits: 1,
+        credits: actionsRestantes, // Le nombre de crédits débités = nombre d'actions
         actionsRestantes,
         createur,
         createdAt: new Date().toISOString(),
@@ -88,9 +88,9 @@ export async function POST(request: NextRequest) {
     console.log('📝 Données reçues:', body);
     
     const { type, url, actionsRestantes, createur } = createTaskSchema.parse(body);
-    const credits = 1; // Crédit fixe de 1 pour toutes les tâches
+    const credits = actionsRestantes; // Le nombre de crédits débités = nombre d'actions
     
-    console.log('✅ Validation des données réussie:', { type, url, actionsRestantes, createur });
+    console.log('✅ Validation des données réussie:', { type, url, actionsRestantes, createur, credits });
     
     // Bypass admin : accès total
     if (createur === ADMIN_PHONE) {
@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
         url,
         credits,
         actions_restantes: actionsRestantes,
-        createur: createdUser.id,
+        createur: createur, // Utiliser le numéro de téléphone, pas l'ID
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -262,7 +262,7 @@ export async function POST(request: NextRequest) {
       url,
       credits,
       actions_restantes: actionsRestantes,
-      createur: user.id,
+      createur: createur, // Utiliser le numéro de téléphone, pas l'ID
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
