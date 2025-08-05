@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { NotificationService } from '@/app/utils/notification-service';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const supabase = createClient(
+  supabaseUrl || 'https://jdemxmntzsetwrhzzknl.supabase.co',
+  supabaseAnonKey || 'sb_publishable_W8PK0Nvw_TBQkPfvJKoOTw_CYTRacwN'
+);
 
 // POST: Mettre à jour la progression d'un défi
 export async function POST(request: NextRequest) {

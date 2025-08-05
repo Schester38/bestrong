@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API Messages Admin</title>
+</head>
+<body>
+    <h1>Test API Messages Admin</h1>
+    
+    <h2>1. Envoyer un message</h2>
+    <button onclick="sendMessage()">Envoyer un message de test</button>
+    <div id="sendResult"></div>
+    
+    <h2>2. Récupérer les messages envoyés</h2>
+    <button onclick="getSentMessages()">Récupérer les messages</button>
+    <div id="getResult"></div>
+    
+    <h2>3. Supprimer un message</h2>
+    <input type="text" id="messageId" placeholder="ID du message à supprimer">
+    <button onclick="deleteMessage()">Supprimer le message</button>
+    <div id="deleteResult"></div>
+
+    <script>
+        async function sendMessage() {
+            try {
+                const response = await fetch('/api/admin/notifications', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: 'all',
+                        message: 'Message de test - ' + new Date().toLocaleString()
+                    })
+                });
+                const data = await response.json();
+                document.getElementById('sendResult').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                document.getElementById('sendResult').innerHTML = 'Erreur: ' + error.message;
+            }
+        }
+
+        async function getSentMessages() {
+            try {
+                const response = await fetch('/api/admin/notifications/sent');
+                const data = await response.json();
+                document.getElementById('getResult').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                document.getElementById('getResult').innerHTML = 'Erreur: ' + error.message;
+            }
+        }
+
+        async function deleteMessage() {
+            const messageId = document.getElementById('messageId').value;
+            if (!messageId) {
+                alert('Veuillez entrer un ID de message');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/admin/notifications?id=${messageId}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                document.getElementById('deleteResult').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                document.getElementById('deleteResult').innerHTML = 'Erreur: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html> 

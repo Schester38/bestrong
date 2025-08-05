@@ -9,14 +9,6 @@ const supabase = createClient(
   supabaseAnonKey || 'sb_publishable_W8PK0Nvw_TBQkPfvJKoOTw_CYTRacwN'
 );
 
-interface Notification {
-  id: string;
-  user_id: string;
-  message: string;
-  date: string;
-  lu: boolean;
-}
-
 const ADMIN_PHONE = "+237699486146";
 
 // GET /api/admin/notifications?userId=xxx

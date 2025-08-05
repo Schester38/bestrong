@@ -5,9 +5,8 @@ import { logActivity } from '../../../utils/activities';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-// Client Supabase côté serveur - utiliser la clé anon pour l'instant
+// Client Supabase côté serveur
 const supabase = createClient(
   supabaseUrl || 'https://jdemxmntzsetwrhzzknl.supabase.co',
   supabaseAnonKey || 'sb_publishable_W8PK0Nvw_TBQkPfvJKoOTw_CYTRacwN'
@@ -58,75 +57,6 @@ const createTaskSchema = z.object({
 
 const ADMIN_PHONE = "+237699486146";
 
-// Fonction pour initialiser les tables si nécessaire
-async function ensureTablesExist() {
-  try {
-    // Vérifier si la table tasks existe
-    const { data: tasksTest, error: tasksError } = await supabase
-      .from('tasks')
-      .select('*')
-      .limit(1);
-    
-    if (tasksError && tasksError.message.includes('relation "tasks" does not exist')) {
-      console.log('🔄 Table tasks manquante, initialisation...');
-      
-      // Créer la table tasks
-      const { error: createTasksError } = await supabase.rpc('exec_sql', {
-        sql_query: `
-          CREATE TABLE IF NOT EXISTS tasks (
-            id TEXT PRIMARY KEY,
-            type TEXT NOT NULL,
-            url TEXT NOT NULL,
-            credits INTEGER NOT NULL DEFAULT 1,
-            actions_restantes INTEGER NOT NULL,
-            createur TEXT NOT NULL,
-            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-            updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-          );
-        `
-      });
-      
-      if (createTasksError) {
-        console.error('❌ Erreur création table tasks:', createTasksError);
-        throw new Error('Impossible de créer la table tasks');
-      }
-    }
-    
-    // Vérifier si la table task_completions existe
-    const { data: completionsTest, error: completionsError } = await supabase
-      .from('task_completions')
-      .select('*')
-      .limit(1);
-    
-    if (completionsError && completionsError.message.includes('relation "task_completions" does not exist')) {
-      console.log('🔄 Table task_completions manquante, initialisation...');
-      
-      // Créer la table task_completions
-      const { error: createCompletionsError } = await supabase.rpc('exec_sql', {
-        sql_query: `
-          CREATE TABLE IF NOT EXISTS task_completions (
-            id TEXT PRIMARY KEY,
-            exchange_task_id TEXT NOT NULL,
-            user_id TEXT NOT NULL,
-            completed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-          );
-        `
-      });
-      
-      if (createCompletionsError) {
-        console.error('❌ Erreur création table task_completions:', createCompletionsError);
-        throw new Error('Impossible de créer la table task_completions');
-      }
-    }
-    
-    console.log('✅ Tables vérifiées/initialisées avec succès');
-  } catch (error) {
-    console.error('❌ Erreur lors de l\'initialisation des tables:', error);
-    throw error;
-  }
-}
-
-// Créer une tâche d'échange
 export async function POST(request: NextRequest) {
   try {
     console.log('🔄 Début création de tâche...');
@@ -153,9 +83,6 @@ export async function POST(request: NextRequest) {
       console.log('✅ Tâche simulée créée:', simulatedTask);
       return NextResponse.json(simulatedTask, { status: 201 });
     }
-    
-    // S'assurer que les tables existent
-    await ensureTablesExist();
     
     const body = await request.json();
     console.log('📝 Données reçues:', body);
@@ -210,7 +137,7 @@ export async function POST(request: NextRequest) {
     // Trouver l'utilisateur par téléphone ou pseudo
     console.log('🔍 Recherche utilisateur:', createur);
     
-    let { data: user, error: userError } = await supabase
+    const { data: user, error: userError } = await supabase
       .from('users')
       .select('*')
       .or(`phone.eq.${createur},pseudo.eq.${createur}`)
@@ -227,76 +154,115 @@ export async function POST(request: NextRequest) {
     if (!user) {
       console.log('👤 Utilisateur non trouvé, création...');
       
+      // Créer un nouvel utilisateur
       const newUser = {
         id: Date.now().toString(),
         phone: createur,
-        password: '',
-        credits: 100,
+        password: 'default_password',
+        credits: 10, // Crédits de départ
         pseudo: createur,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
 
-      const { data: createdUser, error: createError } = await supabase
+      const { data: createdUser, error: createUserError } = await supabase
         .from('users')
         .insert(newUser)
         .select()
         .single();
 
-      if (createError) {
-        console.error('❌ Erreur création utilisateur:', createError);
+      if (createUserError) {
+        console.error('❌ Erreur création utilisateur:', createUserError);
         return NextResponse.json({ 
           error: "Erreur lors de la création de l'utilisateur",
-          details: createError.message 
+          details: createUserError.message 
         }, { status: 500 });
       }
 
-      user = createdUser;
-      console.log('✅ Nouvel utilisateur créé:', user.id);
-    } else {
-      console.log('✅ Utilisateur trouvé:', user.id, 'Crédits:', user.credits);
+      console.log('✅ Utilisateur créé:', createdUser);
+      
+      // Vérifier les crédits
+      if (createdUser.credits < credits) {
+        return NextResponse.json({ 
+          error: "Crédits insuffisants pour créer cette tâche",
+          required: credits,
+          available: createdUser.credits
+        }, { status: 400 });
+      }
+
+      // Créer la tâche
+      const newTask = {
+        id: Date.now().toString(),
+        type,
+        url,
+        credits,
+        actions_restantes: actionsRestantes,
+        createur: createdUser.id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { error: taskError } = await supabase
+        .from('tasks')
+        .insert(newTask);
+
+      if (taskError) {
+        console.error('❌ Erreur création tâche:', taskError);
+        return NextResponse.json({ 
+          error: "Erreur lors de la création de la tâche",
+          details: taskError.message 
+        }, { status: 500 });
+      }
+
+      // Déduire les crédits
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ 
+          credits: createdUser.credits - credits,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', createdUser.id);
+
+      if (updateError) {
+        console.error('❌ Erreur mise à jour crédits:', updateError);
+        // Ne pas échouer la création de tâche si la mise à jour des crédits échoue
+      }
+
+      console.log('✅ Tâche créée avec succès pour nouvel utilisateur');
+      
+      const transformedTask = {
+        id: newTask.id,
+        type: newTask.type,
+        url: newTask.url,
+        credits: newTask.credits,
+        actionsRestantes: newTask.actions_restantes,
+        createur: newTask.createur,
+        createdAt: newTask.created_at,
+        updatedAt: newTask.updated_at
+      };
+      return NextResponse.json(transformedTask, { status: 201 });
     }
+
+    // Utilisateur existant
+    console.log('👤 Utilisateur trouvé:', user);
     
-    const totalCost = 1; // Coût fixe de 1 crédit pour créer une tâche
-    console.log(`💰 Vérification crédits: ${user.credits} >= ${totalCost}`);
-    
-    if (user.credits < totalCost) {
-      console.log(`❌ Crédits insuffisants: ${user.credits} < ${totalCost}`);
+    // Vérifier les crédits
+    if (user.credits < credits) {
       return NextResponse.json({ 
-        error: "Crédits insuffisants",
-        details: `Vous avez ${user.credits} crédits, il vous faut ${totalCost} crédit(s)`
+        error: "Crédits insuffisants pour créer cette tâche",
+        required: credits,
+        available: user.credits
       }, { status: 400 });
     }
-    
-    // Débiter les crédits
-    console.log('💳 Débit des crédits...');
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({ 
-        credits: user.credits - totalCost,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', user.id);
 
-    if (updateError) {
-      console.error('❌ Erreur mise à jour crédits:', updateError);
-      return NextResponse.json({ 
-        error: "Erreur lors de la mise à jour des crédits",
-        details: updateError.message 
-      }, { status: 500 });
-    }
-
-    console.log(`✅ Crédits débités: ${user.credits - totalCost} restants`);
-    
     // Créer la tâche
-    console.log('📝 Création de la tâche...');
     const newTask = {
       id: Date.now().toString(),
       type,
       url,
       credits,
       actions_restantes: actionsRestantes,
-      createur,
+      createur: user.id,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -313,53 +279,48 @@ export async function POST(request: NextRequest) {
       }, { status: 500 });
     }
 
-    console.log('✅ Tâche créée avec succès:', newTask.id);
+    // Déduire les crédits
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ 
+        credits: user.credits - credits,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', user.id);
 
-    // Enregistrer l'activité de création de tâche
-    try {
-    await logActivity({
-      userId: user.id,
-      userPhone: user.phone,
-      userPseudo: user.pseudo,
-      type: 'task_created',
-      description: `Création d'une tâche ${type} pour ${actionsRestantes} actions`,
-      details: { taskId: newTask.id, taskType: type, actionsCount: actionsRestantes, creditsPerAction: credits },
-      credits: totalCost
-    });
-      console.log('✅ Activité enregistrée');
-    } catch (activityError) {
-      console.warn('⚠️ Erreur lors de l\'enregistrement de l\'activité:', activityError);
+    if (updateError) {
+      console.error('❌ Erreur mise à jour crédits:', updateError);
+      // Ne pas échouer la création de tâche si la mise à jour des crédits échoue
     }
+
+    console.log('✅ Tâche créée avec succès');
     
-      const transformedTask = {
-        id: newTask.id,
-        type: newTask.type,
-        url: newTask.url,
-        credits: newTask.credits,
-        actionsRestantes: newTask.actions_restantes,
-        createur: newTask.createur,
-        createdAt: newTask.created_at,
-        updatedAt: newTask.updated_at
-      };
-    
-    console.log('🎉 Création de tâche terminée avec succès');
-      return NextResponse.json(transformedTask, { status: 201 });
-    
+    const transformedTask = {
+      id: newTask.id,
+      type: newTask.type,
+      url: newTask.url,
+      credits: newTask.credits,
+      actionsRestantes: newTask.actions_restantes,
+      createur: newTask.createur,
+      createdAt: newTask.created_at,
+      updatedAt: newTask.updated_at
+    };
+    return NextResponse.json(transformedTask, { status: 201 });
+
   } catch (error) {
-    console.error('❌ Erreur POST /api/exchange/tasks:', error);
+    console.error('❌ Erreur création de tâche:', error);
     
-    if (error instanceof Error) {
+    if (error instanceof z.ZodError) {
       return NextResponse.json({ 
-        error: "Erreur lors de la création de la tâche", 
-        details: error.message,
-        type: error.constructor.name
-      }, { status: 400 });
-    } else {
-      return NextResponse.json({ 
-        error: "Erreur lors de la création de la tâche", 
-        details: String(error)
+        error: "Données invalides",
+        details: error.issues 
       }, { status: 400 });
     }
+    
+    return NextResponse.json({ 
+      error: "Erreur serveur lors de la création de la tâche",
+      details: error instanceof Error ? error.message : 'Erreur inconnue'
+    }, { status: 500 });
   }
 }
 
@@ -367,14 +328,6 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   try {
     console.log('🔄 Récupération des tâches...');
-    
-    // S'assurer que les tables existent
-    try {
-    await ensureTablesExist();
-    } catch (tableError) {
-      console.error('❌ Erreur lors de l\'initialisation des tables:', tableError);
-      return NextResponse.json({ error: 'Erreur lors de l\'initialisation des tables' }, { status: 500 });
-    }
     
     const { data: tasks, error: tasksError } = await supabase
       .from('tasks')

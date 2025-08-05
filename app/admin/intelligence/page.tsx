@@ -145,7 +145,7 @@ export default function AdminIntelligence() {
         <div className="mb-6">
           <nav className="flex space-x-1 bg-white dark:bg-gray-800 rounded-lg p-1 shadow-sm">
             {[
-              { id: 'overview', label: 'Vue d\'ensemble', icon: Activity },
+              { id: 'overview', label: 'Vue d&apos;ensemble', icon: Activity },
               { id: 'config', label: 'Configuration', icon: Settings },
               { id: 'analytics', label: 'Analytics', icon: TrendingUp },
               { id: 'logs', label: 'Logs', icon: Zap }
@@ -220,7 +220,7 @@ export default function AdminIntelligence() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                      Taux d'engagement
+                      Taux d&apos;engagement
                     </p>
                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
                       {stats.engagementRate}%

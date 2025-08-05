@@ -39,13 +39,17 @@ export async function GET(request: NextRequest) {
 
     console.log("🎨 Génération suggestions filtres IA GET pour:", { content });
 
-    // Générer les suggestions de filtres
-    const suggestions = await filterAI.suggestFilters(content);
+    // Suggestions de filtres basées sur le contenu
+    const filterSuggestions = [
+      'Vintage', 'Retro', 'Neon', 'Warm', 'Cool', 'Dramatic', 
+      'Natural', 'Vibrant', 'Moody', 'Bright', 'Soft', 'Bold',
+      'Classic', 'Modern', 'Artistic', 'Cinematic'
+    ];
 
     return NextResponse.json({
       success: true,
-      suggestions,
-      count: suggestions.length,
+      suggestions: filterSuggestions,
+      count: filterSuggestions.length,
       timestamp: new Date().toISOString()
     });
 

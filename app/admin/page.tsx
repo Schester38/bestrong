@@ -39,6 +39,15 @@ interface Activity {
   timestamp: string;
 }
 
+interface SentMessage {
+  id: string;
+  message: string;
+  date: string;
+  lu: boolean;
+  target: string;
+  userId: string;
+}
+
 export default function AdminPage() {
   const { showConfirm } = useAlert();
   const [users, setUsers] = useState<User[]>([]);
@@ -75,7 +84,7 @@ export default function AdminPage() {
   const [notifResult, setNotifResult] = useState("");
 
   // --- Gestion des messages envoyés par l'admin ---
-  const [sentMessages, setSentMessages] = useState<any[]>([]);
+  const [sentMessages, setSentMessages] = useState<SentMessage[]>([]);
   const [sentMessagesLoading, setSentMessagesLoading] = useState(false);
   const [showSentMessagesModal, setShowSentMessagesModal] = useState(false);
   const [deleteMessageLoading, setDeleteMessageLoading] = useState<string | null>(null);
