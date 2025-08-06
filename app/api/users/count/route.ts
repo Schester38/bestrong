@@ -82,7 +82,7 @@ export async function GET() {
 }
 
 // Fonction pour incrémenter le compteur (utilisée par d'autres APIs)
-async function incrementUserCount(): Promise<number> {
+export async function incrementUserCount(): Promise<number> {
   try {
     console.log('🔄 Incrémentation du compteur d\'utilisateurs...');
     

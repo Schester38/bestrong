@@ -164,6 +164,20 @@ export default function Home() {
     return () => clearInterval(interval); // Nettoyage de l'intervalle
   }, [fetchUserCount]);
 
+  // Écouter l'événement d'inscription pour mettre à jour le compteur en temps réel
+  useEffect(() => {
+    const handleUserRegistered = () => {
+      console.log('🔄 Utilisateur inscrit, mise à jour du compteur...');
+      setUserCount(prevCount => prevCount + 1);
+    };
+
+    window.addEventListener('user-registered', handleUserRegistered);
+    
+    return () => {
+      window.removeEventListener('user-registered', handleUserRegistered);
+    };
+  }, []);
+
   // Redirection vers la page de maintenance si nécessaire
   useEffect(() => {
     if (isMaintenanceMode) {
